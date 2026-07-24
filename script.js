@@ -4,7 +4,7 @@ document.addEventListener("DOMContentLoaded", function () {
   // =========================================================================
   
   // URL Web App dari Google Apps Script
-  const SCRIPT_URL = "https://script.google.com/macros/s/AKfycbz0XbMAWA9zY-wWRpiT27C2y5sKaaqhntnKAxk4xs9yzR7YI3YPIK1jVxiEy6nbwGU0/exec";
+  const SCRIPT_URL = "https://script.google.com/macros/s/AKfycbzoYO2gElzeSa8hALiamv0oXr21gGc83tfmR9NDxBAjeFXS0uHqxJW6fdxdU-TRuHw6/exec";
 
   // ID Google Sheets Utama (Lihat di URL browser: docs.google.com/spreadsheets/d/ INI_ID_NYA /edit)
   const SPREADSHEET_ID = "1ZpZtmGJyqglogaaq1vgKqp38XgvkUHP_wbMfJPp1Zwc";
@@ -42,9 +42,6 @@ document.addEventListener("DOMContentLoaded", function () {
 
   html5QrcodeScanner.render(onScanSuccess, onScanFailure);
 
-  // =========================================================================
-  // 3. FUNGSI PROSES SCAN & AMBIL 17 DATA KIB DARI GOOGLE SHEETS
-  // =========================================================================
 // =========================================================================
   // 3. FUNGSI PROSES SCAN & AMBIL 17 DATA KIB DARI GOOGLE SHEETS
   // =========================================================================
@@ -60,7 +57,6 @@ document.addEventListener("DOMContentLoaded", function () {
       .then(response => response.json())
       .then(data => {
         if (data.result === "found") {
-          // Tampilan Menurun Rapi (List Vertikal)
           infoDetailAset.innerHTML = `
             <div style="margin-bottom: 15px; text-align: center;">
               <span style="background-color: #dcfce7; color: #166534; padding: 6px 14px; border-radius: 20px; font-weight: bold; font-size: 14px; display: inline-block;">
@@ -71,43 +67,43 @@ document.addEventListener("DOMContentLoaded", function () {
             <div style="display: flex; flex-direction: column; gap: 10px; background: #f8fafc; padding: 15px; border-radius: 8px; border: 1px solid #e2e8f0;">
               
               <div style="border-bottom: 1px solid #e2e8f0; padding-bottom: 6px;">
-                <span style="font-size: 12px; color: #64748b; font-weight: 600; display: block;">KODE BARANG / ID ASET</span>
+                <span style="font-size: 11px; color: #64748b; font-weight: 700; display: block;">KODE BARANG / ID ASET</span>
                 <span style="font-size: 15px; font-weight: bold; color: #0284c7;">${data.kode}</span>
               </div>
 
               <div style="border-bottom: 1px solid #e2e8f0; padding-bottom: 6px;">
-                <span style="font-size: 12px; color: #64748b; font-weight: 600; display: block;">NAMA BARANG / TYPE</span>
-                <span style="font-size: 14px; font-weight: 600; color: #1e293b;">${data.nama} ${data.merk && data.merk !== '-' ? ' (' + data.merk + ')' : ''}</span>
+                <span style="font-size: 11px; color: #64748b; font-weight: 700; display: block;">NAMA BARANG / MERK / REG</span>
+                <span style="font-size: 14px; font-weight: 600; color: #1e293b;">${data.nama} ${data.merk !== '-' ? ' - ' + data.merk : ''} (Reg: ${data.reg})</span>
               </div>
 
               <div style="border-bottom: 1px solid #e2e8f0; padding-bottom: 6px;">
-                <span style="font-size: 12px; color: #64748b; font-weight: 600; display: block;">NO. REGISTER / TAHUN PEROLEHAN</span>
-                <span style="font-size: 14px; color: #334155;">Reg: ${data.reg || '-'} | Tahun: ${data.tahun || '-'}</span>
+                <span style="font-size: 11px; color: #64748b; font-weight: 700; display: block;">SPESIFIKASI & TAHUN</span>
+                <span style="font-size: 13px; color: #334155;">Ukuran: ${data.ukuran} | Bahan: ${data.bahan} | Thn: ${data.tahun}</span>
               </div>
 
               <div style="border-bottom: 1px solid #e2e8f0; padding-bottom: 6px;">
-                <span style="font-size: 12px; color: #64748b; font-weight: 600; display: block;">UKURAN / BAHAN</span>
-                <span style="font-size: 14px; color: #334155;">${data.ukuran || '-'} / ${data.bahan || '-'}</span>
+                <span style="font-size: 11px; color: #64748b; font-weight: 700; display: block;">NOMOR LEGALITAS / KENDARAAN</span>
+                <span style="font-size: 13px; color: #334155;">Pabrik: ${data.no_pabrik} | Rangka: ${data.no_rangka} | Mesin: ${data.no_mesin} | Polisi: ${data.no_polisi} | BPKB: ${data.no_bpkb}</span>
               </div>
 
               <div style="border-bottom: 1px solid #e2e8f0; padding-bottom: 6px;">
-                <span style="font-size: 12px; color: #64748b; font-weight: 600; display: block;">IDENTITAS KENDARAAN (RANGKA / MESIN / POLISI)</span>
-                <span style="font-size: 14px; color: #334155;">${data.no_rangka || '-'} / ${data.no_mesin || '-'} / ${data.no_polisi || '-'}</span>
+                <span style="font-size: 11px; color: #64748b; font-weight: 700; display: block;">KONDISI & STATUS ASET</span>
+                <span style="font-size: 13px; color: #334155;">${data.kondisi_status} (Status: ${data.status_aset})</span>
               </div>
 
               <div style="border-bottom: 1px solid #e2e8f0; padding-bottom: 6px;">
-                <span style="font-size: 12px; color: #64748b; font-weight: 600; display: block;">KONDISI BARANG</span>
-                <span style="font-size: 14px; color: #334155;">${data.kondisi_status || '-'}</span>
+                <span style="font-size: 11px; color: #64748b; font-weight: 700; display: block;">NILAI / HARGA BARANG</span>
+                <span style="font-size: 14px; font-weight: bold; color: #166534;">Rp ${data.harga_total ? Number(data.harga_total).toLocaleString('id-ID') : '0'}</span>
               </div>
 
               <div style="border-bottom: 1px solid #e2e8f0; padding-bottom: 6px;">
-                <span style="font-size: 12px; color: #64748b; font-weight: 600; display: block;">HARGA SATUAN</span>
-                <span style="font-size: 14px; font-weight: bold; color: #166534;">Rp ${data.harga ? Number(data.harga).toLocaleString('id-ID') : '0'}</span>
+                <span style="font-size: 11px; color: #64748b; font-weight: 700; display: block;">KETERANGAN DOKUMEN</span>
+                <span style="font-size: 13px; color: #334155;">${data.keterangan_aset}</span>
               </div>
 
               <div>
-                <span style="font-size: 12px; color: #64748b; font-weight: 600; display: block;">CATATAN WAKTU SCAN</span>
-                <span style="font-size: 13px; color: #0284c7; font-weight: 600;">${data.keterangan}</span>
+                <span style="font-size: 11px; color: #64748b; font-weight: 700; display: block;">CATATAN WAKTU SCAN</span>
+                <span style="font-size: 12px; color: #0284c7; font-weight: 600;">${data.keterangan}</span>
               </div>
 
             </div>
@@ -149,10 +145,6 @@ document.addEventListener("DOMContentLoaded", function () {
         scannerAktif = true;
       });
   }
-               
-            
-
-
   // =========================================================================
   // 4. TOMBOL DOWNLOAD REKAP EXCEL (.xlsx KHUSUS TAB REKAPITULASI)
   // =========================================================================
