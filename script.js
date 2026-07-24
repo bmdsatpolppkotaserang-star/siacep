@@ -4,7 +4,7 @@ document.addEventListener("DOMContentLoaded", function () {
   // =========================================================================
   
   // URL Web App dari Google Apps Script
-  const SCRIPT_URL = "url appscript https://script.google.com/macros/s/AKfycbxlPs5jGBi6R2ObZNbhvkHvyDUSxbTmeCQE1-w-JvOGHywgeyJjoty6jUxhZNXdvuaC/exec";
+  const SCRIPT_URL = "https://script.google.com/macros/s/AKfycbz0XbMAWA9zY-wWRpiT27C2y5sKaaqhntnKAxk4xs9yzR7YI3YPIK1jVxiEy6nbwGU0/exec";
 
   // ID Google Sheets Utama (Lihat di URL browser: docs.google.com/spreadsheets/d/ INI_ID_NYA /edit)
   const SPREADSHEET_ID = "1ZpZtmGJyqglogaaq1vgKqp38XgvkUHP_wbMfJPp1Zwc";
