@@ -45,8 +45,10 @@ document.addEventListener("DOMContentLoaded", function () {
   // =========================================================================
   // 3. FUNGSI PROSES SCAN & AMBIL 17 DATA KIB DARI GOOGLE SHEETS
   // =========================================================================
+// =========================================================================
+  // 3. FUNGSI PROSES SCAN & AMBIL 17 DATA KIB DARI GOOGLE SHEETS
+  // =========================================================================
   function prosesScanQR(kodeQR) {
-    // Tampilan Loading saat mencari data
     infoDetailAset.innerHTML = `
       <div style="text-align:center; padding: 20px;">
         <i class="fa-solid fa-spinner fa-spin" style="font-size:32px; color:#0284c7;"></i>
@@ -58,58 +60,67 @@ document.addEventListener("DOMContentLoaded", function () {
       .then(response => response.json())
       .then(data => {
         if (data.result === "found") {
-          // Tampilkan Rincian Lembar Informasi Aset (17 Kolom KIB)
+          // Tampilan Menurun Rapi (List Vertikal)
           infoDetailAset.innerHTML = `
-            <div class="info-badge-status status-good" style="margin-bottom: 15px; background-color: #dcfce7; color: #166534; padding: 8px 12px; border-radius: 6px; font-weight: bold; display: inline-block;">
-              <i class="fa-solid fa-circle-check"></i> Status: TER-INVENTARISASI
+            <div style="margin-bottom: 15px; text-align: center;">
+              <span style="background-color: #dcfce7; color: #166534; padding: 6px 14px; border-radius: 20px; font-weight: bold; font-size: 14px; display: inline-block;">
+                <i class="fa-solid fa-circle-check"></i> TER-INVENTARISASI DIGITAL
+              </span>
             </div>
 
-            <div class="info-detail-grid" style="display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap: 12px;">
-              <div class="info-item">
-                <span class="info-label" style="font-size: 12px; color: #64748b; display: block;">Kode Barang / ID Aset</span>
-                <span class="info-value code-highlight" style="font-weight: bold; color: #0284c7;">${data.kode}</span>
+            <div style="display: flex; flex-direction: column; gap: 10px; background: #f8fafc; padding: 15px; border-radius: 8px; border: 1px solid #e2e8f0;">
+              
+              <div style="border-bottom: 1px solid #e2e8f0; padding-bottom: 6px;">
+                <span style="font-size: 12px; color: #64748b; font-weight: 600; display: block;">KODE BARANG / ID ASET</span>
+                <span style="font-size: 15px; font-weight: bold; color: #0284c7;">${data.kode}</span>
               </div>
-              <div class="info-item">
-                <span class="info-label" style="font-size: 12px; color: #64748b; display: block;">Nama Barang & Merk/Type</span>
-                <span class="info-value" style="font-weight: 600;">${data.nama} ${data.merk ? ' - ' + data.merk : ''}</span>
+
+              <div style="border-bottom: 1px solid #e2e8f0; padding-bottom: 6px;">
+                <span style="font-size: 12px; color: #64748b; font-weight: 600; display: block;">NAMA BARANG / TYPE</span>
+                <span style="font-size: 14px; font-weight: 600; color: #1e293b;">${data.nama} ${data.merk && data.merk !== '-' ? ' (' + data.merk + ')' : ''}</span>
               </div>
-              <div class="info-item">
-                <span class="info-label" style="font-size: 12px; color: #64748b; display: block;">No. Reg & Tahun Perolehan</span>
-                <span class="info-value">Reg: ${data.reg || '-'} | Tahun: ${data.tahun || '-'}</span>
+
+              <div style="border-bottom: 1px solid #e2e8f0; padding-bottom: 6px;">
+                <span style="font-size: 12px; color: #64748b; font-weight: 600; display: block;">NO. REGISTER / TAHUN PEROLEHAN</span>
+                <span style="font-size: 14px; color: #334155;">Reg: ${data.reg || '-'} | Tahun: ${data.tahun || '-'}</span>
               </div>
-              <div class="info-item">
-                <span class="info-label" style="font-size: 12px; color: #64748b; display: block;">Ukuran/CC & Bahan</span>
-                <span class="info-value">${data.ukuran || '-'} / ${data.bahan || '-'}</span>
+
+              <div style="border-bottom: 1px solid #e2e8f0; padding-bottom: 6px;">
+                <span style="font-size: 12px; color: #64748b; font-weight: 600; display: block;">UKURAN / BAHAN</span>
+                <span style="font-size: 14px; color: #334155;">${data.ukuran || '-'} / ${data.bahan || '-'}</span>
               </div>
-              <div class="info-item">
-                <span class="info-label" style="font-size: 12px; color: #64748b; display: block;">No. Rangka / Mesin / Polisi</span>
-                <span class="info-value">${data.no_rangka || '-'} / ${data.no_mesin || '-'} / ${data.no_polisi || '-'}</span>
+
+              <div style="border-bottom: 1px solid #e2e8f0; padding-bottom: 6px;">
+                <span style="font-size: 12px; color: #64748b; font-weight: 600; display: block;">IDENTITAS KENDARAAN (RANGKA / MESIN / POLISI)</span>
+                <span style="font-size: 14px; color: #334155;">${data.no_rangka || '-'} / ${data.no_mesin || '-'} / ${data.no_polisi || '-'}</span>
               </div>
-              <div class="info-item">
-                <span class="info-label" style="font-size: 12px; color: #64748b; display: block;">Kondisi & Status Penggunaan</span>
-                <span class="info-value">${data.kondisi_status || '-'}</span>
+
+              <div style="border-bottom: 1px solid #e2e8f0; padding-bottom: 6px;">
+                <span style="font-size: 12px; color: #64748b; font-weight: 600; display: block;">KONDISI BARANG</span>
+                <span style="font-size: 14px; color: #334155;">${data.kondisi_status || '-'}</span>
               </div>
-              <div class="info-item">
-                <span class="info-label" style="font-size: 12px; color: #64748b; display: block;">Harga Satuan</span>
-                <span class="info-value">Rp ${data.harga ? Number(data.harga).toLocaleString('id-ID') : '-'}</span>
+
+              <div style="border-bottom: 1px solid #e2e8f0; padding-bottom: 6px;">
+                <span style="font-size: 12px; color: #64748b; font-weight: 600; display: block;">HARGA SATUAN</span>
+                <span style="font-size: 14px; font-weight: bold; color: #166534;">Rp ${data.harga ? Number(data.harga).toLocaleString('id-ID') : '0'}</span>
               </div>
-              <div class="info-item" style="grid-column: 1 / -1;">
-                <span class="info-label" style="font-size: 12px; color: #64748b; display: block;">Catatan Status Digital</span>
-                <span class="info-value" style="color: #0284c7; font-weight: bold;">${data.keterangan}</span>
+
+              <div>
+                <span style="font-size: 12px; color: #64748b; font-weight: 600; display: block;">CATATAN WAKTU SCAN</span>
+                <span style="font-size: 13px; color: #0284c7; font-weight: 600;">${data.keterangan}</span>
               </div>
+
             </div>
 
-            <!-- TOMBOL SCAN BARANG LAIN (MUNCUL OTOMATIS TANPA REFRESH HALAMAN) -->
-            <div style="text-align: center; margin-top: 20px;">
-              <button id="btnScanLagi" type="button" style="background-color: #0284c7; color: white; border: none; padding: 10px 18px; border-radius: 6px; font-weight: bold; cursor: pointer;">
+            <div style="text-align: center; margin-top: 18px;">
+              <button id="btnScanLagi" type="button" style="background-color: #0284c7; color: white; border: none; padding: 10px 20px; border-radius: 6px; font-weight: bold; cursor: pointer;">
                 <i class="fa-solid fa-qrcode"></i> Scan Barang Lain
               </button>
             </div>
           `;
 
-          // Fungsi saat tombol "Scan Barang Lain" diklik
           document.getElementById("btnScanLagi").addEventListener("click", function() {
-            scannerAktif = true; // Aktifkan pembacaan QR kembali
+            scannerAktif = true;
             infoDetailAset.innerHTML = `
               <p style="text-align: center; color: #64748b; padding: 15px 0;">
                 <i class="fa-solid fa-qrcode" style="font-size: 28px; margin-bottom: 8px; display: block; color: #94a3b8;"></i>
@@ -119,11 +130,10 @@ document.addEventListener("DOMContentLoaded", function () {
           });
 
         } else {
-          // Jika Kode QR tidak ditemukan di Google Sheets
           infoDetailAset.innerHTML = `
             <div style="text-align:center; color:#ef4444; padding:15px;">
               <i class="fa-solid fa-circle-xmark" style="font-size:32px;"></i>
-              <p style="margin-top:8px; font-weight:bold;">Kode [${kodeQR}] tidak ditemukan dalam Database Google Sheets!</p>
+              <p style="margin-top:8px; font-weight:bold;">Kode [${kodeQR}] tidak ditemukan dalam Database!</p>
               <button id="btnScanLagi" type="button" style="margin-top:10px; background-color: #0284c7; color: white; border: none; padding: 8px 15px; border-radius: 6px; cursor: pointer;">
                 Coba Scan Lagi
               </button>
@@ -139,6 +149,9 @@ document.addEventListener("DOMContentLoaded", function () {
         scannerAktif = true;
       });
   }
+               
+            
+
 
   // =========================================================================
   // 4. TOMBOL DOWNLOAD REKAP EXCEL (.xlsx KHUSUS TAB REKAPITULASI)
