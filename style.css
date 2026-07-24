@@ -296,3 +296,63 @@ body {
   background-size: contain;
   background-repeat: no-repeat;
 }
+
+/* =========================================================================
+   PERBAIKAN TAMPILAN SCANNER (SI-ACEP)
+   ========================================================================= */
+
+/* Sembunyikan dropdown kamera & link pengganggu */
+#reader__dashboard_section_swaplink,
+#reader__status_span,
+#reader img[alt="Info icon"],
+#reader__camera_selection {
+  display: none !important;
+}
+
+/* Bingkai Pemindai Kamera */
+#reader {
+  border: 2px dashed #0284c7 !important;
+  border-radius: 12px !important;
+  overflow: hidden !important;
+  background-color: #0f172a !important;
+  padding: 15px 10px !important;
+}
+
+/* Merapikan posisi tombol di tengah */
+#reader__dashboard {
+  background: transparent !important;
+  padding: 10px 0 0 0 !important;
+}
+
+#reader__dashboard_section {
+  display: flex !important;
+  flex-direction: column !important;
+  align-items: center !important;
+  justify-content: center !important;
+}
+
+/* Desain Tombol Start & Stop agar Rapi dan Tetap BISA DIKLIK */
+#reader button {
+  background-color: #0284c7 !important;
+  color: #ffffff !important;
+  border: none !important;
+  padding: 10px 20px !important;
+  border-radius: 8px !important;
+  font-weight: bold !important;
+  font-size: 14px !important;
+  cursor: pointer !important;
+  margin: 8px auto !important;
+  box-shadow: 0 4px 6px -1px rgba(2, 132, 199, 0.3) !important;
+}
+
+#reader__btn_stop {
+  background-color: #ef4444 !important;
+  box-shadow: 0 4px 6px -1px rgba(239, 68, 68, 0.3) !important;
+}
+
+/* Merapikan area video kamera */
+#reader video {
+  object-fit: cover !important;
+  border-radius: 8px !important;
+  width: 100% !important;
+}
