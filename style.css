@@ -280,83 +280,38 @@ body {
    PERBAIKAN TAMPILAN SCANNER HTML5-QRCODE (SI-ACEP)
    ========================================================================= */
 
-/* Sembunyikan dropdown kamera & link pengganggu */
+/* =========================================================================
+   PERBAIKAN EKSTREM TAMPILAN SCANNER HTML5-QRCODE (SI-ACEP)
+   ========================================================================= */
+
+/* Sembunyikan TOTAL seluruh teks, link, dropdown, dan ikon pengganggu bawaan library */
+#reader__dashboard,
+#reader__dashboard_section,
+#reader__dashboard_section_csr,
 #reader__dashboard_section_swaplink,
 #reader__status_span,
+#reader__camera_selection,
 #reader img[alt="Info icon"],
-#reader__camera_selection {
+#reader a {
   display: none !important;
 }
 
-/* Bingkai Pemindai Kamera */
+/* Kotak Pemindai Kamera Fleksibel & Rapi */
 #reader {
   border: 2px dashed #0284c7 !important;
   border-radius: 12px !important;
   overflow: hidden !important;
   background-color: #0f172a !important;
-  padding: 15px 10px !important;
+  padding: 10px !important;
   width: 100% !important;
+  height: auto !important;
+  min-height: 200px !important;
 }
 
-/* Merapikan posisi tombol di tengah */
-#reader__dashboard {
-  background: transparent !important;
-  padding: 10px 0 0 0 !important;
-}
-
-#reader__dashboard_section {
-  display: flex !important;
-  flex-direction: column !important;
-  align-items: center !important;
-  justify-content: center !important;
-}
-
-/* Desain Tombol Start & Stop agar Rapi dan Tetap BISA DIKLIK */
-#reader button {
-  background-color: #0284c7 !important;
-  color: #ffffff !important;
-  border: none !important;
-  padding: 10px 20px !important;
-  border-radius: 8px !important;
-  font-weight: bold !important;
-  font-size: 14px !important;
-  cursor: pointer !important;
-  margin: 8px auto !important;
-  box-shadow: 0 4px 6px -1px rgba(2, 132, 199, 0.3) !important;
-  display: inline-flex !important;
-  align-items: center !important;
-  justify-content: center !important;
-  gap: 8px !important;
-  transition: background-color 0.2s !important;
-}
-
-#reader button:hover {
-  background-color: #0369a1 !important;
-}
-
-#reader__btn_stop {
-  background-color: #ef4444 !important;
-  box-shadow: 0 4px 6px -1px rgba(239, 68, 68, 0.3) !important;
-}
-
-#reader__btn_stop:hover {
-  background-color: #dc2626 !important;
-}
-
-/* Menambahkan Gambar Ikon QR di sebelah kiri tombol */
-#reader button::before {
-  content: "";
-  display: inline-block;
-  width: 18px;
-  height: 18px;
-  background-image: url('https://api.iconify.design/lucide:qr-code.svg?color=%23ffffff');
-  background-size: contain;
-  background-repeat: no-repeat;
-}
-
-/* Merapikan area video kamera */
+/* Memastikan Video Kamera Pas di Layar */
 #reader video {
   object-fit: cover !important;
   border-radius: 8px !important;
   width: 100% !important;
+  max-height: 300px !important;
 }
