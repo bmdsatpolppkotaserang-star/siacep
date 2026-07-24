@@ -20,7 +20,7 @@
   <header class="app-header">
     <div class="header-container" style="display: flex; align-items: center; justify-content: space-between; width: 100%; max-width: 800px; margin: 0 auto; padding: 0 10px;">
       
-      <!-- LOGO KIRI (Contoh: Logo Pemkot Serang) -->
+      <!-- LOGO KIRI (Logo Pemkot Serang) -->
       <div class="header-logo-left">
         <img src="logo.png" alt="Logo Pemkot" style="height: 50px; width: auto; object-fit: contain;">
       </div>
@@ -31,7 +31,7 @@
         <p style="margin: 2px 0 0 0; font-size: 12px; color: #64748b;">Sistem Inventarisasi Aset Digital Satpol PP</p>
       </div>
 
-      <!-- LOGO KANAN (Contoh: Logo Satpol PP) -->
+      <!-- LOGO KANAN (Logo Satpol PP) -->
       <div class="header-logo-right">
         <img src="polpp.png" alt="Logo Satpol PP" style="height: 50px; width: auto; object-fit: contain;">
       </div>
@@ -49,12 +49,24 @@
       </div>
 
       <!-- AREA KAMERA SCANNER -->
-      <div class="scanner-box">
+      <div class="scanner-box" style="display: flex; flex-direction: column; align-items: center; background: transparent; height: auto;">
+        <!-- Frame Kamera -->
         <div id="reader" style="width: 100%;"></div>
+
+        <!-- TOMBOL START & STOP KUSTOM (DISINILETAKNYA, TEPAT DI BAWAH KAMERA) -->
+        <div class="scanner-controls" style="margin-top: 15px; display: flex; justify-content: center; gap: 10px; width: 100%;">
+          <button id="btnStartCamera" type="button" class="btn-camera btn-start" style="background-color: #0284c7; color: white; border: none; padding: 10px 20px; border-radius: 8px; font-weight: bold; cursor: pointer; display: inline-flex; align-items: center; gap: 8px;">
+            <img src="https://api.iconify.design/lucide:qr-code.svg?color=%23ffffff" alt="QR" style="width: 18px; height: 18px;">
+            Start Scanning
+          </button>
+          <button id="btnStopCamera" type="button" class="btn-camera btn-stop" style="background-color: #ef4444; color: white; border: none; padding: 10px 20px; border-radius: 8px; font-weight: bold; cursor: pointer; display: none; align-items: center; gap: 8px;">
+            <i class="fa-solid fa-circle-stop"></i> Stop Scanning
+          </button>
+        </div>
       </div>
 
       <!-- LEMBAR INFORMASI ASET -->
-      <div class="info-card">
+      <div class="info-card" style="margin-top: 20px;">
         <h3 style="margin-bottom: 15px; border-bottom: 2px solid #0284c7; padding-bottom: 8px; color: #1e293b;">
           <i class="fa-solid fa-file-lines"></i> Lembar Informasi Aset
         </h3>
