@@ -315,3 +315,50 @@ body {
   width: 100% !important;
   max-height: 300px !important;
 }
+
+/* Container Tombol Kontrol Kamera di Bawah Frame */
+.scanner-controls {
+  display: flex;
+  justify-content: center;
+  gap: 12px;
+  margin-top: 15px;
+}
+
+/* Base Styling Tombol Kamera Kustom */
+.btn-camera {
+  border: none;
+  padding: 10px 20px;
+  border-radius: 8px;
+  font-weight: bold;
+  font-size: 14px;
+  cursor: pointer;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+  box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1);
+  transition: all 0.2s ease;
+}
+
+.btn-start {
+  background-color: #0284c7;
+  color: #ffffff;
+}
+
+.btn-start:hover {
+  background-color: #0369a1;
+}
+
+.btn-stop {
+  background-color: #ef4444;
+  color: #ffffff;
+}
+
+.btn-stop:hover {
+  background-color: #dc2626;
+}
+
+/* Sembunyikan elemen dashboard bawaan libraryHtml5Qrcode agar tidak muncul lagi */
+#reader__dashboard {
+  display: none !important;
+}
