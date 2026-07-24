@@ -263,3 +263,36 @@ body {
   font-size: 12px;
   color: var(--text-muted);
 }
+
+/* Custom Tombol Pemindai Kamera Html5Qrcode */
+#reader button {
+  background-color: #0284c7 !important;
+  color: #ffffff !important;
+  border: none !important;
+  padding: 10px 20px !important;
+  border-radius: 6px !important;
+  font-weight: bold !important;
+  font-size: 14px !important;
+  cursor: pointer !important;
+  display: inline-flex !important;
+  align-items: center !important;
+  justify-content: center !important;
+  gap: 8px !important;
+  transition: background-color 0.2s !important;
+  margin: 15px auto !important;
+}
+
+#reader button:hover {
+  background-color: #0369a1 !important;
+}
+
+/* Menambahkan Gambar Ikon QR di sebelah kiri tombol */
+#reader button::before {
+  content: "";
+  display: inline-block;
+  width: 20px;
+  height: 20px;
+  background-image: url('https://api.iconify.design/lucide:qr-code.svg?color=%23ffffff');
+  background-size: contain;
+  background-repeat: no-repeat;
+}
