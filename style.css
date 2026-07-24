@@ -54,18 +54,26 @@ body {
   color: var(--text-muted);
 }
 
-/* Main Container */
+/* =========================================================================
+   LAYOUT FLEKSIBEL UNTUK AREA PEMINDAIAN & INFORMASI ASET
+   ========================================================================= */
+
+/* Main Container Fleksibel */
 .main-container {
   max-width: 600px;
   margin: 20px auto;
   padding: 0 15px;
+  display: flex !important;
+  flex-direction: column !important;
+  gap: 15px !important;            /* Jarak otomatis & konsisten antar kartu */
+  height: auto !important;          /* Tinggi melar secara alami */
 }
 
 /* Tab Navigasi Sederhana */
 .tab-nav {
   display: flex;
   gap: 10px;
-  margin-bottom: 15px;
+  margin-bottom: 5px;
 }
 
 .tab-btn {
@@ -89,14 +97,15 @@ body {
   border-color: var(--primary-color);
 }
 
-/* Content Card */
+/* Content Card Fleksibel */
 .content-card {
   background: var(--card-bg);
   border: 1px solid var(--border-color);
   border-radius: 10px;
   padding: 20px;
   box-shadow: 0 2px 4px rgba(0,0,0,0.02);
-  margin-bottom: 20px;
+  height: auto !important;          /* Tinggi kartu tidak kaku */
+  transition: all 0.3s ease-in-out !important; /* Efek melar yang halus saat data muncul */
 }
 
 .card-title {
@@ -115,21 +124,23 @@ body {
   color: var(--text-muted);
 }
 
-/* Scanner Area Placeholder */
+/* Scanner Area Placeholder Fleksibel */
 .scanner-box {
   width: 100%;
-  height: 200px;
+  height: auto !important;          /* Tinggi menyesuaikan kamera / isi */
+  min-height: 200px !important;
   background-color: #0f172a;
   border-radius: 8px;
   display: flex;
   align-items: center;
   justify-content: center;
-  margin-bottom: 20px;
+  margin-bottom: 10px;
 }
 
 .scanner-placeholder {
   text-align: center;
   color: #94a3b8;
+  padding: 20px 10px;
 }
 
 .scanner-icon {
@@ -203,12 +214,13 @@ body {
   color: white;
 }
 
-/* Info Card (Fokus 2) */
+/* Info Card Fleksibel (Fokus 2) */
 .info-card {
   background-color: #f8fafc;
   border: 1px solid var(--border-color);
   border-radius: 8px;
   padding: 15px;
+  height: auto !important;          /* Fleksibel mengikuti panjang isi data KIB */
 }
 
 .info-badge-status {
@@ -264,41 +276,8 @@ body {
   color: var(--text-muted);
 }
 
-/* Custom Tombol Pemindai Kamera Html5Qrcode */
-#reader button {
-  background-color: #0284c7 !important;
-  color: #ffffff !important;
-  border: none !important;
-  padding: 10px 20px !important;
-  border-radius: 6px !important;
-  font-weight: bold !important;
-  font-size: 14px !important;
-  cursor: pointer !important;
-  display: inline-flex !important;
-  align-items: center !important;
-  justify-content: center !important;
-  gap: 8px !important;
-  transition: background-color 0.2s !important;
-  margin: 15px auto !important;
-}
-
-#reader button:hover {
-  background-color: #0369a1 !important;
-}
-
-/* Menambahkan Gambar Ikon QR di sebelah kiri tombol */
-#reader button::before {
-  content: "";
-  display: inline-block;
-  width: 20px;
-  height: 20px;
-  background-image: url('https://api.iconify.design/lucide:qr-code.svg?color=%23ffffff');
-  background-size: contain;
-  background-repeat: no-repeat;
-}
-
 /* =========================================================================
-   PERBAIKAN TAMPILAN SCANNER (SI-ACEP)
+   PERBAIKAN TAMPILAN SCANNER HTML5-QRCODE (SI-ACEP)
    ========================================================================= */
 
 /* Sembunyikan dropdown kamera & link pengganggu */
@@ -316,6 +295,7 @@ body {
   overflow: hidden !important;
   background-color: #0f172a !important;
   padding: 15px 10px !important;
+  width: 100% !important;
 }
 
 /* Merapikan posisi tombol di tengah */
@@ -343,11 +323,35 @@ body {
   cursor: pointer !important;
   margin: 8px auto !important;
   box-shadow: 0 4px 6px -1px rgba(2, 132, 199, 0.3) !important;
+  display: inline-flex !important;
+  align-items: center !important;
+  justify-content: center !important;
+  gap: 8px !important;
+  transition: background-color 0.2s !important;
+}
+
+#reader button:hover {
+  background-color: #0369a1 !important;
 }
 
 #reader__btn_stop {
   background-color: #ef4444 !important;
   box-shadow: 0 4px 6px -1px rgba(239, 68, 68, 0.3) !important;
+}
+
+#reader__btn_stop:hover {
+  background-color: #dc2626 !important;
+}
+
+/* Menambahkan Gambar Ikon QR di sebelah kiri tombol */
+#reader button::before {
+  content: "";
+  display: inline-block;
+  width: 18px;
+  height: 18px;
+  background-image: url('https://api.iconify.design/lucide:qr-code.svg?color=%23ffffff');
+  background-size: contain;
+  background-repeat: no-repeat;
 }
 
 /* Merapikan area video kamera */
