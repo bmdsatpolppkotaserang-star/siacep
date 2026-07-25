@@ -3,7 +3,7 @@ document.addEventListener("DOMContentLoaded", function () {
   // 1. PENGATURAN KONEKSI GOOGLE SHEETS & APPS SCRIPT
   // =========================================================================
   
-  const SCRIPT_URL = "https://script.google.com/macros/s/AKfycbwtlESbcHwjU_O3LMqkGFfNY4SQWZzigLKqIp85FCQ5mTtLbAyQstMV5Q9L6mPDcNG9/exec";
+  const SCRIPT_URL = "https://script.google.com/macros/s/AKfycby0ttSZWUkbDNZ9bLnL4UjbAfYfHrDlNiXkOowc6XFCsetLHZ1SLt_IFsety9SKT-L9/exec";
   const SPREADSHEET_ID = "1ZpZtmGJyqglogaaq1vgKqp38XgvkUHP_wbMfJPp1Zwc";
   const GID_REKAP = "85327253";
 
