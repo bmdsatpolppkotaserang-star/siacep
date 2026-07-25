@@ -4,7 +4,7 @@ document.addEventListener("DOMContentLoaded", function () {
   // =========================================================================
   
   // URL Web App dari Google Apps Script
-  const SCRIPT_URL = "https://script.google.com/macros/s/AKfycbw7LfP0EgxngyP2bY_iP2LmWYjDMtZSo_Hi5-0NtIra4xhIX_-Ov89GwHh5K_FuGQru/exec";
+  const SCRIPT_URL = "https://script.google.com/macros/s/AKfycbyB9pCoaDu4_hiAJMWNGif4p07JyKfPoYu5OR0hk_kGJv_TIgmgj5Fh8H-fElVLnZ4l/exec";
 
   // ID Google Sheets Utama
   const SPREADSHEET_ID = "1ZpZtmGJyqglogaaq1vgKqp38XgvkUHP_wbMfJPp1Zwc";
