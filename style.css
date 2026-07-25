@@ -362,3 +362,14 @@ body {
 #reader__dashboard {
   display: none !important;
 }
+
+/* Mencegah teks meluap di layar HP */
+.info-card, .content-card {
+  overflow: hidden;
+  max-width: 100%;
+}
+
+.info-card * {
+  word-break: break-word;
+  overflow-wrap: anywhere;
+}
