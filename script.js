@@ -21,6 +21,31 @@ document.addEventListener("DOMContentLoaded", function () {
   let html5QrCode = null; // Variabel penampung instance scanner
 
   // =========================================================================
+  // FUNGSI EFEK SUARA BEEP KHAS SCANNER
+  // =========================================================================
+  function playScanBeep() {
+    try {
+      const audioCtx = new (window.AudioContext || window.webkitAudioContext)();
+      const oscillator = audioCtx.createOscillator();
+      const gainNode = audioCtx.createGain();
+
+      oscillator.type = "sine";
+      oscillator.frequency.setValueAtTime(1800, audioCtx.currentTime); // Frekuensi nada tinggi khas scanner
+
+      gainNode.gain.setValueAtTime(0.15, audioCtx.currentTime); // Volume
+      gainNode.gain.exponentialRampToValueAtTime(0.00001, audioCtx.currentTime + 0.12); // Durasi pendek (0.12 detik)
+
+      oscillator.connect(gainNode);
+      gainNode.connect(audioCtx.destination);
+
+      oscillator.start();
+      oscillator.stop(audioCtx.currentTime + 0.12);
+    } catch (e) {
+      console.log("Audio tidak didukung atau diblokir browser:", e);
+    }
+  }
+
+  // =========================================================================
   // 2. INTEGRASI SCANNER KAMERA DENGAN TOMBOL KUSTOM
   // =========================================================================
   
@@ -41,6 +66,7 @@ document.addEventListener("DOMContentLoaded", function () {
         // Jika QR berhasil terbaca
         if (scannerAktif) {
           scannerAktif = false; // Hindari pembacaan ganda dalam waktu singkat
+          playScanBeep(); // <--- BEEP! BUNYI KHAS SCANNER SAAT BERHASIL
           prosesScanQR(decodedText);
         }
       },
