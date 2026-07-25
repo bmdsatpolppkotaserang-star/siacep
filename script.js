@@ -15,6 +15,7 @@ document.addEventListener("DOMContentLoaded", function () {
   const infoDetailAset = document.getElementById("infoDetailAset");
   const btnStart = document.getElementById("btnStartCamera");
   const btnStop = document.getElementById("btnStopCamera");
+  const btnResetScan = document.getElementById("btnResetScan");
 
   let scannerAktif = true;
   let html5QrCode = null; // Variabel penampung instance scanner
@@ -72,7 +73,7 @@ document.addEventListener("DOMContentLoaded", function () {
     }
   }
 
-  // Event Listener Klik Tombol Start & Stop
+  // Event Listener Klik Tombol Start, Stop, & Reset
   if (btnStart) {
     btnStart.addEventListener("click", function() {
       scannerAktif = true;
@@ -86,13 +87,28 @@ document.addEventListener("DOMContentLoaded", function () {
     });
   }
 
+  if (btnResetScan) {
+    btnResetScan.addEventListener("click", function () {
+      scannerAktif = true;
+      infoDetailAset.innerHTML = `
+        <div style="text-align: center; padding: 15px 0;">
+          <img src="https://api.iconify.design/lucide:qr-code.svg?color=%230284c7" alt="QR Code" style="width: 36px; height: 36px; margin: 0 auto 8px auto; display: block;" />
+          <p style="color: #64748b; margin: 0; font-weight: 500;">
+            Arahkan kamera ke stiker QR Code barang selanjutnya...
+          </p>
+        </div>
+      `;
+      // Otomatis nyalakan kamera kembali jika dalam keadaan mati
+      if (html5QrCode && !html5QrCode.isScanning) {
+        mulaiKamera();
+      }
+    });
+  }
+
   // =========================================================================
   // 3. FUNGSI PROSES SCAN & AMBIL DATA KIB DARI GOOGLE SHEETS
   // =========================================================================
   function prosesScanQR(kodeQR) {
-    const qrIconBlue = `<img src="https://api.iconify.design/lucide:qr-code.svg?color=%230284c7" alt="QR Code" style="width: 36px; height: 36px; margin: 0 auto 8px auto; display: block;" />`;
-    const qrIconWhite = `<img src="https://api.iconify.design/lucide:qr-code.svg?color=%23ffffff" alt="QR Code" style="width: 18px; height: 18px;" />`;
-
     infoDetailAset.innerHTML = `
       <div style="text-align:center; padding: 20px;">
         <i class="fa-solid fa-spinner fa-spin" style="font-size:32px; color:#0284c7;"></i>
@@ -104,101 +120,64 @@ document.addEventListener("DOMContentLoaded", function () {
       .then(response => response.json())
       .then(data => {
         if (data.result === "found") {
-         // Ganti bagian pembentukan HTML infoDetailAset di dalam script.js dengan ini:
+          infoDetailAset.innerHTML = `
+            <div style="margin-bottom: 15px; text-align: center;">
+              <span style="background-color: #dcfce7; color: #166534; padding: 6px 14px; border-radius: 20px; font-weight: bold; font-size: 14px; display: inline-block;">
+                <i class="fa-solid fa-circle-check"></i> TER-INVENTARISASI DIGITAL
+              </span>
+            </div>
 
-infoDetailAset.innerHTML = `
-  <div style="margin-bottom: 15px; text-align: center;">
-    <span style="background-color: #dcfce7; color: #166534; padding: 6px 14px; border-radius: 20px; font-weight: bold; font-size: 14px; display: inline-block;">
-      <i class="fa-solid fa-circle-check"></i> TER-INVENTARISASI DIGITAL
-    </span>
-  </div>
-
-  <!-- Ditambahkan word-break & overflow-wrap agar teks tidak jebol keluar frame HP -->
-  <div style="display: flex; flex-direction: column; gap: 10px; background: #f8fafc; padding: 15px; border-radius: 8px; border: 1px solid #e2e8f0; word-break: break-word; overflow-wrap: anywhere;">
-    
-    <div style="border-bottom: 1px solid #e2e8f0; padding-bottom: 6px;">
-      <span style="font-size: 11px; color: #64748b; font-weight: 700; display: block;">KODE BARANG / ID ASET</span>
-      <!-- Ditambahkan style khusus untuk Kode Barang agar bisa terlipat rapi jika sangat panjang -->
-      <span style="font-size: 15px; font-weight: bold; color: #0284c7; word-break: break-all; font-family: monospace;">${data.kode}</span>
-    </div>
-
-    <div style="border-bottom: 1px solid #e2e8f0; padding-bottom: 6px;">
-      <span style="font-size: 11px; color: #64748b; font-weight: 700; display: block;">NAMA BARANG / MERK / REG</span>
-      <span style="font-size: 14px; font-weight: 600; color: #1e293b;">${data.nama} ${data.merk !== '-' ? ' - ' + data.merk : ''} (Reg: ${data.reg})</span>
-    </div>
-
-    <div style="border-bottom: 1px solid #e2e8f0; padding-bottom: 6px;">
-      <span style="font-size: 11px; color: #64748b; font-weight: 700; display: block;">SPESIFIKASI & TAHUN</span>
-      <span style="font-size: 13px; color: #334155;">Ukuran: ${data.ukuran} | Bahan: ${data.bahan} | Thn: ${data.tahun}</span>
-    </div>
-
-    <div style="border-bottom: 1px solid #e2e8f0; padding-bottom: 6px;">
-      <span style="font-size: 11px; color: #64748b; font-weight: 700; display: block;">NOMOR LEGALITAS / KENDARAAN</span>
-      <span style="font-size: 13px; color: #334155;">Pabrik: ${data.no_pabrik} | Rangka: ${data.no_rangka} | Mesin: ${data.no_mesin} | Polisi: ${data.no_polisi} | BPKB: ${data.no_bpkb}</span>
-    </div>
-
-    <div style="border-bottom: 1px solid #e2e8f0; padding-bottom: 6px;">
-      <span style="font-size: 11px; color: #64748b; font-weight: 700; display: block;">KONDISI & STATUS ASET</span>
-      <span style="font-size: 13px; color: #334155;">${data.kondisi_status} (Status: ${data.status_aset})</span>
-    </div>
-
-    <div style="border-bottom: 1px solid #e2e8f0; padding-bottom: 6px;">
-      <span style="font-size: 11px; color: #64748b; font-weight: 700; display: block;">NILAI / HARGA BARANG</span>
-      <span style="font-size: 14px; font-weight: bold; color: #166534;">Rp ${data.harga_total ? Number(data.harga_total).toLocaleString('id-ID') : '0'}</span>
-    </div>
-
-    <div style="border-bottom: 1px solid #e2e8f0; padding-bottom: 6px;">
-      <span style="font-size: 11px; color: #64748b; font-weight: 700; display: block;">KETERANGAN DOKUMEN</span>
-      <span style="font-size: 13px; color: #334155;">${data.keterangan_aset}</span>
-    </div>
-
-    <div>
-      <span style="font-size: 11px; color: #64748b; font-weight: 700; display: block;">CATATAN WAKTU SCAN</span>
-      <span style="font-size: 12px; color: #0284c7; font-weight: 600;">${data.keterangan}</span>
-    </div>
-
-  </div>
-
-  <div style="text-align: center; margin-top: 18px;">
-    <button id="btnScanLagi" type="button" style="background-color: #0284c7; color: white; border: none; padding: 10px 20px; border-radius: 6px; font-weight: bold; cursor: pointer; display: inline-flex; align-items: center; justify-content: center; gap: 8px;">
-      ${qrIconWhite} Scan Barang Lain
-    </button>
-  </div>
-`;
-
-          document.getElementById("btnScanLagi").addEventListener("click", function() {
-            scannerAktif = true;
-            infoDetailAset.innerHTML = `
-              <div style="text-align: center; padding: 15px 0;">
-                ${qrIconBlue}
-                <p style="color: #64748b; margin: 0; font-weight: 500;">
-                  Arahkan kamera ke stiker QR Code barang selanjutnya...
-                </p>
+            <div style="display: flex; flex-direction: column; gap: 10px; background: #f8fafc; padding: 15px; border-radius: 8px; border: 1px solid #e2e8f0; word-break: break-word; overflow-wrap: anywhere;">
+              
+              <div style="border-bottom: 1px solid #e2e8f0; padding-bottom: 6px;">
+                <span style="font-size: 11px; color: #64748b; font-weight: 700; display: block;">KODE BARANG / ID ASET</span>
+                <span style="font-size: 15px; font-weight: bold; color: #0284c7; word-break: break-all; font-family: monospace;">${data.kode}</span>
               </div>
-            `;
-          });
 
+              <div style="border-bottom: 1px solid #e2e8f0; padding-bottom: 6px;">
+                <span style="font-size: 11px; color: #64748b; font-weight: 700; display: block;">NAMA BARANG / MERK / REG</span>
+                <span style="font-size: 14px; font-weight: 600; color: #1e293b;">${data.nama} ${data.merk !== '-' ? ' - ' + data.merk : ''} (Reg: ${data.reg})</span>
+              </div>
+
+              <div style="border-bottom: 1px solid #e2e8f0; padding-bottom: 6px;">
+                <span style="font-size: 11px; color: #64748b; font-weight: 700; display: block;">SPESIFIKASI & TAHUN</span>
+                <span style="font-size: 13px; color: #334155;">Ukuran: ${data.ukuran} | Bahan: ${data.bahan} | Thn: ${data.tahun}</span>
+              </div>
+
+              <div style="border-bottom: 1px solid #e2e8f0; padding-bottom: 6px;">
+                <span style="font-size: 11px; color: #64748b; font-weight: 700; display: block;">NOMOR LEGALITAS / KENDARAAN</span>
+                <span style="font-size: 13px; color: #334155;">Pabrik: ${data.no_pabrik} | Rangka: ${data.no_rangka} | Mesin: ${data.no_mesin} | Polisi: ${data.no_polisi} | BPKB: ${data.no_bpkb}</span>
+              </div>
+
+              <div style="border-bottom: 1px solid #e2e8f0; padding-bottom: 6px;">
+                <span style="font-size: 11px; color: #64748b; font-weight: 700; display: block;">KONDISI & STATUS ASET</span>
+                <span style="font-size: 13px; color: #334155;">${data.kondisi_status} (Status: ${data.status_aset})</span>
+              </div>
+
+              <div style="border-bottom: 1px solid #e2e8f0; padding-bottom: 6px;">
+                <span style="font-size: 11px; color: #64748b; font-weight: 700; display: block;">NILAI / HARGA BARANG</span>
+                <span style="font-size: 14px; font-weight: bold; color: #166534;">Rp ${data.harga_total ? Number(data.harga_total).toLocaleString('id-ID') : '0'}</span>
+              </div>
+
+              <div style="border-bottom: 1px solid #e2e8f0; padding-bottom: 6px;">
+                <span style="font-size: 11px; color: #64748b; font-weight: 700; display: block;">KETERANGAN DOKUMEN</span>
+                <span style="font-size: 13px; color: #334155;">${data.keterangan_aset}</span>
+              </div>
+
+              <div>
+                <span style="font-size: 11px; color: #64748b; font-weight: 700; display: block;">CATATAN WAKTU SCAN</span>
+                <span style="font-size: 12px; color: #0284c7; font-weight: 600;">${data.keterangan}</span>
+              </div>
+
+            </div>
+          `;
         } else {
           infoDetailAset.innerHTML = `
             <div style="text-align:center; color:#ef4444; padding:15px;">
               <i class="fa-solid fa-circle-xmark" style="font-size:32px;"></i>
               <p style="margin-top:8px; font-weight:bold;">Kode [${kodeQR}] tidak ditemukan dalam Database!</p>
-              <button id="btnScanLagi" type="button" style="margin-top:10px; background-color: #0284c7; color: white; border: none; padding: 8px 15px; border-radius: 6px; cursor: pointer; display: inline-flex; align-items: center; gap: 6px;">
-                ${qrIconWhite} Coba Scan Lagi
-              </button>
             </div>
           `;
-          document.getElementById("btnScanLagi").addEventListener("click", function() {
-            scannerAktif = true;
-            infoDetailAset.innerHTML = `
-              <div style="text-align: center; padding: 15px 0;">
-                ${qrIconBlue}
-                <p style="color: #64748b; margin: 0; font-weight: 500;">
-                  Arahkan kamera ke stiker QR Code barang selanjutnya...
-                </p>
-              </div>
-            `;
-          });
         }
       })
       .catch(err => {
