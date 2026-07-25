@@ -1,5 +1,5 @@
 // Di dalam file sw.js
-const CACHE_NAME = 'si-acep-cache-v7'; // <--- Naikkan versinya di sini
+const CACHE_NAME = 'si-acep-cache-v8'; // <--- Naikkan versinya di sini
 const ASSETS_TO_CACHE = [
   './',
   './index.html',
