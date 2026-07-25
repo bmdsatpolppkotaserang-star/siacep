@@ -25,7 +25,7 @@ document.addEventListener("DOMContentLoaded", function () {
   let html5QrCode = null; // Variabel penampung instance scanner
 
   // =========================================================================
-  // FUNGSI EFEK SUARA BEEP KHAS SCANNER (SEMAKIN KENCANG)
+  // FUNGSI EFEK SUARA BEEP KHAS SCANNER
   // =========================================================================
   function playScanBeep() {
     try {
@@ -34,13 +34,8 @@ document.addEventListener("DOMContentLoaded", function () {
       const gainNode = audioCtx.createGain();
 
       oscillator.type = "sine";
-      // Nada frekuensi 2000Hz (sedikit lebih tinggi & menusuk earphone/speaker HP)
       oscillator.frequency.setValueAtTime(2000, audioCtx.currentTime); 
-
-      // VOLUME DITINGKATKAN KE 0.8 (80% Dari Maksimal)
       gainNode.gain.setValueAtTime(0.8, audioCtx.currentTime); 
-      
-      // Durasi dipanjangkan sedikit menjadi 0.15 detik
       gainNode.gain.exponentialRampToValueAtTime(0.00001, audioCtx.currentTime + 0.15); 
 
       oscillator.connect(gainNode);
@@ -57,10 +52,8 @@ document.addEventListener("DOMContentLoaded", function () {
   // 2. INTEGRASI SCANNER KAMERA DENGAN TOMBOL KUSTOM
   // =========================================================================
   
-  // Inisialisasi engine Html5Qrcode
   html5QrCode = new Html5Qrcode("reader");
 
-  // Fungsi untuk Menyalakan Kamera
   function mulaiKamera() {
     const config = { 
       fps: 10, 
@@ -68,21 +61,17 @@ document.addEventListener("DOMContentLoaded", function () {
     };
 
     html5QrCode.start(
-      { facingMode: "environment" }, // Prioritaskan kamera belakang HP
+      { facingMode: "environment" },
       config,
       (decodedText) => {
-        // Jika QR berhasil terbaca
         if (scannerAktif) {
-          scannerAktif = false; // Hindari pembacaan ganda dalam waktu singkat
-          playScanBeep(); // <--- BEEP! BUNYI KHAS SCANNER SAAT BERHASIL
+          scannerAktif = false;
+          playScanBeep();
           prosesScanQR(decodedText);
         }
       },
-      (errorMessage) => {
-        // Abaikan pencarian QR frame-by-frame
-      }
+      (errorMessage) => {}
     ).then(() => {
-      // Jika kamera berhasil aktif, sesuaikan tampilan tombol
       if (btnStart && btnStop) {
         btnStart.style.display = "none";
         btnStop.style.display = "inline-flex";
@@ -93,7 +82,6 @@ document.addEventListener("DOMContentLoaded", function () {
     });
   }
 
-  // Fungsi untuk Mematikan Kamera
   function matikanKamera() {
     if (html5QrCode && html5QrCode.isScanning) {
       html5QrCode.stop().then(() => {
@@ -107,7 +95,6 @@ document.addEventListener("DOMContentLoaded", function () {
     }
   }
 
-  // Event Listener Klik Tombol Start, Stop, & Reset
   if (btnStart) {
     btnStart.addEventListener("click", function() {
       scannerAktif = true;
@@ -132,7 +119,6 @@ document.addEventListener("DOMContentLoaded", function () {
           </p>
         </div>
       `;
-      // Otomatis nyalakan kamera kembali jika dalam keadaan mati
       if (html5QrCode && !html5QrCode.isScanning) {
         mulaiKamera();
       }
@@ -140,7 +126,7 @@ document.addEventListener("DOMContentLoaded", function () {
   }
 
   // =========================================================================
-  // 3. FITUR PENELUSURAN KODE BARANG MANUAL (JIKA QR RUSAK/HILANG)
+  // 3. FITUR PENELUSURAN KODE BARANG MANUAL
   // =========================================================================
   function eksekusiCariManual() {
     if (!inputKodeManual) return;
@@ -153,25 +139,16 @@ document.addEventListener("DOMContentLoaded", function () {
       return;
     }
 
-    // Bunyikan suara beep khas scanner
     playScanBeep();
-
-    // Matikan scanner sementara agar tidak bentrok
     scannerAktif = false;
-
-    // Panggil fungsi pencarian data ke Google Sheets
     prosesScanQR(kodeInput);
-
-    // Kosongkan kembali form input
     inputKodeManual.value = "";
   }
 
-  // Trigger saat tombol "Cari" diklik
   if (btnCariManual) {
     btnCariManual.addEventListener("click", eksekusiCariManual);
   }
 
-  // Trigger saat menekan tombol "Enter" di keyboard HP/Laptop
   if (inputKodeManual) {
     inputKodeManual.addEventListener("keypress", function (e) {
       if (e.key === "Enter") {
@@ -246,6 +223,16 @@ document.addEventListener("DOMContentLoaded", function () {
               </div>
 
             </div>
+
+            <!-- TOMBOL MERAH UNTUK UNTUK BATAL / HAPUS STATUS REKAP -->
+            <div style="margin-top: 15px; text-align: center;">
+              <button 
+                type="button" 
+                onclick="hapusDataAset('${data.kode}')"
+                style="background-color: #ef4444; color: white; border: none; padding: 10px 18px; border-radius: 8px; font-weight: bold; cursor: pointer; display: inline-flex; align-items: center; gap: 8px; font-size: 13px;">
+                <i class="fa-solid fa-trash-can"></i> Hapus Status Inventaris
+              </button>
+            </div>
           `;
         } else {
           infoDetailAset.innerHTML = `
@@ -263,7 +250,43 @@ document.addEventListener("DOMContentLoaded", function () {
   }
 
   // =========================================================================
-  // 5. TOMBOL DOWNLOAD REKAP EXCEL (.xlsx KHUSUS TAB REKAPITULASI)
+  // 5. FUNGSI EKSEKUSI HAPUS STATUS REKAP DARI SPREADSHEET
+  // =========================================================================
+  window.hapusDataAset = function(kodeBarang) {
+    const konfirmasi = confirm(`Apakah Bapak yakin ingin menghapus status inventarisasi untuk Kode: ${kodeBarang}?`);
+    if (!konfirmasi) return;
+
+    infoDetailAset.innerHTML = `
+      <div style="text-align:center; padding: 20px;">
+        <i class="fa-solid fa-spinner fa-spin" style="font-size:32px; color:#ef4444;"></i>
+        <p style="margin-top:10px; color:#475569; font-weight:500;">Menghapus status dari Google Sheets...</p>
+      </div>
+    `;
+
+    fetch(`${SCRIPT_URL}?action=delete_inventaris&kode=${encodeURIComponent(kodeBarang)}`)
+      .then(response => response.json())
+      .then(res => {
+        if (res.result === "success") {
+          alert("Status inventarisasi berhasil dihapus!");
+          infoDetailAset.innerHTML = `
+            <div style="text-align:center; color:#059669; padding:15px;">
+              <i class="fa-solid fa-circle-check" style="font-size:32px;"></i>
+              <p style="margin-top:8px; font-weight:bold;">Status [${kodeBarang}] Berhasil Direset!</p>
+              <p style="font-size:12px; color:#64748b;">Silakan scan QR aset lain...</p>
+            </div>
+          `;
+          scannerAktif = true;
+        } else {
+          alert("Gagal menghapus status atau kode tidak ditemukan.");
+        }
+      })
+      .catch(err => {
+        alert("Gagal terhubung ke server saat menghapus data.");
+      });
+  };
+
+  // =========================================================================
+  // 6. TOMBOL DOWNLOAD REKAP EXCEL
   // =========================================================================
   const btnDownload = document.querySelector(".btn-download");
   if (btnDownload) {
@@ -278,7 +301,7 @@ document.addEventListener("DOMContentLoaded", function () {
   }
 
   // =========================================================================
-  // 6. TOMBOL CETAK HASIL INVENTARISASI ASET
+  // 7. TOMBOL CETAK HASIL INVENTARISASI ASET
   // =========================================================================
   const btnPrint = document.querySelector(".btn-print");
   if (btnPrint) {
