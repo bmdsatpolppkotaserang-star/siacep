@@ -4,7 +4,7 @@ document.addEventListener("DOMContentLoaded", function () {
   // =========================================================================
   
   // URL Web App dari Google Apps Script
-  const SCRIPT_URL = "https://script.google.com/macros/s/AKfycbyB9pCoaDu4_hiAJMWNGif4p07JyKfPoYu5OR0hk_kGJv_TIgmgj5Fh8H-fElVLnZ4l/exec";
+  const SCRIPT_URL = "https://script.google.com/macros/s/AKfycbwtlESbcHwjU_O3LMqkGFfNY4SQWZzigLKqIp85FCQ5mTtLbAyQstMV5Q9L6mPDcNG9/exec";
 
   // ID Google Sheets Utama
   const SPREADSHEET_ID = "1ZpZtmGJyqglogaaq1vgKqp38XgvkUHP_wbMfJPp1Zwc";
@@ -67,7 +67,7 @@ document.addEventListener("DOMContentLoaded", function () {
         if (scannerAktif) {
           scannerAktif = false;
           playScanBeep();
-          prosesScanQR(decodedText);
+          mintaPinDanProses(decodedText);
         }
       },
       (errorMessage) => {}
@@ -141,7 +141,7 @@ document.addEventListener("DOMContentLoaded", function () {
 
     playScanBeep();
     scannerAktif = false;
-    prosesScanQR(kodeInput);
+    mintaPinDanProses(kodeInput);
     inputKodeManual.value = "";
   }
 
@@ -159,19 +159,47 @@ document.addEventListener("DOMContentLoaded", function () {
   }
 
   // =========================================================================
-  // 4. FUNGSI PROSES SCAN & AMBIL DATA KIB DARI GOOGLE SHEETS
+  // 4. FUNGSI VERIFIKASI PIN SEBELUM PROSES SCAN
   // =========================================================================
-  function prosesScanQR(kodeQR) {
+  function mintaPinDanProses(kodeQR) {
+    const pinInput = prompt("🔒 Masukkan PIN Petugas Aset untuk memproses:");
+    
+    if (pinInput === null || pinInput.trim() === "") {
+      alert("Akses dibatalkan. PIN Petugas wajib diisi!");
+      scannerAktif = true;
+      return;
+    }
+
+    prosesScanQR(kodeQR, pinInput.trim());
+  }
+
+  // =========================================================================
+  // 5. FUNGSI PROSES SCAN & AMBIL DATA KIB DARI GOOGLE SHEETS
+  // =========================================================================
+  function prosesScanQR(kodeQR, pin) {
     infoDetailAset.innerHTML = `
       <div style="text-align:center; padding: 20px;">
         <i class="fa-solid fa-spinner fa-spin" style="font-size:32px; color:#0284c7;"></i>
-        <p style="margin-top:10px; color:#475569; font-weight:500;">Mencari data aset & mencatat inventarisasi...</p>
+        <p style="margin-top:10px; color:#475569; font-weight:500;">Memverifikasi PIN & mencatat inventarisasi...</p>
       </div>
     `;
 
-    fetch(`${SCRIPT_URL}?action=scan_inventaris&kode=${encodeURIComponent(kodeQR)}`)
+    fetch(`${SCRIPT_URL}?action=scan_inventaris&kode=${encodeURIComponent(kodeQR)}&pin=${encodeURIComponent(pin)}`)
       .then(response => response.json())
       .then(data => {
+        if (data.result === "wrong_pin") {
+          alert("❌ PIN Petugas Salah! Akses ditolak.");
+          infoDetailAset.innerHTML = `
+            <div style="text-align:center; color:#ef4444; padding:15px;">
+              <i class="fa-solid fa-lock" style="font-size:32px;"></i>
+              <p style="margin-top:8px; font-weight:bold;">PIN Petugas Salah!</p>
+              <p style="font-size:12px; color:#64748b;">Silakan coba scan/input kembali dengan PIN yang benar.</p>
+            </div>
+          `;
+          scannerAktif = true;
+          return;
+        }
+
         if (data.result === "found") {
           infoDetailAset.innerHTML = `
             <div style="margin-bottom: 15px; text-align: center;">
@@ -250,22 +278,35 @@ document.addEventListener("DOMContentLoaded", function () {
   }
 
   // =========================================================================
-  // 5. FUNGSI EKSEKUSI HAPUS STATUS REKAP DARI SPREADSHEET
+  // 6. FUNGSI EKSEKUSI HAPUS STATUS REKAP DARI SPREADSHEET (DENGAN VERIFIKASI PIN)
   // =========================================================================
   window.hapusDataAset = function(kodeBarang) {
+    const pinInput = prompt("🔒 Masukkan PIN Petugas Aset untuk menghapus status:");
+    
+    if (pinInput === null || pinInput.trim() === "") {
+      alert("Penghapusan dibatalkan. PIN Petugas wajib diisi!");
+      return;
+    }
+
     const konfirmasi = confirm(`Apakah Anda yakin ingin menghapus status inventarisasi untuk Kode: ${kodeBarang}?`);
     if (!konfirmasi) return;
 
     infoDetailAset.innerHTML = `
       <div style="text-align:center; padding: 20px;">
         <i class="fa-solid fa-spinner fa-spin" style="font-size:32px; color:#ef4444;"></i>
-        <p style="margin-top:10px; color:#475569; font-weight:500;">Menghapus status dari Google Sheets...</p>
+        <p style="margin-top:10px; color:#475569; font-weight:500;">Memverifikasi PIN & menghapus status...</p>
       </div>
     `;
 
-    fetch(`${SCRIPT_URL}?action=delete_inventaris&kode=${encodeURIComponent(kodeBarang)}`)
+    fetch(`${SCRIPT_URL}?action=delete_inventaris&kode=${encodeURIComponent(kodeBarang)}&pin=${encodeURIComponent(pinInput.trim())}`)
       .then(response => response.json())
       .then(res => {
+        if (res.result === "wrong_pin") {
+          alert("❌ PIN Petugas Salah! Gagal menghapus status.");
+          prosesScanQR(kodeBarang, pinInput.trim()); // Kembalikan ke tampilan detail
+          return;
+        }
+
         if (res.result === "success") {
           alert("Status inventarisasi berhasil dihapus!");
           infoDetailAset.innerHTML = `
@@ -286,7 +327,7 @@ document.addEventListener("DOMContentLoaded", function () {
   };
 
   // =========================================================================
-  // 6. TOMBOL DOWNLOAD REKAP EXCEL
+  // 7. TOMBOL DOWNLOAD REKAP EXCEL
   // =========================================================================
   const btnDownload = document.querySelector(".btn-download");
   if (btnDownload) {
@@ -301,7 +342,7 @@ document.addEventListener("DOMContentLoaded", function () {
   }
 
   // =========================================================================
-  // 7. TOMBOL CETAK HASIL INVENTARISASI ASET
+  // 8. TOMBOL CETAK HASIL INVENTARISASI ASET
   // =========================================================================
   const btnPrint = document.querySelector(".btn-print");
   if (btnPrint) {
