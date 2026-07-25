@@ -17,13 +17,14 @@ document.addEventListener("DOMContentLoaded", function () {
   const btnStop = document.getElementById("btnStopCamera");
   const btnResetScan = document.getElementById("btnResetScan");
 
+  // Element untuk Fitur Input Manual
+  const inputKodeManual = document.getElementById("inputKodeManual");
+  const btnCariManual = document.getElementById("btnCariManual");
+
   let scannerAktif = true;
   let html5QrCode = null; // Variabel penampung instance scanner
 
   // =========================================================================
-  // FUNGSI EFEK SUARA BEEP KHAS SCANNER
-  // =========================================================================
- // =========================================================================
   // FUNGSI EFEK SUARA BEEP KHAS SCANNER (SEMAKIN KENCANG)
   // =========================================================================
   function playScanBeep() {
@@ -139,7 +140,49 @@ document.addEventListener("DOMContentLoaded", function () {
   }
 
   // =========================================================================
-  // 3. FUNGSI PROSES SCAN & AMBIL DATA KIB DARI GOOGLE SHEETS
+  // 3. FITUR PENELUSURAN KODE BARANG MANUAL (JIKA QR RUSAK/HILANG)
+  // =========================================================================
+  function eksekusiCariManual() {
+    if (!inputKodeManual) return;
+    
+    const kodeInput = inputKodeManual.value.trim();
+
+    if (!kodeInput) {
+      alert("Masukkan Kode Barang atau NUP terlebih dahulu!");
+      inputKodeManual.focus();
+      return;
+    }
+
+    // Bunyikan suara beep khas scanner
+    playScanBeep();
+
+    // Matikan scanner sementara agar tidak bentrok
+    scannerAktif = false;
+
+    // Panggil fungsi pencarian data ke Google Sheets
+    prosesScanQR(kodeInput);
+
+    // Kosongkan kembali form input
+    inputKodeManual.value = "";
+  }
+
+  // Trigger saat tombol "Cari" diklik
+  if (btnCariManual) {
+    btnCariManual.addEventListener("click", eksekusiCariManual);
+  }
+
+  // Trigger saat menekan tombol "Enter" di keyboard HP/Laptop
+  if (inputKodeManual) {
+    inputKodeManual.addEventListener("keypress", function (e) {
+      if (e.key === "Enter") {
+        e.preventDefault();
+        eksekusiCariManual();
+      }
+    });
+  }
+
+  // =========================================================================
+  // 4. FUNGSI PROSES SCAN & AMBIL DATA KIB DARI GOOGLE SHEETS
   // =========================================================================
   function prosesScanQR(kodeQR) {
     infoDetailAset.innerHTML = `
@@ -220,7 +263,7 @@ document.addEventListener("DOMContentLoaded", function () {
   }
 
   // =========================================================================
-  // 4. TOMBOL DOWNLOAD REKAP EXCEL (.xlsx KHUSUS TAB REKAPITULASI)
+  // 5. TOMBOL DOWNLOAD REKAP EXCEL (.xlsx KHUSUS TAB REKAPITULASI)
   // =========================================================================
   const btnDownload = document.querySelector(".btn-download");
   if (btnDownload) {
@@ -235,7 +278,7 @@ document.addEventListener("DOMContentLoaded", function () {
   }
 
   // =========================================================================
-  // 5. TOMBOL CETAK HASIL INVENTARISASI ASET
+  // 6. TOMBOL CETAK HASIL INVENTARISASI ASET
   // =========================================================================
   const btnPrint = document.querySelector(".btn-print");
   if (btnPrint) {
@@ -245,11 +288,11 @@ document.addEventListener("DOMContentLoaded", function () {
   }
 });
 
-// Registrasi Service Worker PWA SI-ASEP
+// Registrasi Service Worker PWA SI-ACEP
 if ('serviceWorker' in navigator) {
   window.addEventListener('load', () => {
     navigator.serviceWorker.register('./sw.js')
-      .then(reg => console.log('PWA Service Worker SI-ASEP Berhasil Aktif:', reg.scope))
+      .then(reg => console.log('PWA Service Worker SI-ACEP Berhasil Aktif:', reg.scope))
       .catch(err => console.error('PWA Service Worker Gagal:', err));
   });
 }
