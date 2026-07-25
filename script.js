@@ -244,3 +244,12 @@ document.addEventListener("DOMContentLoaded", function () {
     });
   }
 });
+
+// Registrasi Service Worker PWA SI-ASEP
+if ('serviceWorker' in navigator) {
+  window.addEventListener('load', () => {
+    navigator.serviceWorker.register('./sw.js')
+      .then(reg => console.log('PWA Service Worker SI-ASEP Berhasil Aktif:', reg.scope))
+      .catch(err => console.error('PWA Service Worker Gagal:', err));
+  });
+}
