@@ -134,7 +134,7 @@ document.addEventListener("DOMContentLoaded", function () {
     const kodeInput = inputKodeManual.value.trim();
 
     if (!kodeInput) {
-      alert("Masukkan Kode Barang atau NUP terlebih dahulu!");
+      alert("Masukkan Kode Barang, ID Awal, atau ID Barang terlebih dahulu!");
       inputKodeManual.focus();
       return;
     }
@@ -183,7 +183,7 @@ document.addEventListener("DOMContentLoaded", function () {
             <div style="display: flex; flex-direction: column; gap: 10px; background: #f8fafc; padding: 15px; border-radius: 8px; border: 1px solid #e2e8f0; word-break: break-word; overflow-wrap: anywhere;">
               
               <div style="border-bottom: 1px solid #e2e8f0; padding-bottom: 6px;">
-                <span style="font-size: 11px; color: #64748b; font-weight: 700; display: block;">KODE BARANG / ID ASET</span>
+                <span style="font-size: 11px; color: #64748b; font-weight: 700; display: block;">KODE BARANG / ID AWAL / ID BARANG</span>
                 <span style="font-size: 15px; font-weight: bold; color: #0284c7; word-break: break-all; font-family: monospace;">${data.kode}</span>
               </div>
 
@@ -224,7 +224,7 @@ document.addEventListener("DOMContentLoaded", function () {
 
             </div>
 
-            <!-- TOMBOL MERAH UNTUK UNTUK BATAL / HAPUS STATUS REKAP -->
+            <!-- TOMBOL MERAH UNTUK BATAL / HAPUS STATUS REKAP -->
             <div style="margin-top: 15px; text-align: center;">
               <button 
                 type="button" 
@@ -253,7 +253,7 @@ document.addEventListener("DOMContentLoaded", function () {
   // 5. FUNGSI EKSEKUSI HAPUS STATUS REKAP DARI SPREADSHEET
   // =========================================================================
   window.hapusDataAset = function(kodeBarang) {
-    const konfirmasi = confirm(`Apakah Bapak yakin ingin menghapus status inventarisasi untuk Kode: ${kodeBarang}?`);
+    const konfirmasi = confirm(`Apakah Anda yakin ingin menghapus status inventarisasi untuk Kode: ${kodeBarang}?`);
     if (!konfirmasi) return;
 
     infoDetailAset.innerHTML = `
