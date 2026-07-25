@@ -48,22 +48,32 @@
         <p>Arahkan kamera ke stiker QR Aset untuk pencatatan otomatis.</p>
       </div>
 
-      <!-- AREA KAMERA SCANNER -->
-      <div class="scanner-box" style="display: flex; flex-direction: column; align-items: center; background: transparent; height: auto;">
-        <!-- Frame Kamera -->
-        <div id="reader" style="width: 100%;"></div>
+<!-- AREA KAMERA SCANNER -->
+<div class="scanner-box" style="display: flex; flex-direction: column; align-items: center; background: transparent; height: auto;">
+  <!-- Frame Kamera -->
+  <div id="reader" style="width: 100%;"></div>
 
-        <!-- TOMBOL START & STOP KUSTOM (DISINILETAKNYA, TEPAT DI BAWAH KAMERA) -->
-        <div class="scanner-controls" style="margin-top: 15px; display: flex; justify-content: center; gap: 10px; width: 100%;">
-          <button id="btnStartCamera" type="button" class="btn-camera btn-start" style="background-color: #0284c7; color: white; border: none; padding: 10px 20px; border-radius: 8px; font-weight: bold; cursor: pointer; display: inline-flex; align-items: center; gap: 8px;">
-            <img src="https://api.iconify.design/lucide:qr-code.svg?color=%23ffffff" alt="QR" style="width: 18px; height: 18px;">
-            Start Scanning
-          </button>
-          <button id="btnStopCamera" type="button" class="btn-camera btn-stop" style="background-color: #ef4444; color: white; border: none; padding: 10px 20px; border-radius: 8px; font-weight: bold; cursor: pointer; display: none; align-items: center; gap: 8px;">
-            <i class="fa-solid fa-circle-stop"></i> Stop Scanning
-          </button>
-        </div>
-      </div>
+  <!-- CONTAINER TOMBOL AKSI BERDAMPINGAN (SIDE-BY-SIDE) -->
+  <div class="scanner-controls" style="margin-top: 15px; display: flex; justify-content: center; gap: 10px; width: 100%; flex-wrap: wrap;">
+    
+    <!-- Tombol Start Kamera -->
+    <button id="btnStartCamera" type="button" class="btn-camera btn-start" style="flex: 1; min-width: 140px; background-color: #0284c7; color: white; border: none; padding: 10px 15px; border-radius: 8px; font-weight: bold; cursor: pointer; display: inline-flex; align-items: center; justify-content: center; gap: 8px;">
+      <img src="https://api.iconify.design/lucide:qr-code.svg?color=%23ffffff" alt="QR" style="width: 18px; height: 18px;">
+      Start Scanning
+    </button>
+    
+    <!-- Tombol Stop Kamera (Sembunyi Default) -->
+    <button id="btnStopCamera" type="button" class="btn-camera btn-stop" style="flex: 1; min-width: 140px; background-color: #ef4444; color: white; border: none; padding: 10px 15px; border-radius: 8px; font-weight: bold; cursor: pointer; display: none; align-items: center; justify-content: center; gap: 8px;">
+      <i class="fa-solid fa-circle-stop"></i> Stop Scanning
+    </button>
+
+    <!-- Tombol Scan Barang Lain (Berdampingan di Sebelahnya) -->
+    <button id="btnResetScan" type="button" class="btn-camera" style="flex: 1; min-width: 140px; background-color: #475569; color: white; border: none; padding: 10px 15px; border-radius: 8px; font-weight: bold; cursor: pointer; display: inline-flex; align-items: center; justify-content: center; gap: 8px;">
+      <i class="fa-solid fa-rotate-right"></i> Scan Lainnya
+    </button>
+
+  </div>
+</div>
 
       <!-- LEMBAR INFORMASI ASET -->
       <div class="info-card" style="margin-top: 20px;">
