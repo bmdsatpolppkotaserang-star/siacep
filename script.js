@@ -23,6 +23,9 @@ document.addEventListener("DOMContentLoaded", function () {
   // =========================================================================
   // FUNGSI EFEK SUARA BEEP KHAS SCANNER
   // =========================================================================
+ // =========================================================================
+  // FUNGSI EFEK SUARA BEEP KHAS SCANNER (SEMAKIN KENCANG)
+  // =========================================================================
   function playScanBeep() {
     try {
       const audioCtx = new (window.AudioContext || window.webkitAudioContext)();
@@ -30,16 +33,20 @@ document.addEventListener("DOMContentLoaded", function () {
       const gainNode = audioCtx.createGain();
 
       oscillator.type = "sine";
-      oscillator.frequency.setValueAtTime(1800, audioCtx.currentTime); // Frekuensi nada tinggi khas scanner
+      // Nada frekuensi 2000Hz (sedikit lebih tinggi & menusuk earphone/speaker HP)
+      oscillator.frequency.setValueAtTime(2000, audioCtx.currentTime); 
 
-      gainNode.gain.setValueAtTime(0.15, audioCtx.currentTime); // Volume
-      gainNode.gain.exponentialRampToValueAtTime(0.00001, audioCtx.currentTime + 0.12); // Durasi pendek (0.12 detik)
+      // VOLUME DITINGKATKAN KE 0.8 (80% Dari Maksimal)
+      gainNode.gain.setValueAtTime(0.8, audioCtx.currentTime); 
+      
+      // Durasi dipanjangkan sedikit menjadi 0.15 detik
+      gainNode.gain.exponentialRampToValueAtTime(0.00001, audioCtx.currentTime + 0.15); 
 
       oscillator.connect(gainNode);
       gainNode.connect(audioCtx.destination);
 
       oscillator.start();
-      oscillator.stop(audioCtx.currentTime + 0.12);
+      oscillator.stop(audioCtx.currentTime + 0.15);
     } catch (e) {
       console.log("Audio tidak didukung atau diblokir browser:", e);
     }
