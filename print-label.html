@@ -60,7 +60,7 @@
       const urlParams = new URLSearchParams(window.location.search);
       const kode = urlParams.get('kode') || localStorage.getItem('print_kode') || 'AST-00000';
       const nama = urlParams.get('nama') || localStorage.getItem('print_nama') || 'Nama Barang';
-      const nibar = urlParams.get('reg') || localStorage.getItem('print_reg') || '-';
+      const nibar = urlParams.get('nibar') || localStorage.getItem('print_nibar') || '-';
       const lokasi = urlParams.get('lokasi') || localStorage.getItem('print_lokasi') || '-';
 
       document.getElementById('lbl-kode').innerText = kode;
