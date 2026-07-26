@@ -194,7 +194,7 @@ document.addEventListener("DOMContentLoaded", function () {
   }
 
   // =========================================================================
-  // 4. FUNGSI CEK DETAIL ASET (PUBLIK)
+  // 4. FUNGSI CEK DETAIL ASET (PUBLIK & PETUGAS)
   // =========================================================================
   function prosesCekDetailAset(kodeQR) {
     infoDetailAset.innerHTML = `
@@ -249,9 +249,14 @@ document.addEventListener("DOMContentLoaded", function () {
                 <span style="font-size: 13px; color: #334155;">${data.kondisi_status || '-'} (Status: ${data.status_aset || '-'})</span>
               </div>
 
+              <!-- PILIHAN B: HARGA DI-PROTEKSI BERDASARKAN STATUS LOGIN ADMIN -->
               <div style="border-bottom: 1px solid #e2e8f0; padding-bottom: 6px;">
                 <span style="font-size: 11px; color: #64748b; font-weight: 700; display: block;">NILAI / HARGA BARANG</span>
-                <span style="font-size: 14px; font-weight: bold; color: #166534;">Rp ${data.harga_total ? Number(data.harga_total).toLocaleString('id-ID') : '0'}</span>
+                <span style="font-size: 14px; font-weight: bold; color: #166534;">
+                  ${localStorage.getItem('is_admin') === 'true' && data.harga_total 
+                    ? 'Rp ' + Number(data.harga_total).toLocaleString('id-ID') 
+                    : '<span style="font-size: 13px; color: #64748b; font-weight: normal; font-style: italic;">*** (Khusus Petugas)</span>'}
+                </span>
               </div>
 
               <div>
