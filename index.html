@@ -18,6 +18,39 @@
 
   <!-- Library QR Code Scanner Kamera -->
   <script src="https://unpkg.com/html5-qrcode"></script>
+
+  <!-- ATURAN KEAMANAN TAMPILAN & PENGATURAN CETAK -->
+  <style>
+    /* 1. Pengaturan khusus cetak (Cegah rekap/kamera ikut tercetak) */
+    @media print {
+      .app-header,
+      .scanner-box,
+      .manual-input-box,
+      .action-buttons,
+      .app-footer,
+      [data-role="admin-only"] {
+        display: none !important;
+      }
+
+      body {
+        background: #ffffff !important;
+        color: #000000 !important;
+      }
+
+      .main-container, .content-card, .info-card {
+        box-shadow: none !important;
+        border: none !important;
+        width: 100% !important;
+        max-width: 100% !important;
+        padding: 0 !important;
+        margin: 0 !important;
+      }
+
+      .info-card h3 {
+        border-bottom: 2px solid #000000 !important;
+      }
+    }
+  </style>
 </head>
 <body>
 
@@ -121,7 +154,8 @@
 
       <!-- TOMBOL AKSI: DOWNLOAD & CETAK HASIL -->
       <div class="action-buttons" style="margin-top: 20px; display: flex; gap: 10px; flex-wrap: wrap;">
-        <button id="btnDownloadRekap" type="button" class="btn btn-download" style="background-color: #059669; color: white; flex: 1; min-width: 180px; padding: 10px; border-radius: 8px; border: none; font-weight: bold; cursor: pointer; display: inline-flex; align-items: center; justify-content: center; gap: 8px;">
+        <!-- Tombol rekap ditandai khusus agar aman saat dikontrol via script/print -->
+        <button id="btnDownloadRekap" data-role="admin-only" type="button" class="btn btn-download" style="background-color: #059669; color: white; flex: 1; min-width: 180px; padding: 10px; border-radius: 8px; border: none; font-weight: bold; cursor: pointer; display: inline-flex; align-items: center; justify-content: center; gap: 8px;">
           <i class="fa-solid fa-file-arrow-down"></i> Download Rekap
         </button>
         
