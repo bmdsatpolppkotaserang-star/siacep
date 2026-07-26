@@ -57,7 +57,7 @@ document.addEventListener("DOMContentLoaded", function () {
   const btnCariManual = document.getElementById("btnCariManual");
 
   // =========================================================================
-  // FUNGSI EFEK SUARA BEEP KHAS SCANNER (OPTIMASI HP & MEMORY)
+  // FUNGSI EFEK SUARA BEEP KHAS SCANNER
   // =========================================================================
   function playScanBeep() {
     try {
@@ -83,7 +83,6 @@ document.addEventListener("DOMContentLoaded", function () {
       oscillator.start();
       oscillator.stop(audioCtx.currentTime + 0.15);
 
-      // Otomatis bersihkan AudioContext setelah selesai berbunyi
       setTimeout(() => {
         if (audioCtx.state !== 'closed') audioCtx.close();
       }, 200);
@@ -116,12 +115,10 @@ document.addEventListener("DOMContentLoaded", function () {
         if (scannerAktif) {
           scannerAktif = false;
           playScanBeep();
-          prosesCekDetailAset(decodedText);
+          prosesCekDetailAset(decodedText, false); // Parameter 'false' = belum ditekan update
         }
       },
-      (errorMessage) => {
-        // Abaikan frame tanpa QR
-      }
+      (errorMessage) => {}
     ).then(() => {
       if (btnStart && btnStop) {
         btnStart.style.display = "none";
@@ -147,19 +144,12 @@ document.addEventListener("DOMContentLoaded", function () {
 
   if (btnStart) btnStart.addEventListener("click", () => { scannerAktif = true; window.mulaiKamera(); });
   if (btnStop) btnStop.addEventListener("click", () => matikanKamera());
+  if (btnResetScan) btnResetScan.onclick = window.kembaliKeAwal;
 
-  if (btnResetScan) {
-    btnResetScan.onclick = window.kembaliKeAwal;
-  }
-
-  // Otomatis matikan kamera jika tab diminimalkan (hemat baterai HP)
   document.addEventListener("visibilitychange", function() {
-    if (document.hidden) {
-      matikanKamera();
-    }
+    if (document.hidden) matikanKamera();
   });
 
-  // Jalankan kamera otomatis saat pertama dibuka
   window.mulaiKamera();
 
   // =========================================================================
@@ -177,13 +167,12 @@ document.addEventListener("DOMContentLoaded", function () {
 
     playScanBeep();
     scannerAktif = false;
-    prosesCekDetailAset(kodeInput);
+    prosesCekDetailAset(kodeInput, false);
     inputKodeManual.value = "";
   }
 
   if (btnCariManual) btnCariManual.addEventListener("click", eksekusiCariManual);
 
-  // Trigger pencarian saat tombol Enter ditekan pada input manual
   if (inputKodeManual) {
     inputKodeManual.addEventListener("keypress", function (e) {
       if (e.key === "Enter") {
@@ -194,9 +183,10 @@ document.addEventListener("DOMContentLoaded", function () {
   }
 
   // =========================================================================
-  // 4. FUNGSI CEK DETAIL ASET (PUBLIK & PETUGAS)
+  // 4. FUNGSI CEK DETAIL ASET
+  // Parameter `tampilkanHarga`: jika true -> harga dimunculkan setelah verifikasi PIN
   // =========================================================================
-  function prosesCekDetailAset(kodeQR) {
+  function prosesCekDetailAset(kodeQR, tampilkanHarga = false) {
     infoDetailAset.innerHTML = `
       <div style="text-align:center; padding: 20px;">
         <i class="fa-solid fa-spinner fa-spin" style="font-size:32px; color:#0284c7;"></i>
@@ -214,6 +204,12 @@ document.addEventListener("DOMContentLoaded", function () {
           localStorage.setItem("print_nama", data.nama || "-");
           localStorage.setItem("print_nibar", data.reg || "-");
           localStorage.setItem("print_lokasi", data.lokasi || "Satpol PP Kota Serang");
+
+          // Format Tampilan Harga
+          let teksHarga = `<span style="font-size: 13px; color: #64748b; font-weight: normal; font-style: italic;">*** (Tekan Update untuk lihat)</span>`;
+          if (tampilkanHarga && data.harga_total) {
+            teksHarga = `Rp ${Number(data.harga_total).toLocaleString('id-ID')}`;
+          }
 
           infoDetailAset.innerHTML = `
             <div style="margin-bottom: 15px; text-align: center;">
@@ -249,13 +245,11 @@ document.addEventListener("DOMContentLoaded", function () {
                 <span style="font-size: 13px; color: #334155;">${data.kondisi_status || '-'} (Status: ${data.status_aset || '-'})</span>
               </div>
 
-              <!-- PILIHAN B: HARGA DI-PROTEKSI BERDASARKAN STATUS LOGIN ADMIN -->
-              <div style="border-bottom: 1px solid #e2e8f0; padding-bottom: 6px;">
+              <!-- NILAI / HARGA BARANG (MUNCUL SETELAH PETUGAS UPDATE/VERIFIKASI PIN) -->
+              <div style="border-bottom: 1px solid #e2e8f0; padding-bottom: 6px; background-color: ${tampilkanHarga ? '#f0fdf4' : 'transparent'}; padding: 8px; border-radius: 6px;">
                 <span style="font-size: 11px; color: #64748b; font-weight: 700; display: block;">NILAI / HARGA BARANG</span>
                 <span style="font-size: 14px; font-weight: bold; color: #166534;">
-                  ${localStorage.getItem('is_admin') === 'true' && data.harga_total 
-                    ? 'Rp ' + Number(data.harga_total).toLocaleString('id-ID') 
-                    : '<span style="font-size: 13px; color: #64748b; font-weight: normal; font-style: italic;">*** (Khusus Petugas)</span>'}
+                  ${teksHarga}
                 </span>
               </div>
 
@@ -331,10 +325,10 @@ document.addEventListener("DOMContentLoaded", function () {
   }
 
   // =========================================================================
-  // 5. FUNGSI UPDATE INVENTARIS (PETUGAS - PIN)
+  // 5. FUNGSI UPDATE INVENTARIS (MEMINTA PIN & MENAMPILKAN HARGA/NILAI)
   // =========================================================================
   window.eksekusiInventarisasi = function(kodeBarang) {
-    const pinInput = prompt("🔒 Khusus Petugas Aset:\nMasukkan PIN Petugas untuk mencatat status:");
+    const pinInput = prompt("🔒 Khusus Petugas Aset:\nMasukkan PIN Petugas untuk mencatat status & membuka Rincian Nilai:");
     
     if (pinInput === null || pinInput.trim() === "") {
       alert("Akses dibatalkan.");
@@ -353,21 +347,28 @@ document.addEventListener("DOMContentLoaded", function () {
       .then(res => {
         if (res.result === "wrong_pin") {
           alert("❌ PIN Petugas Salah! Data gagal diperbarui.");
-          prosesCekDetailAset(kodeBarang);
+          prosesCekDetailAset(kodeBarang, false);
           return;
         }
 
         if (res.result === "found") {
-          alert("✅ Barang berhasil dicatat ke rekap inventaris!");
-          prosesCekDetailAset(kodeBarang);
+          // Format harga untuk notifikasi alert
+          const hargaFormatted = res.harga_total 
+            ? 'Rp ' + Number(res.harga_total).toLocaleString('id-ID') 
+            : 'Tidak Tercatat';
+
+          alert(`✅ BERHASIL DICATAT!\n\nNama Barang: ${res.nama || '-'}\nKode Barang: ${kodeBarang}\nNilai/Harga Aset: ${hargaFormatted}`);
+          
+          // Refresh detail dan BUKA tampilan harganya (parameter = true)
+          prosesCekDetailAset(kodeBarang, true);
         } else {
           alert("Gagal memperbarui data.");
-          prosesCekDetailAset(kodeBarang);
+          prosesCekDetailAset(kodeBarang, false);
         }
       })
       .catch(err => {
         alert("Gagal terhubung ke server.");
-        prosesCekDetailAset(kodeBarang);
+        prosesCekDetailAset(kodeBarang, false);
       });
   };
 
@@ -396,21 +397,21 @@ document.addEventListener("DOMContentLoaded", function () {
       .then(res => {
         if (res.result === "wrong_pin") {
           alert("❌ PIN Petugas Salah! Gagal menghapus status.");
-          prosesCekDetailAset(kodeBarang);
+          prosesCekDetailAset(kodeBarang, false);
           return;
         }
 
         if (res.result === "success") {
           alert("Status inventarisasi berhasil dihapus!");
-          prosesCekDetailAset(kodeBarang);
+          prosesCekDetailAset(kodeBarang, false);
         } else {
           alert("Gagal menghapus status.");
-          prosesCekDetailAset(kodeBarang);
+          prosesCekDetailAset(kodeBarang, false);
         }
       })
       .catch(err => {
         alert("Gagal terhubung ke server.");
-        prosesCekDetailAset(kodeBarang);
+        prosesCekDetailAset(kodeBarang, false);
       });
   };
 
@@ -427,13 +428,11 @@ document.addEventListener("DOMContentLoaded", function () {
   };
 
   // =========================================================================
-  // 8. FITUR REKAPITULASI & KEAMANAN
+  // 8. FITUR REKAPITULASI & KEAMANAN DOWNLOAD
   // =========================================================================
-  const btnDownload = document.querySelector(".btn-download");
-  if (btnDownload) {
-    btnDownload.addEventListener("click", function () {
-      if (!SPREADSHEET_ID) return alert("ID Google Sheets belum diisi!");
-
+  const btnDownloadRekap = document.getElementById('btnDownloadRekap');
+  if (btnDownloadRekap) {
+    btnDownloadRekap.addEventListener('click', function() {
       const pinInput = prompt("🔒 Khusus Petugas Aset:\nMasukkan PIN Petugas untuk mengunduh rekap Excel:");
       
       if (pinInput === null || pinInput.trim() === "") {
@@ -454,25 +453,6 @@ document.addEventListener("DOMContentLoaded", function () {
         .catch(err => {
           alert("Gagal terhubung ke server untuk verifikasi PIN.");
         });
-    });
-  }
-
-  const btnDownloadRekap = document.getElementById('btnDownloadRekap');
-  if (btnDownloadRekap) {
-    btnDownloadRekap.addEventListener('click', function() {
-      const isAdmin = localStorage.getItem('is_admin') === 'true';
-      
-      if (!isAdmin) {
-        alert('Akses Terbatas: Fitur download rekapitulasi hanya dapat diakses oleh Pengurus Barang.');
-        return;
-      }
-      
-      if (SPREADSHEET_ID) {
-        const downloadUrl = `https://docs.google.com/spreadsheets/d/${SPREADSHEET_ID}/export?format=xlsx&gid=${GID_REKAP}`;
-        window.open(downloadUrl, '_blank');
-      } else {
-        alert('ID Google Sheets belum dikonfigurasi!');
-      }
     });
   }
 });
