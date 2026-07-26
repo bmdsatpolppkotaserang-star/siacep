@@ -124,14 +124,22 @@
         </div>
       </div>
 
-      <!-- TOMBOL AKSI: DOWNLOAD & CETAK HASIL INVENTARISASI -->
+      <!-- TOMBOL AKSI: DOWNLOAD, CETAK HASIL & CETAK STIKER QR -->
       <div class="action-buttons" style="margin-top: 20px; display: flex; gap: 10px; flex-wrap: wrap;">
-        <button id="btnDownloadRekap" type="button" class="btn btn-download" style="background-color: #059669; color: white; flex: 1; padding: 10px; border-radius: 8px; border: none; font-weight: bold; cursor: pointer; display: inline-flex; align-items: center; justify-content: center; gap: 8px;">
-          <i class="fa-solid fa-file-arrow-down"></i> Download Rekap Inventarisasi
+        <button id="btnDownloadRekap" type="button" class="btn btn-download" style="background-color: #059669; color: white; flex: 1; min-width: 180px; padding: 10px; border-radius: 8px; border: none; font-weight: bold; cursor: pointer; display: inline-flex; align-items: center; justify-content: center; gap: 8px;">
+          <i class="fa-solid fa-file-arrow-down"></i> Download Rekap
         </button>
-        <button id="btnPrintHasil" type="button" class="btn btn-print" onclick="window.print();" style="background-color: #0284c7; color: white; flex: 1; padding: 10px; border-radius: 8px; border: none; font-weight: bold; cursor: pointer; display: inline-flex; align-items: center; justify-content: center; gap: 8px;">
-          <i class="fa-solid fa-print"></i> Cetak Hasil Inventarisasi Aset
+        
+        <button id="btnPrintHasil" type="button" class="btn btn-print" onclick="window.print();" style="background-color: #475569; color: white; flex: 1; min-width: 180px; padding: 10px; border-radius: 8px; border: none; font-weight: bold; cursor: pointer; display: inline-flex; align-items: center; justify-content: center; gap: 8px;">
+          <i class="fa-solid fa-print"></i> Cetak Laporan
         </button>
+
+        <!-- TOMBOL BARU: Buka Generator Cetak Stiker QR (Terbuka di Tab Baru) -->
+        <a href="print-label.html" target="_blank" style="text-decoration: none; flex: 1; min-width: 180px;">
+          <button type="button" class="btn btn-label" style="background-color: #0284c7; color: white; width: 100%; padding: 10px; border-radius: 8px; border: none; font-weight: bold; cursor: pointer; display: inline-flex; align-items: center; justify-content: center; gap: 8px;">
+            <i class="fa-solid fa-tags"></i> Cetak Stiker QR
+          </button>
+        </a>
       </div>
     </section>
 
@@ -143,6 +151,6 @@
   </footer>
 
   <!-- SCRIPT UTAMA -->
-  <script src="script.js?v=1.5"></script>
+  <script src="script.js?v=1.6"></script>
 </body>
 </html>
