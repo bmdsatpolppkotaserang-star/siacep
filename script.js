@@ -1,11 +1,11 @@
 // =========================================================================
-// DEKLARASI VARIABEL GLOBAL (Agar bisa diakses oleh fungsi global)
+// DEKLARASI VARIABEL GLOBAL
 // =========================================================================
 let scannerAktif = true;
 let html5QrCode = null;
 
 // =========================================================================
-// FUNGSI GLOBAL: KEMBALI KE HALAMAN AWAL / RESET KELUAR (Optimasi HP)
+// FUNGSI GLOBAL: KEMBALI KE HALAMAN AWAL / RESET KELUAR
 // =========================================================================
 window.kembaliKeAwal = function () {
   const infoDetailAset = document.getElementById("infoDetailAset");
@@ -14,7 +14,7 @@ window.kembaliKeAwal = function () {
   // 1. Reset Status Scanner
   scannerAktif = true;
 
-  // 2. Kosongkan Input Manual jika ada
+  // 2. Kosongkan Input Manual
   if (inputKodeManual) {
     inputKodeManual.value = "";
   }
@@ -55,6 +55,9 @@ document.addEventListener("DOMContentLoaded", function () {
 
   const inputKodeManual = document.getElementById("inputKodeManual");
   const btnCariManual = document.getElementById("btnCariManual");
+
+  // Helper Sanitasi Teks
+  const safeStr = (val) => (val !== undefined && val !== null && val !== "") ? val : "-";
 
   // =========================================================================
   // FUNGSI EFEK SUARA BEEP KHAS SCANNER
@@ -115,7 +118,7 @@ document.addEventListener("DOMContentLoaded", function () {
         if (scannerAktif) {
           scannerAktif = false;
           playScanBeep();
-          prosesCekDetailAset(decodedText, false); // Parameter 'false' = belum ditekan update
+          prosesCekDetailAset(decodedText, false);
         }
       },
       (errorMessage) => {}
@@ -150,6 +153,7 @@ document.addEventListener("DOMContentLoaded", function () {
     if (document.hidden) matikanKamera();
   });
 
+  // Jalankan kamera secara otomatis saat aplikasi dimuat
   window.mulaiKamera();
 
   // =========================================================================
@@ -184,9 +188,10 @@ document.addEventListener("DOMContentLoaded", function () {
 
   // =========================================================================
   // 4. FUNGSI CEK DETAIL ASET
-  // Parameter `tampilkanHarga`: jika true -> harga dimunculkan setelah verifikasi PIN
   // =========================================================================
   function prosesCekDetailAset(kodeQR, tampilkanHarga = false) {
+    if (!infoDetailAset) return;
+
     infoDetailAset.innerHTML = `
       <div style="text-align:center; padding: 20px;">
         <i class="fa-solid fa-spinner fa-spin" style="font-size:32px; color:#0284c7;"></i>
@@ -222,30 +227,30 @@ document.addEventListener("DOMContentLoaded", function () {
               
               <div style="border-bottom: 1px solid #e2e8f0; padding-bottom: 6px;">
                 <span style="font-size: 11px; color: #64748b; font-weight: 700; display: block;">KODE BARANG / ID BARANG</span>
-                <span style="font-size: 15px; font-weight: bold; color: #0284c7; word-break: break-all; font-family: monospace;">${data.kode}</span>
+                <span style="font-size: 15px; font-weight: bold; color: #0284c7; word-break: break-all; font-family: monospace;">${safeStr(data.kode)}</span>
               </div>
 
               <div style="border-bottom: 1px solid #e2e8f0; padding-bottom: 6px;">
                 <span style="font-size: 11px; color: #64748b; font-weight: 700; display: block;">NAMA BARANG / MERK / REG</span>
-                <span style="font-size: 14px; font-weight: 600; color: #1e293b;">${data.nama} ${data.merk && data.merk !== '-' ? ' - ' + data.merk : ''} (Reg: ${data.reg || '-'})</span>
+                <span style="font-size: 14px; font-weight: 600; color: #1e293b;">${safeStr(data.nama)} ${data.merk && data.merk !== '-' ? ' - ' + data.merk : ''} (Reg: ${safeStr(data.reg)})</span>
               </div>
 
               <div style="border-bottom: 1px solid #e2e8f0; padding-bottom: 6px;">
                 <span style="font-size: 11px; color: #64748b; font-weight: 700; display: block;">SPESIFIKASI & TAHUN</span>
-                <span style="font-size: 13px; color: #334155;">Ukuran: ${data.ukuran || '-'} | Bahan: ${data.bahan || '-'} | Thn: ${data.tahun || '-'}</span>
+                <span style="font-size: 13px; color: #334155;">Ukuran: ${safeStr(data.ukuran)} | Bahan: ${safeStr(data.bahan)} | Thn: ${safeStr(data.tahun)}</span>
               </div>
 
               <div style="border-bottom: 1px solid #e2e8f0; padding-bottom: 6px;">
                 <span style="font-size: 11px; color: #64748b; font-weight: 700; display: block;">NOMOR LEGALITAS / KENDARAAN</span>
-                <span style="font-size: 13px; color: #334155;">Pabrik: ${data.no_pabrik || '-'} | Rangka: ${data.no_rangka || '-'} | Mesin: ${data.no_mesin || '-'} | Polisi: ${data.no_polisi || '-'} | BPKB: ${data.no_bpkb || '-'}</span>
+                <span style="font-size: 13px; color: #334155;">Pabrik: ${safeStr(data.no_pabrik)} | Rangka: ${safeStr(data.no_rangka)} | Mesin: ${safeStr(data.no_mesin)} | Polisi: ${safeStr(data.no_polisi)} | BPKB: ${safeStr(data.no_bpkb)}</span>
               </div>
 
               <div style="border-bottom: 1px solid #e2e8f0; padding-bottom: 6px;">
                 <span style="font-size: 11px; color: #64748b; font-weight: 700; display: block;">KONDISI & STATUS ASET</span>
-                <span style="font-size: 13px; color: #334155;">${data.kondisi_status || '-'} (Status: ${data.status_aset || '-'})</span>
+                <span style="font-size: 13px; color: #334155;">${safeStr(data.kondisi_status)} (Status: ${safeStr(data.status_aset)})</span>
               </div>
 
-              <!-- NILAI / HARGA BARANG (MUNCUL SETELAH PETUGAS UPDATE/VERIFIKASI PIN) -->
+              <!-- NILAI / HARGA BARANG -->
               <div style="border-bottom: 1px solid #e2e8f0; padding-bottom: 6px; background-color: ${tampilkanHarga ? '#f0fdf4' : 'transparent'}; padding: 8px; border-radius: 6px;">
                 <span style="font-size: 11px; color: #64748b; font-weight: 700; display: block;">NILAI / HARGA BARANG</span>
                 <span style="font-size: 14px; font-weight: bold; color: #166534;">
@@ -255,7 +260,7 @@ document.addEventListener("DOMContentLoaded", function () {
 
               <div>
                 <span style="font-size: 11px; color: #64748b; font-weight: 700; display: block;">KETERANGAN DOKUMEN</span>
-                <span style="font-size: 13px; color: #334155;">${data.keterangan_aset || '-'}</span>
+                <span style="font-size: 13px; color: #334155;">${safeStr(data.keterangan_aset)}</span>
               </div>
 
             </div>
@@ -325,7 +330,7 @@ document.addEventListener("DOMContentLoaded", function () {
   }
 
   // =========================================================================
-  // 5. FUNGSI UPDATE INVENTARIS (MEMINTA PIN & MENAMPILKAN HARGA/NILAI)
+  // 5. FUNGSI UPDATE INVENTARIS
   // =========================================================================
   window.eksekusiInventarisasi = function(kodeBarang) {
     const pinInput = prompt("🔒 Khusus Petugas Aset:\nMasukkan PIN Petugas untuk mencatat status & membuka Rincian Nilai:");
@@ -352,14 +357,12 @@ document.addEventListener("DOMContentLoaded", function () {
         }
 
         if (res.result === "found") {
-          // Format harga untuk notifikasi alert
           const hargaFormatted = res.harga_total 
             ? 'Rp ' + Number(res.harga_total).toLocaleString('id-ID') 
             : 'Tidak Tercatat';
 
           alert(`✅ BERHASIL DICATAT!\n\nNama Barang: ${res.nama || '-'}\nKode Barang: ${kodeBarang}\nNilai/Harga Aset: ${hargaFormatted}`);
           
-          // Refresh detail dan BUKA tampilan harganya (parameter = true)
           prosesCekDetailAset(kodeBarang, true);
         } else {
           alert("Gagal memperbarui data.");
@@ -373,7 +376,7 @@ document.addEventListener("DOMContentLoaded", function () {
   };
 
   // =========================================================================
-  // 6. FUNGSI HAPUS STATUS INVENTARIS (PETUGAS - PIN)
+  // 6. FUNGSI HAPUS STATUS INVENTARIS
   // =========================================================================
   window.hapusDataAset = function(kodeBarang) {
     const pinInput = prompt("🔒 Khusus Petugas Aset:\nMasukkan PIN Petugas untuk menghapus status:");
