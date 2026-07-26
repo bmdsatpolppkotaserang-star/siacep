@@ -237,7 +237,7 @@ document.addEventListener("DOMContentLoaded", function () {
 
               <div style="border-bottom: 1px solid #e2e8f0; padding-bottom: 6px;">
                 <span style="font-size: 11px; color: #64748b; font-weight: 700; display: block;">SPESIFIKASI & TAHUN</span>
-                <span style="font-size: 13px; color: #334155;">Ukuran: ${safeStr(data.ukuran)} | Bahan: ${safeStr(data.bahan)} | Thn: ${safeStr(data.tahun_perolehan || data.tahun)}</span>
+                <span style="font-size: 13px; color: #334155;">Ukuran: ${safeStr(data.ukuran)} | Bahan: ${safeStr(data.bahan)} | Tahun: ${safeStr(data.tahun_perolehan || data.tahun)}</span>
               </div>
 
               <div style="border-bottom: 1px solid #e2e8f0; padding-bottom: 6px;">
