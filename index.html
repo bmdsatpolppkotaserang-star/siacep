@@ -8,7 +8,7 @@
   <meta name="apple-mobile-web-app-capable" content="yes">
   <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
   <link rel="apple-touch-icon" href="icons/icon-192.png">
-  <title>SI-ACEP - Sistem Inventarisasi Aset Cepat Efisien & Praktis</title>
+  <title>SI-ASEP - Sistem Inventarisasi Aset Cepat Efisien & Praktis</title>
 
   <!-- CSS Utama -->
   <link rel="stylesheet" href="style.css">
@@ -32,7 +32,7 @@
 
       <!-- JUDUL APLIKASI (DI TENGAH) -->
       <div class="header-title" style="text-align: center;">
-        <h1 style="margin: 0; font-size: 20px; font-weight: bold; color: #1e293b;">SI-ACEP</h1>
+        <h1 style="margin: 0; font-size: 20px; font-weight: bold; color: #1e293b;">SI-ASEP</h1>
         <p style="margin: 2px 0 0 0; font-size: 11px; color: #64748b; font-weight: 500;">Sistem Inventarisasi Aset Cepat Efisien & Praktis</p>
       </div>
 
@@ -119,15 +119,10 @@
         </div>
       </div>
 
-      <!-- TOMBOL AKSI: DOWNLOAD & CETAK HASIL -->
-      <div class="action-buttons" style="margin-top: 20px; display: flex; gap: 10px; flex-wrap: wrap;">
-        <!-- Tombol rekap ditandai khusus agar aman saat dikontrol via script/print -->
-        <button id="btnDownloadRekap" data-role="admin-only" type="button" class="btn btn-download" style="background-color: #059669; color: white; flex: 1; min-width: 180px; padding: 10px; border-radius: 8px; border: none; font-weight: bold; cursor: pointer; display: inline-flex; align-items: center; justify-content: center; gap: 8px;">
+      <!-- TOMBOL AKSI: DOWNLOAD REKAP -->
+      <div class="action-buttons" style="margin-top: 20px; display: flex; width: 100%;">
+        <button id="btnDownloadRekap" data-role="admin-only" type="button" class="btn btn-download" style="background-color: #059669; color: white; width: 100%; padding: 12px; border-radius: 8px; border: none; font-weight: bold; cursor: pointer; display: inline-flex; align-items: center; justify-content: center; gap: 8px; font-size: 14px;">
           <i class="fa-solid fa-file-arrow-down"></i> Download Rekap
-        </button>
-        
-        <button id="btnPrintHasil" type="button" class="btn btn-print" onclick="window.print();" style="background-color: #475569; color: white; flex: 1; min-width: 180px; padding: 10px; border-radius: 8px; border: none; font-weight: bold; cursor: pointer; display: inline-flex; align-items: center; justify-content: center; gap: 8px;">
-          <i class="fa-solid fa-print"></i> Cetak Laporan
         </button>
       </div>
     </section>
@@ -136,10 +131,10 @@
 
   <!-- FOOTER -->
   <footer class="app-footer" style="text-align: center; padding: 15px; font-size: 12px; color: #64748b; margin-top: 20px;">
-    <p style="margin: 0;">SI-ACEP &copy; Satuan Polisi Pamong Praja Kota Serang</p>
+    <p style="margin: 0;">SI-ASEP &copy; Satuan Polisi Pamong Praja Kota Serang</p>
   </footer>
 
   <!-- SCRIPT UTAMA -->
-  <script src="script.js?v=2.0"></script>
+  <script src="script.js?v=2.1"></script>
 </body>
 </html>
