@@ -31,7 +31,7 @@ window.kembaliKeAwal = function () {
     `;
   }
 
-  // 4. Aktifkan Kamera Kembali jika Sempat Stop/Matikan (Cek fungsi aman)
+  // 4. Aktifkan Kamera Kembali jika Sempat Stop/Matikan
   if (typeof window.mulaiKamera === "function") {
     window.mulaiKamera();
   }
@@ -42,7 +42,7 @@ window.kembaliKeAwal = function () {
 
 document.addEventListener("DOMContentLoaded", function () {
   // =========================================================================
-  // 1. PENGATURAN KONEKSI GOOGLE SHEETS & APPS SCRIPT (SI-ASEP)
+  // 1. PENGATURAN KONEKSI GOOGLE SHEETS & APPS SCRIPT (SI-ACEP)
   // =========================================================================
   const SCRIPT_URL = "https://script.google.com/macros/s/AKfycbzw0-PJAiT52PWo9ZE0ijj-zn_iBR9K09ahGW1oK7jSIEqDrgI5hm4V08wZIpJqdsm7/exec";
   const SPREADSHEET_ID = "1ZpZtmGJyqglogaaq1vgKqp38XgvkUHP_wbMfJPp1Zwc";
@@ -187,7 +187,7 @@ document.addEventListener("DOMContentLoaded", function () {
   }
 
   // =========================================================================
-  // 4. FUNGSI CEK DETAIL ASET & SIMPAN DATA PRINT STAGING
+  // 4. FUNGSI CEK DETAIL ASET
   // =========================================================================
   function prosesCekDetailAset(kodeQR, tampilkanHarga = false) {
     if (!infoDetailAset) return;
@@ -205,22 +205,10 @@ document.addEventListener("DOMContentLoaded", function () {
         if (data.result === "found") {
           const isTerinventaris = data.sudah_inventaris === true;
 
-          // PERBAIKAN: SIMPAN STRUKTUR LENGKAP BIKIN SINKRON DENGAN PRINT-LABEL.HTML
-          const printItem = {
-            kode: data.kode || kodeQR,
-            nama: data.nama || "-",
-            merk: (data.merk && data.merk !== '-') ? data.merk : "",
-            tahun: data.tahun_perolehan || data.tahun || "-",
-            reg: data.reg || "",
-            ukuran: data.ukuran || "",
-            bahan: data.bahan || ""
-          };
-
-          // Simpan format tunggal & format JSON Staging
-          localStorage.setItem("print_kode", printItem.kode);
-          localStorage.setItem("print_nama", printItem.nama);
-          localStorage.setItem("print_tahun", printItem.tahun);
-          localStorage.setItem("siasep_print_staging", JSON.stringify(printItem));
+          // HANYA SIMPAN KODE, NAMA, DAN TAHUN UNTUK CETAK STIKER
+          localStorage.setItem("print_kode", data.kode || kodeQR);
+          localStorage.setItem("print_nama", data.nama || "-");
+          localStorage.setItem("print_tahun", data.tahun_perolehan || data.tahun || "-");
 
           // Format Tampilan Harga
           let teksHarga = `<span style="font-size: 13px; color: #64748b; font-weight: normal; font-style: italic;">*** (Tekan Update untuk lihat)</span>`;
@@ -439,8 +427,7 @@ document.addEventListener("DOMContentLoaded", function () {
       alert("Pilih atau cari barang terlebih dahulu!");
       return;
     }
-    // Buka jendela cetak label
-    window.open("print-label.html", "_blank", "width=500,height=400");
+    window.open("print-label.html", "_blank", "width=450,height=350");
   };
 
   // =========================================================================
@@ -470,14 +457,14 @@ document.addEventListener("DOMContentLoaded", function () {
           alert("Gagal terhubung ke server untuk verifikasi PIN.");
         });
     });
-  });
+  }
 });
 
-// Registrasi Service Worker PWA SI-ASEP
+// Registrasi Service Worker PWA SI-ACEP
 if ('serviceWorker' in navigator) {
   window.addEventListener('load', () => {
     navigator.serviceWorker.register('./sw.js')
-      .then(reg => console.log('PWA SI-ASEP Aktif:', reg.scope))
+      .then(reg => console.log('PWA SI-ACEP Aktif:', reg.scope))
       .catch(err => console.error('PWA Gagal:', err));
   });
 }
