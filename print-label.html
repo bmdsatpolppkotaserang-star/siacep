@@ -1,0 +1,83 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Cetak Label Stiker Aset - SI-ACEP</title>
+  <link rel="stylesheet" href="print-style.css">
+  <!-- QRCode.js Library untuk generate QR Code di halaman stiker -->
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/qrcodejs/1.0.0/qrcode.min.js"></script>
+</head>
+<body>
+
+  <div class="print-actions">
+    <button class="btn-print-now" onclick="window.print()">🖨️ Cetak Label Sekarang</button>
+    <button class="btn-close" onclick="window.close()">❌ Tutup</button>
+  </div>
+
+  <!-- Container Label Stiker Aset (Ukuran Standar Label Stiker Aset Pemda) -->
+  <div class="label-container">
+    <div class="label-header">
+      <div class="header-text">
+        <h3>SATPOL PP KOTA SERANG</h3>
+        <p>Aset Daerah / Inventaris Barang</p>
+      </div>
+    </div>
+    
+    <div class="label-body">
+      <div class="qr-code-box" id="qrcode-label">
+        <!-- QR Code akan digenerate otomatis melalui JS -->
+      </div>
+      
+      <div class="asset-info">
+        <div class="info-row">
+          <span class="label-title">Kode Aset:</span>
+          <span class="label-val code" id="lbl-kode">-</span>
+        </div>
+        <div class="info-row">
+          <span class="label-title">Nama Barang:</span>
+          <span class="label-val" id="lbl-nama">-</span>
+        </div>
+        <div class="info-row">
+          <span class="label-title">NIBAR:</span>
+          <span class="label-val" id="lbl-nibar">-</span>
+        </div>
+        <div class="info-row">
+          <span class="label-title">Lokasi/Ruang:</span>
+          <span class="label-val" id="lbl-lokasi">-</span>
+        </div>
+      </div>
+    </div>
+
+    <div class="label-footer">
+      <span>SI-ACEP - Sistem Inventaris Aset Cepat Efisien & Praktis</span>
+    </div>
+  </div>
+
+  <script>
+    // Membaca data aset dari URL Parameter / LocalStorage
+    window.addEventListener('DOMContentLoaded', () => {
+      const urlParams = new URLSearchParams(window.location.search);
+      const kode = urlParams.get('kode') || localStorage.getItem('print_kode') || 'AST-00000';
+      const nama = urlParams.get('nama') || localStorage.getItem('print_nama') || 'Nama Barang';
+      const nibar = urlParams.get('nibar') || localStorage.getItem('print_nibar') || '-';
+      const lokasi = urlParams.get('lokasi') || localStorage.getItem('print_lokasi') || '-';
+
+      document.getElementById('lbl-kode').innerText = kode;
+      document.getElementById('lbl-nama').innerText = nama;
+      document.getElementById('lbl-nibar').innerText = nibar;
+      document.getElementById('lbl-lokasi').innerText = lokasi;
+
+      // Generate QR Code
+      new QRCode(document.getElementById("qrcode-label"), {
+        text: kode,
+        width: 85,
+        height: 85,
+        colorDark : "#000000",
+        colorLight : "#ffffff",
+        correctLevel : QRCode.CorrectLevel.H
+      });
+    });
+  </script>
+</body>
+</html>
