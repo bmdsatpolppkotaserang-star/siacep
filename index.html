@@ -72,9 +72,9 @@
             <i class="fa-solid fa-circle-stop"></i> Stop Scanning
           </button>
 
-          <!-- Tombol Scan Barang Lain -->
-          <button id="btnResetScan" type="button" class="btn-camera" style="flex: 1; min-width: 140px; background-color: #475569; color: white; border: none; padding: 10px 15px; border-radius: 8px; font-weight: bold; cursor: pointer; display: inline-flex; align-items: center; justify-content: center; gap: 8px;">
-            <i class="fa-solid fa-rotate-right"></i> Scan Aset Lainnya
+          <!-- TOMBOL KELUAR / SCAN BARANG LAIN -->
+          <button id="btnResetScan" type="button" onclick="kembaliKeAwal()" class="btn-camera btn-secondary" style="flex: 1; min-width: 140px; background-color: #475569; color: white; border: none; padding: 10px 15px; border-radius: 8px; font-weight: bold; cursor: pointer; display: inline-flex; align-items: center; justify-content: center; gap: 8px;">
+            <i class="fa-solid fa-arrow-left"></i> Keluar / Scan Barang Lain
           </button>
 
         </div>
@@ -134,7 +134,7 @@
           <i class="fa-solid fa-print"></i> Cetak Laporan
         </button>
 
-        <!-- TOMBOL BARU: Buka Generator Cetak Stiker QR (Terbuka di Tab Baru) -->
+        <!-- TOMBOL: Buka Generator Cetak Stiker QR (Terbuka di Tab Baru) -->
         <a href="print-label.html" target="_blank" style="text-decoration: none; flex: 1; min-width: 180px;">
           <button type="button" class="btn btn-label" style="background-color: #0284c7; color: white; width: 100%; padding: 10px; border-radius: 8px; border: none; font-weight: bold; cursor: pointer; display: inline-flex; align-items: center; justify-content: center; gap: 8px;">
             <i class="fa-solid fa-tags"></i> Cetak Stiker QR
@@ -151,6 +151,6 @@
   </footer>
 
   <!-- SCRIPT UTAMA -->
-  <script src="script.js?v=1.6"></script>
+  <script src="script.js?v=1.7"></script>
 </body>
 </html>
