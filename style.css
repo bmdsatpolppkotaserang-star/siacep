@@ -8,6 +8,7 @@
   --text-muted: #64748b;
   --border-color: #e2e8f0;
   --success-color: #10b981;
+  --danger-color: #ef4444;
 }
 
 * {
@@ -28,6 +29,7 @@ body {
   background-color: var(--card-bg);
   padding: 15px 20px;
   border-bottom: 1px solid var(--border-color);
+  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.05);
 }
 
 .logo-box {
@@ -58,15 +60,14 @@ body {
    LAYOUT FLEKSIBEL UNTUK AREA PEMINDAIAN & INFORMASI ASET
    ========================================================================= */
 
-/* Main Container Fleksibel */
 .main-container {
   max-width: 600px;
   margin: 20px auto;
   padding: 0 15px;
   display: flex !important;
   flex-direction: column !important;
-  gap: 15px !important;            /* Jarak otomatis & konsisten antar kartu */
-  height: auto !important;          /* Tinggi melar secara alami */
+  gap: 15px !important;
+  height: auto !important;
 }
 
 /* Tab Navigasi Sederhana */
@@ -89,6 +90,7 @@ body {
   align-items: center;
   justify-content: center;
   gap: 8px;
+  transition: all 0.2s ease;
 }
 
 .tab-btn.active {
@@ -101,11 +103,13 @@ body {
 .content-card {
   background: var(--card-bg);
   border: 1px solid var(--border-color);
-  border-radius: 10px;
+  border-radius: 12px;
   padding: 20px;
-  box-shadow: 0 2px 4px rgba(0,0,0,0.02);
-  height: auto !important;          /* Tinggi kartu tidak kaku */
-  transition: all 0.3s ease-in-out !important; /* Efek melar yang halus saat data muncul */
+  box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.05);
+  height: auto !important;
+  transition: all 0.3s ease-in-out !important;
+  overflow: hidden;
+  max-width: 100%;
 }
 
 .card-title {
@@ -127,11 +131,11 @@ body {
 /* Scanner Area Placeholder Fleksibel */
 .scanner-box {
   width: 100%;
-  height: auto !important;          /* Tinggi menyesuaikan kamera / isi */
-  min-height: 200px !important;
-  background-color: #0f172a;
+  height: auto !important;
+  background-color: transparent;
   border-radius: 8px;
   display: flex;
+  flex-direction: column;
   align-items: center;
   justify-content: center;
   margin-bottom: 10px;
@@ -188,13 +192,15 @@ body {
   display: flex;
   gap: 10px;
   margin-top: 20px;
+  flex-wrap: wrap;
 }
 
 .btn {
   flex: 1;
+  min-width: 140px;
   padding: 12px;
   border: none;
-  border-radius: 6px;
+  border-radius: 8px;
   font-weight: 600;
   cursor: pointer;
   display: flex;
@@ -202,6 +208,7 @@ body {
   justify-content: center;
   gap: 8px;
   font-size: 13px;
+  transition: all 0.2s ease;
 }
 
 .btn-save {
@@ -214,13 +221,25 @@ body {
   color: white;
 }
 
-/* Info Card Fleksibel (Fokus 2) */
+.btn:hover {
+  opacity: 0.9;
+  transform: translateY(-1px);
+}
+
+/* Info Card Fleksibel */
 .info-card {
   background-color: #f8fafc;
   border: 1px solid var(--border-color);
   border-radius: 8px;
   padding: 15px;
-  height: auto !important;          /* Fleksibel mengikuti panjang isi data KIB */
+  height: auto !important;
+  max-width: 100%;
+  overflow: hidden;
+}
+
+.info-card * {
+  word-break: break-word;
+  overflow-wrap: anywhere;
 }
 
 .info-badge-status {
@@ -235,6 +254,11 @@ body {
 .status-good {
   background-color: #d1fae5;
   color: #065f46;
+}
+
+.status-bad {
+  background-color: #fef3c7;
+  color: #92400e;
 }
 
 .info-detail-grid {
@@ -280,11 +304,7 @@ body {
    PERBAIKAN TAMPILAN SCANNER HTML5-QRCODE (SI-ACEP)
    ========================================================================= */
 
-/* =========================================================================
-   PERBAIKAN EKSTREM TAMPILAN SCANNER HTML5-QRCODE (SI-ACEP)
-   ========================================================================= */
-
-/* Sembunyikan TOTAL seluruh teks, link, dropdown, dan ikon pengganggu bawaan library */
+/* Sembunyikan elemen dashboard bawaan libraryHtml5Qrcode */
 #reader__dashboard,
 #reader__dashboard_section,
 #reader__dashboard_section_csr,
@@ -298,11 +318,11 @@ body {
 
 /* Kotak Pemindai Kamera Fleksibel & Rapi */
 #reader {
-  border: 2px dashed #0284c7 !important;
+  border: 2px dashed var(--primary-color) !important;
   border-radius: 12px !important;
   overflow: hidden !important;
   background-color: #0f172a !important;
-  padding: 10px !important;
+  padding: 5px !important;
   width: 100% !important;
   height: auto !important;
   min-height: 200px !important;
@@ -316,18 +336,19 @@ body {
   max-height: 300px !important;
 }
 
-/* Container Tombol Kontrol Kamera di Bawah Frame */
+/* Container Tombol Kontrol Kamera */
 .scanner-controls {
   display: flex;
   justify-content: center;
-  gap: 12px;
+  gap: 10px;
   margin-top: 15px;
+  width: 100%;
+  flex-wrap: wrap;
 }
 
-/* Base Styling Tombol Kamera Kustom */
 .btn-camera {
   border: none;
-  padding: 10px 20px;
+  padding: 10px 15px;
   border-radius: 8px;
   font-weight: bold;
   font-size: 14px;
@@ -341,16 +362,16 @@ body {
 }
 
 .btn-start {
-  background-color: #0284c7;
+  background-color: var(--primary-color);
   color: #ffffff;
 }
 
 .btn-start:hover {
-  background-color: #0369a1;
+  background-color: var(--primary-hover);
 }
 
 .btn-stop {
-  background-color: #ef4444;
+  background-color: var(--danger-color);
   color: #ffffff;
 }
 
@@ -358,18 +379,36 @@ body {
   background-color: #dc2626;
 }
 
-/* Sembunyikan elemen dashboard bawaan libraryHtml5Qrcode agar tidak muncul lagi */
-#reader__dashboard {
-  display: none !important;
-}
+/* =========================================================================
+   MODE CETAK (PRINT) OPTIMAL - HANYA LEMBAR INFORMASI YANG DICETAK
+   ========================================================================= */
+@media print {
+  body {
+    background-color: #ffffff !important;
+    color: #000000 !important;
+  }
 
-/* Mencegah teks meluap di layar HP */
-.info-card, .content-card {
-  overflow: hidden;
-  max-width: 100%;
-}
+  .app-header,
+  .card-title,
+  .scanner-box,
+  .manual-input-box,
+  .action-buttons,
+  .app-footer {
+    display: none !important;
+  }
 
-.info-card * {
-  word-break: break-word;
-  overflow-wrap: anywhere;
+  .main-container,
+  .content-card,
+  .info-card {
+    border: none !important;
+    box-shadow: none !important;
+    padding: 0 !important;
+    margin: 0 !important;
+    width: 100% !important;
+    max-width: 100% !important;
+  }
+
+  .info-card {
+    background: transparent !important;
+  }
 }
