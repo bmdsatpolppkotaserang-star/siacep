@@ -1,6 +1,6 @@
 document.addEventListener("DOMContentLoaded", function () {
   // =========================================================================
-  // 1. PENGATURAN KONEKSI GOOGLE SHEETS & APPS SCRIPT (SI-ACEP)
+  // 1. PENGATURAN KONEKSI GOOGLE SHEETS & APPS SCRIPT (SI-ASEP)
   // =========================================================================
   
   const SCRIPT_URL = "https://script.google.com/macros/s/AKfycbzw0-PJAiT52PWo9ZE0ijj-zn_iBR9K09ahGW1oK7jSIEqDrgI5hm4V08wZIpJqdsm7/exec";
@@ -52,9 +52,12 @@ document.addEventListener("DOMContentLoaded", function () {
   // =========================================================================
   // 2. INTEGRASI SCANNER KAMERA (HTML5-QRCODE)
   // =========================================================================
-  html5QrCode = new Html5Qrcode("reader");
+  if (document.getElementById("reader")) {
+    html5QrCode = new Html5Qrcode("reader");
+  }
 
   function mulaiKamera() {
+    if (!html5QrCode) return;
     const config = { fps: 10, qrbox: { width: 220, height: 220 } };
 
     html5QrCode.start(
@@ -158,6 +161,12 @@ document.addEventListener("DOMContentLoaded", function () {
         if (data.result === "found") {
           const isTerinventaris = data.sudah_inventaris === true;
 
+          // SIMPAN DATA KE LOCALSTORAGE UNTUK MODUL CETAK STIKER QR
+          localStorage.setItem("print_kode", data.kode || kodeQR);
+          localStorage.setItem("print_nama", data.nama || "-");
+          localStorage.setItem("print_nibar", data.reg || "-");
+          localStorage.setItem("print_lokasi", data.lokasi || "Satpol PP Kota Serang");
+
           infoDetailAset.innerHTML = `
             <div style="margin-bottom: 15px; text-align: center;">
               <span style="background-color: ${isTerinventaris ? '#dcfce7' : '#fef3c7'}; color: ${isTerinventaris ? '#166534' : '#92400e'}; padding: 6px 14px; border-radius: 20px; font-weight: bold; font-size: 13px; display: inline-block;">
@@ -211,6 +220,13 @@ document.addEventListener("DOMContentLoaded", function () {
                 onclick="eksekusiInventarisasi('${data.kode}')"
                 style="background-color: #0284c7; color: white; border: none; padding: 10px 16px; border-radius: 8px; font-weight: bold; cursor: pointer; display: inline-flex; align-items: center; gap: 6px; font-size: 13px;">
                 <i class="fa-solid fa-pen-to-square"></i> Update / Catat Inventaris (Petugas)
+              </button>
+
+              <button 
+                type="button" 
+                onclick="bukaCetakStikerLabel('${data.kode}')"
+                style="background-color: #059669; color: white; border: none; padding: 10px 16px; border-radius: 8px; font-weight: bold; cursor: pointer; display: inline-flex; align-items: center; gap: 6px; font-size: 13px;">
+                <i class="fa-solid fa-qrcode"></i> Cetak Stiker QR
               </button>
 
               ${isTerinventaris ? `
@@ -324,7 +340,19 @@ document.addEventListener("DOMContentLoaded", function () {
   };
 
   // =========================================================================
-  // 7. TOMBOL DOWNLOAD REKAP EXCEL (KHUSUS PETUGAS - PAKAI PIN)
+  // 7. FUNGSI MEMBUKA HALAMAN CETAK STIKER LABEL QR
+  // =========================================================================
+  window.bukaCetakStikerLabel = function(kodeBarang) {
+    const kode = localStorage.getItem("print_kode") || kodeBarang;
+    if (!kode) {
+      alert("Pilih atau cari barang terlebih dahulu!");
+      return;
+    }
+    window.open("print-label.html", "_blank", "width=450,height=350");
+  };
+
+  // =========================================================================
+  // 8. TOMBOL DOWNLOAD REKAP EXCEL (KHUSUS PETUGAS - PAKAI PIN)
   // =========================================================================
   const btnDownload = document.querySelector(".btn-download");
   if (btnDownload) {
@@ -356,7 +384,7 @@ document.addEventListener("DOMContentLoaded", function () {
   }
 
   // =========================================================================
-  // 8. TOMBOL CETAK HASIL INVENTARISASI
+  // 9. TOMBOL CETAK LAPORAN HASIL INVENTARISASI
   // =========================================================================
   const btnPrint = document.querySelector(".btn-print");
   if (btnPrint) {
