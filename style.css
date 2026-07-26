@@ -1,4 +1,4 @@
-/* Styling Sederhana & Bersih untuk SI-ACEP */
+/* Styling Sederhana & Bersih untuk SI-ASEP */
 :root {
   --primary-color: #0284c7;
   --primary-hover: #0369a1;
@@ -223,11 +223,6 @@ body {
   color: white;
 }
 
-.btn-print {
-  background-color: #475569;
-  color: white;
-}
-
 .btn-label {
   background-color: var(--primary-color);
   color: white;
@@ -313,7 +308,7 @@ body {
 }
 
 /* =========================================================================
-   PERBAIKAN TAMPILAN SCANNER HTML5-QRCODE (SI-ACEP)
+   PERBAIKAN TAMPILAN SCANNER HTML5-QRCODE (SI-ASEP)
    ========================================================================= */
 
 #reader__dashboard,
@@ -385,46 +380,4 @@ body {
 
 .btn-stop:hover {
   background-color: #dc2626;
-}
-
-/* =========================================================================
-   MODE CETAK (PRINT) OPTIMAL & KEAMANAN TAMPILAN LAPORAN ASET
-   ========================================================================= */
-@media print {
-  /* 1. Sembunyikan elemen UI, Header, Kamera, Tombol Aksi, & Elemen khusus Admin */
-  .app-header,
-  .card-title,
-  .scanner-box,
-  .manual-input-box,
-  .action-buttons,
-  .app-footer,
-  [data-role="admin-only"] {
-    display: none !important;
-  }
-
-  /* 2. Reset Latar Belakang menjadi Putih Polos & Teks Hitam Pekat */
-  body {
-    background-color: #ffffff !important;
-    color: #000000 !important;
-  }
-
-  /* 3. Maksimalkan Lebar Kertas Cetak tanpa Bayangan (Shadow) */
-  .main-container,
-  .content-card,
-  .info-card {
-    border: none !important;
-    box-shadow: none !important;
-    padding: 0 !important;
-    margin: 0 !important;
-    width: 100% !important;
-    max-width: 100% !important;
-  }
-
-  .info-card {
-    background: transparent !important;
-  }
-
-  .info-card h3 {
-    border-bottom: 2px solid #000000 !important;
-  }
 }
