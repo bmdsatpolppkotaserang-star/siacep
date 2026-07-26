@@ -2,7 +2,7 @@
 // SERVICE WORKER - SI-ACEP (PWA CACHE MANAGEMENT)
 // =========================================================================
 
-const CACHE_NAME = 'si-acep-cache-v18'; // <--- Naikkan versi jika ada update file frontend
+const CACHE_NAME = 'si-acep-cache-v19'; // <--- Naikkan versi jika ada update file frontend
 const ASSETS_TO_CACHE = [
   './',
   './index.html',
