@@ -42,7 +42,7 @@ window.kembaliKeAwal = function () {
 
 document.addEventListener("DOMContentLoaded", function () {
   // =========================================================================
-  // 1. PENGATURAN KONEKSI GOOGLE SHEETS & APPS SCRIPT (SI-ACEP)
+  // 1. PENGATURAN KONEKSI GOOGLE SHEETS & APPS SCRIPT (SI-ASEP)
   // =========================================================================
   const SCRIPT_URL = "https://script.google.com/macros/s/AKfycbzw0-PJAiT52PWo9ZE0ijj-zn_iBR9K09ahGW1oK7jSIEqDrgI5hm4V08wZIpJqdsm7/exec";
   const SPREADSHEET_ID = "1ZpZtmGJyqglogaaq1vgKqp38XgvkUHP_wbMfJPp1Zwc";
@@ -144,7 +144,7 @@ document.addEventListener("DOMContentLoaded", function () {
   if (btnStart) btnStart.addEventListener("click", () => { scannerAktif = true; window.mulaiKamera(); });
   if (btnStop) btnStop.addEventListener("click", () => matikanKamera());
 
-  // Listener tombol reset dikelola terpusat dari atribut onclick HTML atau listener JS ini
+  // Listener tombol reset dikelola terpusat
   if (btnResetScan) {
     btnResetScan.onclick = window.kembaliKeAwal;
   }
@@ -405,8 +405,10 @@ document.addEventListener("DOMContentLoaded", function () {
   };
 
   // =========================================================================
-  // 8. TOMBOL DOWNLOAD REKAP EXCEL (KHUSUS PETUGAS - PAKAI PIN)
+  // 8. FITUR REKAPITULASI & KEAMANAN
   // =========================================================================
+
+  // A. Tombol Download Rekap Excel Via Class (.btn-download) Dengan PIN Apps Script
   const btnDownload = document.querySelector(".btn-download");
   if (btnDownload) {
     btnDownload.addEventListener("click", function () {
@@ -419,7 +421,6 @@ document.addEventListener("DOMContentLoaded", function () {
         return;
       }
 
-      // Verifikasi PIN ke server sebelum mengizinkan download
       fetch(`${SCRIPT_URL}?action=verify_pin&pin=${encodeURIComponent(pinInput.trim())}`)
         .then(response => response.json())
         .then(res => {
@@ -436,6 +437,28 @@ document.addEventListener("DOMContentLoaded", function () {
     });
   }
 
+  // B. Proteksi Tombol Download Rekapitulasi Data Aset Via Element ID (#btnDownloadRekap)
+  const btnDownloadRekap = document.getElementById('btnDownloadRekap');
+  if (btnDownloadRekap) {
+    btnDownloadRekap.addEventListener('click', function() {
+      // Cek status login dari localStorage
+      const isAdmin = localStorage.getItem('is_admin') === 'true';
+      
+      if (!isAdmin) {
+        alert('Akses Terbatas: Fitur download rekapitulasi hanya dapat diakses oleh Pengurus Barang.');
+        return;
+      }
+      
+      // Ekspor Rekap Excel
+      if (SPREADSHEET_ID) {
+        const downloadUrl = `https://docs.google.com/spreadsheets/d/${SPREADSHEET_ID}/export?format=xlsx&gid=${GID_REKAP}`;
+        window.open(downloadUrl, '_blank');
+      } else {
+        alert('ID Google Sheets belum dikonfigurasi!');
+      }
+    });
+  }
+
   // =========================================================================
   // 9. TOMBOL CETAK LAPORAN HASIL INVENTARISASI
   // =========================================================================
@@ -445,11 +468,11 @@ document.addEventListener("DOMContentLoaded", function () {
   }
 });
 
-// Registrasi Service Worker PWA SI-ACEP
+// Registrasi Service Worker PWA SI-ASEP
 if ('serviceWorker' in navigator) {
   window.addEventListener('load', () => {
     navigator.serviceWorker.register('./sw.js')
-      .then(reg => console.log('PWA SI-ACEP Aktif:', reg.scope))
+      .then(reg => console.log('PWA SI-ASEP Aktif:', reg.scope))
       .catch(err => console.error('PWA Gagal:', err));
   });
 }
