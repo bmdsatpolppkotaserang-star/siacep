@@ -58,30 +58,39 @@
 
   <script>
   document.addEventListener("DOMContentLoaded", function () {
-    // Hanya membaca Kode, Nama, dan Tahun
+    // 1. Ambil data dari localStorage
     const kode  = localStorage.getItem("print_kode") || "-";
     const nama  = localStorage.getItem("print_nama") || "-";
     const tahun = localStorage.getItem("print_tahun") || "-";
 
-    // Tampilkan ke elemen HTML
-    if (document.getElementById("txtKode")) document.getElementById("txtKode").textContent = kode;
-    if (document.getElementById("txtNama")) document.getElementById("txtNama").textContent = nama;
-    if (document.getElementById("txtTahun")) document.getElementById("txtTahun").textContent = tahun;
+    // 2. Tampilkan ke elemen HTML sesuai ID yang benar
+    const elKode  = document.getElementById("lbl-kode");
+    const elNama  = document.getElementById("lbl-nama");
+    const elTahun = document.getElementById("lbl-tahun");
+    const elQr    = document.getElementById("qrcode-label");
 
-    // Generate QR Code
-    if (kode !== "-" && document.getElementById("qrcode")) {
-      new QRCode(document.getElementById("qrcode"), {
+    if (elKode) elKode.textContent = kode;
+    if (elNama) elNama.textContent = nama;
+    if (elTahun) elTahun.textContent = tahun;
+
+    // 3. Generate QR Code ke ID qrcode-label
+    if (kode !== "-" && elQr) {
+      // Kosongkan container QR terlebih dahulu jika ada isinya
+      elQr.innerHTML = "";
+      
+      new QRCode(elQr, {
         text: kode,
-        width: 90,
-        height: 90
+        width: 85,
+        height: 85,
+        correctLevel: QRCode.CorrectLevel.M
       });
     }
 
-    // Panggil dialog cetak otomatis
+    // 4. Panggil dialog cetak otomatis
     setTimeout(() => {
       window.print();
-    }, 500);
+    }, 600);
   });
-</script>
+  </script>
 </body>
 </html>
