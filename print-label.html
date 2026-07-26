@@ -58,34 +58,39 @@
 
   <script>
   document.addEventListener("DOMContentLoaded", function () {
-  // Ambil data staging JSON yang dikirim script.js
-  const stagingRaw = localStorage.getItem("siasep_print_staging");
-  
-  let kode = localStorage.getItem("print_kode") || "-";
-  let nama = localStorage.getItem("print_nama") || "-";
-  let tahun = localStorage.getItem("print_tahun") || "-";
-  let merk = "";
+    // 1. Ambil data dari localStorage
+    const kode  = localStorage.getItem("print_kode") || "-";
+    const nama  = localStorage.getItem("print_nama") || "-";
+    const tahun = localStorage.getItem("print_tahun") || "-";
 
-  if (stagingRaw) {
-    const data = JSON.parse(stagingRaw);
-    kode = data.kode;
-    nama = data.nama;
-    tahun = data.tahun;
-    merk = data.merk;
-  }
+    // 2. Tampilkan ke elemen HTML sesuai ID yang benar
+    const elKode  = document.getElementById("lbl-kode");
+    const elNama  = document.getElementById("lbl-nama");
+    const elTahun = document.getElementById("lbl-tahun");
+    const elQr    = document.getElementById("qrcode-label");
 
-  // Tampilkan ke elemen label di HTML Anda
-  document.getElementById("labelKode").textContent = kode;
-  document.getElementById("labelNama").textContent = merk ? `${nama} (${merk})` : nama;
-  document.getElementById("labelTahun").textContent = `Thn: ${tahun}`;
+    if (elKode) elKode.textContent = kode;
+    if (elNama) elNama.textContent = nama;
+    if (elTahun) elTahun.textContent = tahun;
 
-  // Generate QR Code
-  new QRCode(document.getElementById("qrcode"), {
-    text: kode,
-    width: 80,
-    height: 80
+    // 3. Generate QR Code ke ID qrcode-label
+    if (kode !== "-" && elQr) {
+      // Kosongkan container QR terlebih dahulu jika ada isinya
+      elQr.innerHTML = "";
+      
+      new QRCode(elQr, {
+        text: kode,
+        width: 85,
+        height: 85,
+        correctLevel: QRCode.CorrectLevel.M
+      });
+    }
+
+    // 4. Panggil dialog cetak otomatis
+    setTimeout(() => {
+      window.print();
+    }, 600);
   });
-});
   </script>
 </body>
 </html>
