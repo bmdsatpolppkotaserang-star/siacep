@@ -1,8 +1,49 @@
+// =========================================================================
+// DEKLARASI VARIABEL GLOBAL (Agar bisa diakses oleh fungsi global)
+// =========================================================================
+let scannerAktif = true;
+let html5QrCode = null;
+
+// =========================================================================
+// FUNGSI GLOBAL: KEMBALI KE HALAMAN AWAL / RESET KELUAR (Optimasi HP)
+// =========================================================================
+window.kembaliKeAwal = function () {
+  const infoDetailAset = document.getElementById("infoDetailAset");
+  const inputKodeManual = document.getElementById("inputKodeManual");
+
+  // 1. Reset Status Scanner
+  scannerAktif = true;
+
+  // 2. Kosongkan Input Manual jika ada
+  if (inputKodeManual) {
+    inputKodeManual.value = "";
+  }
+
+  // 3. Kembalikan Tampilan Info Detail ke Tampilan Standby/Awal
+  if (infoDetailAset) {
+    infoDetailAset.innerHTML = `
+      <div style="text-align: center; padding: 15px 0;">
+        <img src="https://api.iconify.design/lucide:qr-code.svg?color=%230284c7" alt="QR Code" style="width: 36px; height: 36px; margin: 0 auto 8px auto; display: block;" />
+        <p style="color: #64748b; margin: 0; font-weight: 500;">
+          Arahkan kamera ke stiker QR Code barang selanjutnya...
+        </p>
+      </div>
+    `;
+  }
+
+  // 4. Aktifkan Kamera Kembali jika Sempat Stop/Matikan
+  if (typeof mulaiKamera === "function") {
+    mulaiKamera();
+  }
+
+  // 5. Gulung Otomatis Layar HP Kembali ke Atas (Kamera)
+  window.scrollTo({ top: 0, behavior: 'smooth' });
+};
+
 document.addEventListener("DOMContentLoaded", function () {
   // =========================================================================
   // 1. PENGATURAN KONEKSI GOOGLE SHEETS & APPS SCRIPT (SI-ACEP)
   // =========================================================================
-  
   const SCRIPT_URL = "https://script.google.com/macros/s/AKfycbzw0-PJAiT52PWo9ZE0ijj-zn_iBR9K09ahGW1oK7jSIEqDrgI5hm4V08wZIpJqdsm7/exec";
   const SPREADSHEET_ID = "1ZpZtmGJyqglogaaq1vgKqp38XgvkUHP_wbMfJPp1Zwc";
   const GID_REKAP = "85327253";
@@ -14,9 +55,6 @@ document.addEventListener("DOMContentLoaded", function () {
 
   const inputKodeManual = document.getElementById("inputKodeManual");
   const btnCariManual = document.getElementById("btnCariManual");
-
-  let scannerAktif = true;
-  let html5QrCode = null;
 
   // =========================================================================
   // FUNGSI EFEK SUARA BEEP KHAS SCANNER (OPTIMASI HP)
@@ -56,8 +94,15 @@ document.addEventListener("DOMContentLoaded", function () {
     html5QrCode = new Html5Qrcode("reader");
   }
 
-  function mulaiKamera() {
+  window.mulaiKamera = function() {
     if (!html5QrCode) return;
+    
+    // Jika kamera sedang berjalan, jangan di-start ulang
+    if (html5QrCode.isScanning) {
+      scannerAktif = true;
+      return;
+    }
+
     const config = { fps: 10, qrbox: { width: 220, height: 220 } };
 
     html5QrCode.start(
@@ -80,9 +125,8 @@ document.addEventListener("DOMContentLoaded", function () {
       }
     }).catch(err => {
       console.error("Gagal membuka kamera:", err);
-      alert("Kamera gagal diakses. Pastikan izin kamera pada browser HP sudah diberikan!");
     });
-  }
+  };
 
   function matikanKamera() {
     if (html5QrCode && html5QrCode.isScanning) {
@@ -101,19 +145,11 @@ document.addEventListener("DOMContentLoaded", function () {
   if (btnStop) btnStop.addEventListener("click", () => matikanKamera());
 
   if (btnResetScan) {
-    btnResetScan.addEventListener("click", function () {
-      scannerAktif = true;
-      infoDetailAset.innerHTML = `
-        <div style="text-align: center; padding: 15px 0;">
-          <img src="https://api.iconify.design/lucide:qr-code.svg?color=%230284c7" alt="QR Code" style="width: 36px; height: 36px; margin: 0 auto 8px auto; display: block;" />
-          <p style="color: #64748b; margin: 0; font-weight: 500;">
-            Arahkan kamera ke stiker QR Code barang selanjutnya...
-          </p>
-        </div>
-      `;
-      if (html5QrCode && !html5QrCode.isScanning) mulaiKamera();
-    });
+    btnResetScan.addEventListener("click", window.kembaliKeAwal);
   }
+
+  // Jalankan kamera otomatis saat pertama kali dibuka
+  mulaiKamera();
 
   // =========================================================================
   // 3. FITUR PENELUSURAN KODE BARANG MANUAL
@@ -213,13 +249,13 @@ document.addEventListener("DOMContentLoaded", function () {
 
             </div>
 
-            <!-- TOMBOL AKSI PETUGAS (BUTUH PIN) -->
+            <!-- TOMBOL AKSI PETUGAS & TOMBOL KELUAR -->
             <div style="margin-top: 15px; display: flex; gap: 10px; justify-content: center; flex-wrap: wrap;">
               <button 
                 type="button" 
                 onclick="eksekusiInventarisasi('${data.kode}')"
                 style="background-color: #0284c7; color: white; border: none; padding: 10px 16px; border-radius: 8px; font-weight: bold; cursor: pointer; display: inline-flex; align-items: center; gap: 6px; font-size: 13px;">
-                <i class="fa-solid fa-pen-to-square"></i> Update / Catat Inventaris (Petugas)
+                <i class="fa-solid fa-pen-to-square"></i> Update / Catat Inventaris
               </button>
 
               <button 
@@ -237,6 +273,14 @@ document.addEventListener("DOMContentLoaded", function () {
                   <i class="fa-solid fa-trash-can"></i> Hapus Status
                 </button>
               ` : ''}
+
+              <!-- TOMBOL KELUAR / SCAN KEMBALI -->
+              <button 
+                type="button" 
+                onclick="window.kembaliKeAwal()"
+                style="background-color: #64748b; color: white; border: none; padding: 10px 16px; border-radius: 8px; font-weight: bold; cursor: pointer; display: inline-flex; align-items: center; gap: 6px; font-size: 13px; width: 100%; justify-content: center; margin-top: 5px;">
+                <i class="fa-solid fa-arrow-left"></i> Keluar / Scan Barang Lain
+              </button>
             </div>
           `;
         } else {
@@ -244,13 +288,29 @@ document.addEventListener("DOMContentLoaded", function () {
             <div style="text-align:center; color:#ef4444; padding:15px;">
               <i class="fa-solid fa-circle-xmark" style="font-size:32px;"></i>
               <p style="margin-top:8px; font-weight:bold;">Kode [${kodeQR}] tidak ditemukan dalam Database!</p>
+              <button 
+                type="button" 
+                onclick="window.kembaliKeAwal()"
+                style="background-color: #64748b; color: white; border: none; padding: 8px 16px; border-radius: 6px; font-weight: bold; cursor: pointer; margin-top: 10px;">
+                <i class="fa-solid fa-arrow-left"></i> Kembali / Coba Lagi
+              </button>
             </div>
           `;
         }
       })
       .catch(err => {
         console.error("Error Fetch:", err);
-        infoDetailAset.innerHTML = `<p style="color:#ef4444; text-align:center; padding:15px;">Gagal terhubung ke Google Sheets. Periksa koneksi internet!</p>`;
+        infoDetailAset.innerHTML = `
+          <div style="text-align:center; padding:15px;">
+            <p style="color:#ef4444;">Gagal terhubung ke Google Sheets. Periksa koneksi internet!</p>
+            <button 
+              type="button" 
+              onclick="window.kembaliKeAwal()"
+              style="background-color: #64748b; color: white; border: none; padding: 8px 16px; border-radius: 6px; font-weight: bold; cursor: pointer; margin-top: 10px;">
+              Kembali
+            </button>
+          </div>
+        `;
         scannerAktif = true;
       });
   }
