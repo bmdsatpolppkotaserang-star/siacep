@@ -166,7 +166,8 @@ body {
   color: var(--text-color);
 }
 
-.form-group input, .form-group select {
+.form-group input, 
+.form-group select {
   width: 100%;
   padding: 10px 12px;
   border: 1px solid var(--border-color);
@@ -315,7 +316,6 @@ body {
    PERBAIKAN TAMPILAN SCANNER HTML5-QRCODE (SI-ACEP)
    ========================================================================= */
 
-/* Sembunyikan elemen dashboard bawaan libraryHtml5Qrcode */
 #reader__dashboard,
 #reader__dashboard_section,
 #reader__dashboard_section_csr,
@@ -327,7 +327,6 @@ body {
   display: none !important;
 }
 
-/* Kotak Pemindai Kamera Fleksibel & Rapi */
 #reader {
   border: 2px dashed var(--primary-color) !important;
   border-radius: 12px !important;
@@ -339,7 +338,6 @@ body {
   min-height: 200px !important;
 }
 
-/* Memastikan Video Kamera Pas di Layar */
 #reader video {
   object-fit: cover !important;
   border-radius: 8px !important;
@@ -347,7 +345,6 @@ body {
   max-height: 300px !important;
 }
 
-/* Container Tombol Kontrol Kamera */
 .scanner-controls {
   display: flex;
   justify-content: center;
@@ -391,23 +388,27 @@ body {
 }
 
 /* =========================================================================
-   MODE CETAK (PRINT) OPTIMAL - HANYA LEMBAR INFORMASI YANG DICETAK
+   MODE CETAK (PRINT) OPTIMAL & KEAMANAN TAMPILAN LAPORAN ASET
    ========================================================================= */
 @media print {
-  body {
-    background-color: #ffffff !important;
-    color: #000000 !important;
-  }
-
+  /* 1. Sembunyikan elemen UI, Header, Kamera, Tombol Aksi, & Elemen khusus Admin */
   .app-header,
   .card-title,
   .scanner-box,
   .manual-input-box,
   .action-buttons,
-  .app-footer {
+  .app-footer,
+  [data-role="admin-only"] {
     display: none !important;
   }
 
+  /* 2. Reset Latar Belakang menjadi Putih Polos & Teks Hitam Pekat */
+  body {
+    background-color: #ffffff !important;
+    color: #000000 !important;
+  }
+
+  /* 3. Maksimalkan Lebar Kertas Cetak tanpa Bayangan (Shadow) */
   .main-container,
   .content-card,
   .info-card {
@@ -421,5 +422,9 @@ body {
 
   .info-card {
     background: transparent !important;
+  }
+
+  .info-card h3 {
+    border-bottom: 2px solid #000000 !important;
   }
 }
