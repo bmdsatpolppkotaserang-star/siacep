@@ -205,10 +205,10 @@ document.addEventListener("DOMContentLoaded", function () {
         if (data.result === "found") {
           const isTerinventaris = data.sudah_inventaris === true;
 
+          // HANYA SIMPAN KODE, NAMA, DAN TAHUN UNTUK CETAK STIKER
           localStorage.setItem("print_kode", data.kode || kodeQR);
           localStorage.setItem("print_nama", data.nama || "-");
-          localStorage.setItem("print_nibar", data.reg || "-");
-          localStorage.setItem("print_lokasi", data.lokasi || "Satpol PP Kota Serang");
+          localStorage.setItem("print_tahun", data.tahun_perolehan || data.tahun || "-");
 
           // Format Tampilan Harga
           let teksHarga = `<span style="font-size: 13px; color: #64748b; font-weight: normal; font-style: italic;">*** (Tekan Update untuk lihat)</span>`;
