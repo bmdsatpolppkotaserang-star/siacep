@@ -57,7 +57,7 @@ document.addEventListener("DOMContentLoaded", function () {
   const btnCariManual = document.getElementById("btnCariManual");
 
   // =========================================================================
-  // FUNGSI EFEK SUARA BEEP KHAS SCANNER (OPTIMASI HP)
+  // FUNGSI EFEK SUARA BEEP KHAS SCANNER (OPTIMASI HP & MEMORY)
   // =========================================================================
   function playScanBeep() {
     try {
@@ -82,6 +82,11 @@ document.addEventListener("DOMContentLoaded", function () {
 
       oscillator.start();
       oscillator.stop(audioCtx.currentTime + 0.15);
+
+      // Otomatis bersihkan AudioContext setelah selesai berbunyi
+      setTimeout(() => {
+        if (audioCtx.state !== 'closed') audioCtx.close();
+      }, 200);
     } catch (e) {
       console.log("Audio diblokir oleh browser:", e);
     }
@@ -97,7 +102,6 @@ document.addEventListener("DOMContentLoaded", function () {
   window.mulaiKamera = function() {
     if (!html5QrCode) return;
     
-    // Jika kamera sedang berjalan, pastikan flag scan aktif
     if (html5QrCode.isScanning) {
       scannerAktif = true;
       return;
@@ -110,13 +114,13 @@ document.addEventListener("DOMContentLoaded", function () {
       config,
       (decodedText) => {
         if (scannerAktif) {
-          scannerAktif = false; // Mencegah scan berulang
+          scannerAktif = false;
           playScanBeep();
-          prosesCekDetailAset(decodedText); // Mode Publik (Tanpa PIN)
+          prosesCekDetailAset(decodedText);
         }
       },
       (errorMessage) => {
-        // Abaikan error pencarian frame biasa
+        // Abaikan frame tanpa QR
       }
     ).then(() => {
       if (btnStart && btnStop) {
@@ -144,12 +148,18 @@ document.addEventListener("DOMContentLoaded", function () {
   if (btnStart) btnStart.addEventListener("click", () => { scannerAktif = true; window.mulaiKamera(); });
   if (btnStop) btnStop.addEventListener("click", () => matikanKamera());
 
-  // Listener tombol reset dikelola terpusat
   if (btnResetScan) {
     btnResetScan.onclick = window.kembaliKeAwal;
   }
 
-  // Jalankan kamera otomatis saat pertama kali dibuka
+  // Otomatis matikan kamera jika tab diminimalkan (hemat baterai HP)
+  document.addEventListener("visibilitychange", function() {
+    if (document.hidden) {
+      matikanKamera();
+    }
+  });
+
+  // Jalankan kamera otomatis saat pertama dibuka
   window.mulaiKamera();
 
   // =========================================================================
@@ -167,14 +177,24 @@ document.addEventListener("DOMContentLoaded", function () {
 
     playScanBeep();
     scannerAktif = false;
-    prosesCekDetailAset(kodeInput); // Mode Publik (Tanpa PIN)
+    prosesCekDetailAset(kodeInput);
     inputKodeManual.value = "";
   }
 
   if (btnCariManual) btnCariManual.addEventListener("click", eksekusiCariManual);
 
+  // Trigger pencarian saat tombol Enter ditekan pada input manual
+  if (inputKodeManual) {
+    inputKodeManual.addEventListener("keypress", function (e) {
+      if (e.key === "Enter") {
+        e.preventDefault();
+        eksekusiCariManual();
+      }
+    });
+  }
+
   // =========================================================================
-  // 4. FUNGSI CEK DETAIL ASET (PUBLIK / BISA DILIHAT SEMUA STAF)
+  // 4. FUNGSI CEK DETAIL ASET (PUBLIK)
   // =========================================================================
   function prosesCekDetailAset(kodeQR) {
     infoDetailAset.innerHTML = `
@@ -190,7 +210,6 @@ document.addEventListener("DOMContentLoaded", function () {
         if (data.result === "found") {
           const isTerinventaris = data.sudah_inventaris === true;
 
-          // SIMPAN DATA KE LOCALSTORAGE UNTUK MODUL CETAK STIKER QR
           localStorage.setItem("print_kode", data.kode || kodeQR);
           localStorage.setItem("print_nama", data.nama || "-");
           localStorage.setItem("print_nibar", data.reg || "-");
@@ -242,7 +261,6 @@ document.addEventListener("DOMContentLoaded", function () {
 
             </div>
 
-            <!-- TOMBOL AKSI PETUGAS & TOMBOL KELUAR -->
             <div style="margin-top: 15px; display: flex; gap: 10px; justify-content: center; flex-wrap: wrap;">
               <button 
                 type="button" 
@@ -267,7 +285,6 @@ document.addEventListener("DOMContentLoaded", function () {
                 </button>
               ` : ''}
 
-              <!-- TOMBOL KELUAR / SCAN KEMBALI -->
               <button 
                 type="button" 
                 onclick="window.kembaliKeAwal()"
@@ -309,7 +326,7 @@ document.addEventListener("DOMContentLoaded", function () {
   }
 
   // =========================================================================
-  // 5. FUNGSI UPDATE INVENTARIS (KHUSUS PETUGAS - PAKAI PIN)
+  // 5. FUNGSI UPDATE INVENTARIS (PETUGAS - PIN)
   // =========================================================================
   window.eksekusiInventarisasi = function(kodeBarang) {
     const pinInput = prompt("🔒 Khusus Petugas Aset:\nMasukkan PIN Petugas untuk mencatat status:");
@@ -350,7 +367,7 @@ document.addEventListener("DOMContentLoaded", function () {
   };
 
   // =========================================================================
-  // 6. FUNGSI HAPUS STATUS INVENTARIS (KHUSUS PETUGAS - PAKAI PIN)
+  // 6. FUNGSI HAPUS STATUS INVENTARIS (PETUGAS - PIN)
   // =========================================================================
   window.hapusDataAset = function(kodeBarang) {
     const pinInput = prompt("🔒 Khusus Petugas Aset:\nMasukkan PIN Petugas untuk menghapus status:");
@@ -407,8 +424,6 @@ document.addEventListener("DOMContentLoaded", function () {
   // =========================================================================
   // 8. FITUR REKAPITULASI & KEAMANAN
   // =========================================================================
-
-  // A. Tombol Download Rekap Excel Via Class (.btn-download) Dengan PIN Apps Script
   const btnDownload = document.querySelector(".btn-download");
   if (btnDownload) {
     btnDownload.addEventListener("click", function () {
@@ -437,11 +452,9 @@ document.addEventListener("DOMContentLoaded", function () {
     });
   }
 
-  // B. Proteksi Tombol Download Rekapitulasi Data Aset Via Element ID (#btnDownloadRekap)
   const btnDownloadRekap = document.getElementById('btnDownloadRekap');
   if (btnDownloadRekap) {
     btnDownloadRekap.addEventListener('click', function() {
-      // Cek status login dari localStorage
       const isAdmin = localStorage.getItem('is_admin') === 'true';
       
       if (!isAdmin) {
@@ -449,7 +462,6 @@ document.addEventListener("DOMContentLoaded", function () {
         return;
       }
       
-      // Ekspor Rekap Excel
       if (SPREADSHEET_ID) {
         const downloadUrl = `https://docs.google.com/spreadsheets/d/${SPREADSHEET_ID}/export?format=xlsx&gid=${GID_REKAP}`;
         window.open(downloadUrl, '_blank');
@@ -458,21 +470,13 @@ document.addEventListener("DOMContentLoaded", function () {
       }
     });
   }
-
-  // =========================================================================
-  // 9. TOMBOL CETAK LAPORAN HASIL INVENTARISASI
-  // =========================================================================
-  const btnPrint = document.querySelector(".btn-print");
-  if (btnPrint) {
-    btnPrint.addEventListener("click", () => window.print());
-  }
 });
 
-// Registrasi Service Worker PWA SI-ASEP
+// Registrasi Service Worker PWA SI-ACEP
 if ('serviceWorker' in navigator) {
   window.addEventListener('load', () => {
     navigator.serviceWorker.register('./sw.js')
-      .then(reg => console.log('PWA SI-ASEP Aktif:', reg.scope))
+      .then(reg => console.log('PWA SI-ACEP Aktif:', reg.scope))
       .catch(err => console.error('PWA Gagal:', err));
   });
 }
