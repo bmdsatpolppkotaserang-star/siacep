@@ -31,7 +31,7 @@
       
       <div class="asset-info">
         <div class="info-row">
-          <span class="label-title">Kode Aset:</span>
+          <span class="label-title">Kode Barang:</span>
           <span class="label-val code" id="lbl-kode">-</span>
         </div>
         <div class="info-row">
@@ -39,7 +39,7 @@
           <span class="label-val" id="lbl-nama">-</span>
         </div>
         <div class="info-row">
-          <span class="label-title">NIBAR:</span>
+          <span class="label-title">Reg:</span>
           <span class="label-val" id="lbl-nibar">-</span>
         </div>
         <div class="info-row">
@@ -60,7 +60,7 @@
       const urlParams = new URLSearchParams(window.location.search);
       const kode = urlParams.get('kode') || localStorage.getItem('print_kode') || 'AST-00000';
       const nama = urlParams.get('nama') || localStorage.getItem('print_nama') || 'Nama Barang';
-      const nibar = urlParams.get('nibar') || localStorage.getItem('print_nibar') || '-';
+      const nibar = urlParams.get('reg') || localStorage.getItem('print_reg') || '-';
       const lokasi = urlParams.get('lokasi') || localStorage.getItem('print_lokasi') || '-';
 
       document.getElementById('lbl-kode').innerText = kode;
