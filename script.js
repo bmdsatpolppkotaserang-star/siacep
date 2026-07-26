@@ -32,8 +32,8 @@ window.kembaliKeAwal = function () {
   }
 
   // 4. Aktifkan Kamera Kembali jika Sempat Stop/Matikan
-  if (typeof mulaiKamera === "function") {
-    mulaiKamera();
+  if (typeof window.mulaiKamera === "function") {
+    window.mulaiKamera();
   }
 
   // 5. Gulung Otomatis Layar HP Kembali ke Atas (Kamera)
@@ -97,7 +97,7 @@ document.addEventListener("DOMContentLoaded", function () {
   window.mulaiKamera = function() {
     if (!html5QrCode) return;
     
-    // Jika kamera sedang berjalan, jangan di-start ulang
+    // Jika kamera sedang berjalan, pastikan flag scan aktif
     if (html5QrCode.isScanning) {
       scannerAktif = true;
       return;
@@ -141,15 +141,16 @@ document.addEventListener("DOMContentLoaded", function () {
     }
   }
 
-  if (btnStart) btnStart.addEventListener("click", () => { scannerAktif = true; mulaiKamera(); });
+  if (btnStart) btnStart.addEventListener("click", () => { scannerAktif = true; window.mulaiKamera(); });
   if (btnStop) btnStop.addEventListener("click", () => matikanKamera());
 
+  // Listener tombol reset dikelola terpusat dari atribut onclick HTML atau listener JS ini
   if (btnResetScan) {
-    btnResetScan.addEventListener("click", window.kembaliKeAwal);
+    btnResetScan.onclick = window.kembaliKeAwal;
   }
 
   // Jalankan kamera otomatis saat pertama kali dibuka
-  mulaiKamera();
+  window.mulaiKamera();
 
   // =========================================================================
   // 3. FITUR PENELUSURAN KODE BARANG MANUAL
@@ -171,14 +172,6 @@ document.addEventListener("DOMContentLoaded", function () {
   }
 
   if (btnCariManual) btnCariManual.addEventListener("click", eksekusiCariManual);
-  if (inputKodeManual) {
-    inputKodeManual.addEventListener("keypress", (e) => {
-      if (e.key === "Enter") {
-        e.preventDefault();
-        eksekusiCariManual();
-      }
-    });
-  }
 
   // =========================================================================
   // 4. FUNGSI CEK DETAIL ASET (PUBLIK / BISA DILIHAT SEMUA STAF)
@@ -452,11 +445,11 @@ document.addEventListener("DOMContentLoaded", function () {
   }
 });
 
-// Registrasi Service Worker PWA SI-ASEP
+// Registrasi Service Worker PWA SI-ACEP
 if ('serviceWorker' in navigator) {
   window.addEventListener('load', () => {
     navigator.serviceWorker.register('./sw.js')
-      .then(reg => console.log('PWA SI-ASEP Aktif:', reg.scope))
+      .then(reg => console.log('PWA SI-ACEP Aktif:', reg.scope))
       .catch(err => console.error('PWA Gagal:', err));
   });
 }
