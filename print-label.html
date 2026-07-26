@@ -18,10 +18,16 @@
   <!-- Container Label Stiker Aset (Ukuran Standar Label Stiker Aset Pemda) -->
   <div class="label-container">
     <div class="label-header">
+      <!-- Logo Kiri -->
+      <img src="logo.png" alt="Logo Pemda" class="logo-left" id="img-logo-kiri">
+      
       <div class="header-text">
-        <h3>SATPOL PP KOTA SERANG</h3>
-        <p>Aset Daerah / Inventaris Barang</p>
+        <h3>INVENTARIS KOTA SERANG</h3>
+        <p>SATUAN POLISI PAMONG PRAJA</p>
       </div>
+
+      <!-- Logo Kanan -->
+      <img src="polpp.png" alt="Logo Satpol PP" class="logo-right" id="img-logo-kanan">
     </div>
     
     <div class="label-body">
@@ -39,18 +45,14 @@
           <span class="label-val" id="lbl-nama">-</span>
         </div>
         <div class="info-row">
-          <span class="label-title">Reg:</span>
-          <span class="label-val" id="lbl-nibar">-</span>
-        </div>
-        <div class="info-row">
-          <span class="label-title">Lokasi/Ruang:</span>
-          <span class="label-val" id="lbl-lokasi">-</span>
+          <span class="label-title">Tahun:</span>
+          <span class="label-val" id="lbl-tahun">-</span>
         </div>
       </div>
     </div>
 
     <div class="label-footer">
-      <span>SI-ACEP - Sistem Inventaris Aset Cepat Efisien & Praktis</span>
+      <span>SI-ACEP - SATPOL PP KOTA SERANG</span>
     </div>
   </div>
 
@@ -60,13 +62,11 @@
       const urlParams = new URLSearchParams(window.location.search);
       const kode = urlParams.get('kode') || localStorage.getItem('print_kode') || 'AST-00000';
       const nama = urlParams.get('nama') || localStorage.getItem('print_nama') || 'Nama Barang';
-      const nibar = urlParams.get('nibar') || localStorage.getItem('print_nibar') || '-';
-      const lokasi = urlParams.get('lokasi') || localStorage.getItem('print_lokasi') || '-';
+      const tahun = urlParams.get('tahun') || localStorage.getItem('print_tahun') || '-';
 
       document.getElementById('lbl-kode').innerText = kode;
       document.getElementById('lbl-nama').innerText = nama;
-      document.getElementById('lbl-nibar').innerText = nibar;
-      document.getElementById('lbl-lokasi').innerText = lokasi;
+      document.getElementById('lbl-tahun').innerText = tahun;
 
       // Generate QR Code
       new QRCode(document.getElementById("qrcode-label"), {
