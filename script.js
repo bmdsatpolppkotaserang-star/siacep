@@ -1,9 +1,9 @@
 document.addEventListener("DOMContentLoaded", function () {
   // =========================================================================
-  // 1. PENGATURAN KONEKSI GOOGLE SHEETS & APPS SCRIPT
+  // 1. PENGATURAN KONEKSI GOOGLE SHEETS & APPS SCRIPT (SI-ASEP)
   // =========================================================================
   
-  const SCRIPT_URL = "https://script.google.com/macros/s/AKfycbz-nbM1wbM9tof8l-cs-sGLRSPqjS9iyRRNPeT_5r-eSLEAX-2D8Sch5sNSBQjd41E5/exec";
+  const SCRIPT_URL = "https://script.google.com/macros/s/AKfycbzw0-PJAiT52PWo9ZE0ijj-zn_iBR9K09ahGW1oK7jSIEqDrgI5hm4V08wZIpJqdsm7/exec";
   const SPREADSHEET_ID = "1ZpZtmGJyqglogaaq1vgKqp38XgvkUHP_wbMfJPp1Zwc";
   const GID_REKAP = "85327253";
 
@@ -19,11 +19,18 @@ document.addEventListener("DOMContentLoaded", function () {
   let html5QrCode = null;
 
   // =========================================================================
-  // FUNGSI EFEK SUARA BEEP KHAS SCANNER
+  // FUNGSI EFEK SUARA BEEP KHAS SCANNER (OPTIMASI HP)
   // =========================================================================
   function playScanBeep() {
     try {
-      const audioCtx = new (window.AudioContext || window.webkitAudioContext)();
+      const AudioContext = window.AudioContext || window.webkitAudioContext;
+      if (!AudioContext) return;
+      
+      const audioCtx = new AudioContext();
+      if (audioCtx.state === 'suspended') {
+        audioCtx.resume();
+      }
+
       const oscillator = audioCtx.createOscillator();
       const gainNode = audioCtx.createGain();
 
@@ -38,12 +45,12 @@ document.addEventListener("DOMContentLoaded", function () {
       oscillator.start();
       oscillator.stop(audioCtx.currentTime + 0.15);
     } catch (e) {
-      console.log("Audio diblokir browser:", e);
+      console.log("Audio diblokir oleh browser:", e);
     }
   }
 
   // =========================================================================
-  // 2. INTEGRASI SCANNER KAMERA
+  // 2. INTEGRASI SCANNER KAMERA (HTML5-QRCODE)
   // =========================================================================
   html5QrCode = new Html5Qrcode("reader");
 
@@ -55,12 +62,14 @@ document.addEventListener("DOMContentLoaded", function () {
       config,
       (decodedText) => {
         if (scannerAktif) {
-          scannerAktif = false;
+          scannerAktif = false; // Mencegah scan berulang
           playScanBeep();
           prosesCekDetailAset(decodedText); // Mode Publik (Tanpa PIN)
         }
       },
-      (errorMessage) => {}
+      (errorMessage) => {
+        // Abaikan error pencarian frame biasa
+      }
     ).then(() => {
       if (btnStart && btnStop) {
         btnStart.style.display = "none";
@@ -68,7 +77,7 @@ document.addEventListener("DOMContentLoaded", function () {
       }
     }).catch(err => {
       console.error("Gagal membuka kamera:", err);
-      alert("Kamera gagal diakses. Pastikan izin kamera pada browser HP sudah diizinkan!");
+      alert("Kamera gagal diakses. Pastikan izin kamera pada browser HP sudah diberikan!");
     });
   }
 
@@ -165,22 +174,22 @@ document.addEventListener("DOMContentLoaded", function () {
 
               <div style="border-bottom: 1px solid #e2e8f0; padding-bottom: 6px;">
                 <span style="font-size: 11px; color: #64748b; font-weight: 700; display: block;">NAMA BARANG / MERK / REG</span>
-                <span style="font-size: 14px; font-weight: 600; color: #1e293b;">${data.nama} ${data.merk !== '-' ? ' - ' + data.merk : ''} (Reg: ${data.reg})</span>
+                <span style="font-size: 14px; font-weight: 600; color: #1e293b;">${data.nama} ${data.merk && data.merk !== '-' ? ' - ' + data.merk : ''} (Reg: ${data.reg || '-'})</span>
               </div>
 
               <div style="border-bottom: 1px solid #e2e8f0; padding-bottom: 6px;">
                 <span style="font-size: 11px; color: #64748b; font-weight: 700; display: block;">SPESIFIKASI & TAHUN</span>
-                <span style="font-size: 13px; color: #334155;">Ukuran: ${data.ukuran} | Bahan: ${data.bahan} | Thn: ${data.tahun}</span>
+                <span style="font-size: 13px; color: #334155;">Ukuran: ${data.ukuran || '-'} | Bahan: ${data.bahan || '-'} | Thn: ${data.tahun || '-'}</span>
               </div>
 
               <div style="border-bottom: 1px solid #e2e8f0; padding-bottom: 6px;">
                 <span style="font-size: 11px; color: #64748b; font-weight: 700; display: block;">NOMOR LEGALITAS / KENDARAAN</span>
-                <span style="font-size: 13px; color: #334155;">Pabrik: ${data.no_pabrik} | Rangka: ${data.no_rangka} | Mesin: ${data.no_mesin} | Polisi: ${data.no_polisi} | BPKB: ${data.no_bpkb}</span>
+                <span style="font-size: 13px; color: #334155;">Pabrik: ${data.no_pabrik || '-'} | Rangka: ${data.no_rangka || '-'} | Mesin: ${data.no_mesin || '-'} | Polisi: ${data.no_polisi || '-'} | BPKB: ${data.no_bpkb || '-'}</span>
               </div>
 
               <div style="border-bottom: 1px solid #e2e8f0; padding-bottom: 6px;">
                 <span style="font-size: 11px; color: #64748b; font-weight: 700; display: block;">KONDISI & STATUS ASET</span>
-                <span style="font-size: 13px; color: #334155;">${data.kondisi_status} (Status: ${data.status_aset})</span>
+                <span style="font-size: 13px; color: #334155;">${data.kondisi_status || '-'} (Status: ${data.status_aset || '-'})</span>
               </div>
 
               <div style="border-bottom: 1px solid #e2e8f0; padding-bottom: 6px;">
@@ -190,7 +199,7 @@ document.addEventListener("DOMContentLoaded", function () {
 
               <div>
                 <span style="font-size: 11px; color: #64748b; font-weight: 700; display: block;">KETERANGAN DOKUMEN</span>
-                <span style="font-size: 13px; color: #334155;">${data.keterangan_aset}</span>
+                <span style="font-size: 13px; color: #334155;">${data.keterangan_aset || '-'}</span>
               </div>
 
             </div>
@@ -224,6 +233,7 @@ document.addEventListener("DOMContentLoaded", function () {
         }
       })
       .catch(err => {
+        console.error("Error Fetch:", err);
         infoDetailAset.innerHTML = `<p style="color:#ef4444; text-align:center; padding:15px;">Gagal terhubung ke Google Sheets. Periksa koneksi internet!</p>`;
         scannerAktif = true;
       });
@@ -261,9 +271,13 @@ document.addEventListener("DOMContentLoaded", function () {
           prosesCekDetailAset(kodeBarang);
         } else {
           alert("Gagal memperbarui data.");
+          prosesCekDetailAset(kodeBarang);
         }
       })
-      .catch(err => alert("Gagal terhubung ke server."));
+      .catch(err => {
+        alert("Gagal terhubung ke server.");
+        prosesCekDetailAset(kodeBarang);
+      });
   };
 
   // =========================================================================
@@ -300,9 +314,13 @@ document.addEventListener("DOMContentLoaded", function () {
           prosesCekDetailAset(kodeBarang);
         } else {
           alert("Gagal menghapus status.");
+          prosesCekDetailAset(kodeBarang);
         }
       })
-      .catch(err => alert("Gagal terhubung ke server."));
+      .catch(err => {
+        alert("Gagal terhubung ke server.");
+        prosesCekDetailAset(kodeBarang);
+      });
   };
 
   // =========================================================================
@@ -346,11 +364,11 @@ document.addEventListener("DOMContentLoaded", function () {
   }
 });
 
-// Registrasi Service Worker PWA SI-ACEP
+// Registrasi Service Worker PWA SI-ASEP
 if ('serviceWorker' in navigator) {
   window.addEventListener('load', () => {
     navigator.serviceWorker.register('./sw.js')
-      .then(reg => console.log('PWA SI-ACEP Aktif:', reg.scope))
+      .then(reg => console.log('PWA SI-ASEP Aktif:', reg.scope))
       .catch(err => console.error('PWA Gagal:', err));
   });
 }
