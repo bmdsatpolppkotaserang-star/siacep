@@ -2,10 +2,11 @@
 // SERVICE WORKER - SI-ACEP (PWA CACHE MANAGEMENT)
 // =========================================================================
 
-const CACHE_NAME = 'si-acep-cache-v25'; // <--- Naikkan versi jika ada update file frontend
+const CACHE_NAME = 'si-acep-cache-v26'; // <--- Naikkan versi cache
 const ASSETS_TO_CACHE = [
   './',
   './index.html',
+  './print-label.html', // <--- Wajib ditambah agar fitur cetak stiker tersimpan di cache
   './style.css',
   './script.js',
   './manifest.json',
@@ -13,18 +14,18 @@ const ASSETS_TO_CACHE = [
   './icons/icon-512.png'
 ];
 
-// 1. Instalasikan Service Worker & Simpan File Utama ke Cache
+// 1. Install & Cache
 self.addEventListener('install', (e) => {
   e.waitUntil(
     caches.open(CACHE_NAME).then((cache) => {
-      console.log('[SW SI-ACEP] Caching app shell & static assets...');
+      console.log('[SW SI-ACEP] Caching static assets...');
       return cache.addAll(ASSETS_TO_CACHE);
     })
   );
   self.skipWaiting();
 });
 
-// 2. Bersihkan Cache Lama jika Ada Pembaruan Versi
+// 2. Activate & Hapus Cache Lama
 self.addEventListener('activate', (e) => {
   e.waitUntil(
     caches.keys().then((keys) => {
@@ -41,9 +42,8 @@ self.addEventListener('activate', (e) => {
   self.clients.claim();
 });
 
-// 3. Jalankan Pengambilan Data (Network First, Fallback to Cache)
+// 3. Fetch (Network First, Fallback to Cache)
 self.addEventListener('fetch', (e) => {
-  // Abaikan request ke API Google Apps Script & CDN eksternal agar selalu fresh
   if (
     e.request.url.includes('script.google.com') ||
     e.request.url.includes('api.iconify.design') ||
@@ -52,11 +52,9 @@ self.addEventListener('fetch', (e) => {
     return;
   }
 
-  // Strategi: Coba Network dulu, jika offline gunakan Cache
   e.respondWith(
     fetch(e.request)
       .then((networkResponse) => {
-        // Simpan pembaruan aset ke cache secara dinamis jika berhasil
         if (networkResponse && networkResponse.status === 200 && networkResponse.type === 'basic') {
           const responseToCache = networkResponse.clone();
           caches.open(CACHE_NAME).then((cache) => {
@@ -66,7 +64,6 @@ self.addEventListener('fetch', (e) => {
         return networkResponse;
       })
       .catch(() => {
-        // Jika offline atau koneksi gagal, ambil dari cache
         return caches.match(e.request);
       })
   );
