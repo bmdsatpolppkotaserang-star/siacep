@@ -1,4 +1,13 @@
 // =========================================================================
+// MENCEGAH ERROR EKSTENSI BROWSER (Message Channel Closed Error)
+// =========================================================================
+window.addEventListener('unhandledrejection', function(event) {
+  if (event.reason && event.reason.message && event.reason.message.includes('message channel closed')) {
+    event.preventDefault(); // Mencegah log error ekstensi mengganggu aplikasi
+  }
+});
+
+// =========================================================================
 // DEKLARASI VARIABEL GLOBAL & STATE APLIKASI
 // =========================================================================
 let scannerAktif = true;
@@ -12,6 +21,27 @@ const PIN_PETUGAS_DEFAULT = "123456"; // PIN Akses Petugas Satpol PP
 
 // Helper Sanitasi Teks
 const safeStr = (val) => (val !== undefined && val !== null && val !== "" && val !== "null") ? val : "-";
+
+// =========================================================================
+// AUDIO BEEP SCANNER (Menggunakan Base64 Audio - Bebas Error & Memory Leak)
+// =========================================================================
+const scanBeepSound = new Audio("data:audio/wav;base64,UklGRl9vT19XQVZFZm10IBAAAAABAAEAQB8AAEAfAAABAAgAZGF0YUtvT18AZv8AZv8AZv8AZv8AZv8AZv8AZv8AZv8AZv8AZv8AZv8AZv8AZv8AZv8AZv8AZv8AZv8AZv8AZv8AZv8AZv8AZv8AZv8AZv8AZv8AZv8AZv8AZv8AZv8AZv8AZv8AZv8AZv8AZv8AZv8AZv8AZv8AZv8AZv8AZv8AZv8AZv8AZv8=");
+
+function playScanBeep() {
+  try {
+    scanBeepSound.currentTime = 0; // Reset durasi audio ke awal
+    scanBeepSound.volume = 1.0;    // Volume maksimal
+    
+    const playPromise = scanBeepSound.play();
+    if (playPromise !== undefined) {
+      playPromise.catch(error => {
+        console.warn("Audio autoplay diblokir browser atau belum disentuh:", error);
+      });
+    }
+  } catch (e) {
+    console.error("Gagal memutar suara beep:", e);
+  }
+}
 
 // =========================================================================
 // FUNGSI NAVIGASI / PINDAH HALAMAN
@@ -68,36 +98,18 @@ document.addEventListener("DOMContentLoaded", function () {
   const btnCetakQR = document.getElementById("btnCetakQR");
   const btnDownloadRekap = document.getElementById("btnDownloadRekap");
 
-  // BEEP AUDIO SCANNER
-  function playScanBeep() {
-    try {
-      const AudioContext = window.AudioContext || window.webkitAudioContext;
-      if (!AudioContext) return;
-
-      const audioCtx = new AudioContext();
-      if (audioCtx.state === 'suspended') audioCtx.resume();
-
-      const oscillator = audioCtx.createOscillator();
-      const gainNode = audioCtx.createGain();
-
-      oscillator.type = "sine";
-      oscillator.frequency.setValueAtTime(2000, audioCtx.currentTime);
-      gainNode.gain.setValueAtTime(0.8, audioCtx.currentTime);
-      gainNode.gain.exponentialRampToValueAtTime(0.00001, audioCtx.currentTime + 0.15);
-
-      oscillator.connect(gainNode);
-      gainNode.connect(audioCtx.destination);
-
-      oscillator.start();
-      oscillator.stop(audioCtx.currentTime + 0.15);
-
-      setTimeout(() => {
-        if (audioCtx.state !== 'closed') audioCtx.close();
-      }, 200);
-    } catch (e) {
-      console.log("Audio error:", e);
-    }
+  // UNLOCK AUDIO BROWSER PADA SENTUHAN/KLIK PERTAMA
+  function unlockAudio() {
+    scanBeepSound.play().then(() => {
+      scanBeepSound.pause();
+      scanBeepSound.currentTime = 0;
+    }).catch(() => {});
+    
+    document.removeEventListener("touchstart", unlockAudio);
+    document.removeEventListener("click", unlockAudio);
   }
+  document.addEventListener("touchstart", unlockAudio, { once: true });
+  document.addEventListener("click", unlockAudio, { once: true });
 
   // INTEGRASI SCANNER KAMERA
   if (document.getElementById("reader")) {
