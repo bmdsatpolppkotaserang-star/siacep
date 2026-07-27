@@ -47,7 +47,10 @@
   <!-- KONTEN UTAMA -->
   <main class="main-container">
 
-    <section class="content-card">
+    <!-- ================================================================= -->
+    <!-- HALAMAN 1: KAMERA / SCANNER QR CODE -->
+    <!-- ================================================================= -->
+    <section id="page-scanner" class="content-card">
       <div class="card-title">
         <h2>Pindai QR Code Aset</h2>
         <p>Arahkan kamera ke stiker QR Aset untuk pencatatan otomatis.</p>
@@ -102,28 +105,28 @@
 
       </div>
 
-      <!-- LEMBAR INFORMASI ASET -->
-      <div class="info-card" style="margin-top: 20px;">
-        <h3 style="margin-bottom: 15px; border-bottom: 2px solid #0284c7; padding-bottom: 8px; color: #1e293b;">
-          <i class="fa-solid fa-file-lines"></i> Lembar Informasi Aset
-        </h3>
-        
-        <div id="infoDetailAset">
-          <p style="text-align: center; color: #64748b; padding: 15px 0;">
-            <i class="fa-solid fa-qrcode" style="font-size: 28px; margin-bottom: 8px; display: block; color: #94a3b8;"></i>
-            Silakan scan QR Code barang di atas untuk menampilkan Lembar Informasi Aset...
-          </p>
-        </div>
-      </div>
-
-      <!-- TOMBOL AKSES KHUSUS PETUGAS -->
+      <!-- TOMBOL AKSES KHUSUS PETUGAS (PADA HALAMAN SCANNER) -->
       <div style="margin-top: 25px; text-align: center; border-top: 2px solid #f1f5f9; padding-top: 15px;">
         <button id="btnOpenPetugas" type="button" onclick="openPinModal()" style="width: 100%; background-color: #334155; color: white; border: none; padding: 12px; border-radius: 8px; font-weight: bold; cursor: pointer; display: inline-flex; align-items: center; justify-content: center; gap: 8px; font-size: 14px;">
           <i class="fa-solid fa-user-shield"></i> Area Khusus Petugas / Pengurus Barang
         </button>
       </div>
+    </section>
 
-      <!-- PANEL MENU KHUSUS PETUGAS (DITAMPILKAN SETELAH PIN BENAR) -->
+    <!-- ================================================================= -->
+    <!-- HALAMAN 2: LEMBAR INFORMASI ASET (DIBUKA SETELAH SCAN SUCCESS) -->
+    <!-- ================================================================= -->
+    <section id="page-informasi" class="content-card" style="display: none;">
+      <div class="info-card">
+        <h3 style="margin-bottom: 15px; border-bottom: 2px solid #0284c7; padding-bottom: 8px; color: #1e293b;">
+          <i class="fa-solid fa-file-lines"></i> Lembar Informasi Aset
+        </h3>
+        
+        <!-- TEMPAT KONTEN INFORMASI BARANG -->
+        <div id="infoDetailAset"></div>
+      </div>
+
+      <!-- PANEL MENU KHUSUS PETUGAS (PADA HALAMAN INFORMASI ASET) -->
       <div id="panelPetugas" class="panel-petugas" style="display: none; margin-top: 20px; background-color: #f8fafc; border: 1px solid #e2e8f0; border-radius: 12px; padding: 15px;">
         <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 12px; border-bottom: 1.5px solid #cbd5e1; padding-bottom: 8px;">
           <h3 style="margin: 0; font-size: 15px; color: #1e293b; display: flex; align-items: center; gap: 6px;">
@@ -186,6 +189,6 @@
   </footer>
 
   <!-- SCRIPT UTAMA -->
-  <script src="script.js?v=2.4"></script>
+  <script src="script.js?v=2.6"></script>
 </body>
 </html>
