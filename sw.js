@@ -2,11 +2,11 @@
 // SERVICE WORKER - SI-ACEP (PWA CACHE MANAGEMENT)
 // =========================================================================
 
-const CACHE_NAME = 'si-acep-cache-v26'; // <--- Naikkan versi cache
+const CACHE_NAME = 'si-acep-cache-v28'; // <--- Naikkan versi cache
 const ASSETS_TO_CACHE = [
   './',
   './index.html',
-  './print-label.html', // <--- Wajib ditambah agar fitur cetak stiker tersimpan di cache
+  './print-label.html',
   './style.css',
   './script.js',
   './manifest.json',
@@ -44,18 +44,34 @@ self.addEventListener('activate', (e) => {
 
 // 3. Fetch (Network First, Fallback to Cache)
 self.addEventListener('fetch', (e) => {
+  const reqUrl = new URL(e.request.url);
+
+  // 🔴 PERBAIKAN UTAMA: Filter langsung di awal sebelum diproses apapun
+  // Abaikan request yang BUKAN http/https (seperti chrome-extension://, file://, data:)
+  if (reqUrl.protocol !== 'http:' && reqUrl.protocol !== 'https:') {
+    return;
+  }
+
+  // Abaikan request ke API Google Apps Script & CDN eksternal agar selalu fresh
   if (
-    e.request.url.includes('script.google.com') ||
-    e.request.url.includes('api.iconify.design') ||
-    e.request.url.includes('cdnjs.cloudflare.com')
+    reqUrl.hostname.includes('script.google.com') ||
+    reqUrl.hostname.includes('api.iconify.design') ||
+    reqUrl.hostname.includes('cdnjs.cloudflare.com')
   ) {
     return;
   }
 
+  // Strategi: Network first, fallback to cache
   e.respondWith(
     fetch(e.request)
       .then((networkResponse) => {
-        if (networkResponse && networkResponse.status === 200 && networkResponse.type === 'basic') {
+        // Hanya simpan ke cache jika respon HTTP 200/valid dan metode request 'GET'
+        if (
+          networkResponse && 
+          networkResponse.status === 200 && 
+          networkResponse.type === 'basic' &&
+          e.request.method === 'GET'
+        ) {
           const responseToCache = networkResponse.clone();
           caches.open(CACHE_NAME).then((cache) => {
             cache.put(e.request, responseToCache);
@@ -64,7 +80,10 @@ self.addEventListener('fetch', (e) => {
         return networkResponse;
       })
       .catch(() => {
-        return caches.match(e.request);
+        // Hanya cari di cache jika request bertipe GET
+        if (e.request.method === 'GET') {
+          return caches.match(e.request);
+        }
       })
   );
 });
