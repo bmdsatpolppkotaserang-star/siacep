@@ -8,76 +8,56 @@
   <meta name="mobile-web-app-capable" content="yes">
   <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
   <link rel="apple-touch-icon" href="icons/icon-192.png">
-  <title>SI-ASEP - Sistem Informasi Aset Satpol PP</title>
+  <title>SI-ACEP</title>
 
-  <!-- CSS Utama -->
   <link rel="stylesheet" href="style.css">
-
-  <!-- Icon FontAwesome -->
   <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css">
-
-  <!-- Library QR Code Scanner Kamera -->
   <script src="https://unpkg.com/html5-qrcode"></script>
 </head>
 <body>
 
-  <!-- HEADER DENGAN LOGO KIRI & KANAN -->
+  <!-- HEADER -->
   <header class="app-header">
     <div class="header-container" style="display: flex; align-items: center; justify-content: space-between; width: 100%; max-width: 800px; margin: 0 auto; padding: 0 10px;">
-      
-      <!-- LOGO KIRI (Logo Pemkot Serang) -->
       <div class="header-logo-left">
         <img src="logo.png" alt="Logo Pemkot Serang" style="height: 50px; width: auto; object-fit: contain;">
       </div>
 
-      <!-- JUDUL APLIKASI (DI TENGAH) -->
       <div class="header-title" style="text-align: center;">
-        <h1 style="margin: 0; font-size: 20px; font-weight: bold; color: #1e293b;">SI-ASEP</h1>
-        <p style="margin: 2px 0 0 0; font-size: 11px; color: #64748b; font-weight: 500;">Sistem Informasi Aset Satpol PP Kota Serang</p>
+        <h1 style="margin: 0; font-size: 20px; font-weight: bold; color: #1e293b;">SI-ACEP</h1>
+        <p style="margin: 2px 0 0 0; font-size: 11px; color: #64748b; font-weight: 500;">SISTEM INVENTARISASI ASET CEPAT EFISIEN & PRAKTIS</p>
       </div>
 
-      <!-- LOGO KANAN (Logo Satpol PP) -->
       <div class="header-logo-right">
         <img src="polpp.png" alt="Logo Satpol PP" style="height: 50px; width: auto; object-fit: contain;">
       </div>
-
     </div>
   </header>
 
   <!-- KONTEN UTAMA -->
   <main class="main-container">
 
-    <!-- ================================================================= -->
-    <!-- HALAMAN 1: KAMERA / SCANNER QR CODE -->
-    <!-- ================================================================= -->
+    <!-- HALAMAN 1: KAMERA / SCANNER -->
     <section id="page-scanner" class="content-card">
       <div class="card-title">
         <h2>Pindai QR Code Aset</h2>
         <p>Arahkan kamera ke stiker QR Aset untuk pencatatan otomatis.</p>
       </div>
 
-      <!-- AREA KAMERA SCANNER -->
       <div class="scanner-box" style="display: flex; flex-direction: column; align-items: center; background: transparent; height: auto;">
-        <!-- Frame Kamera -->
         <div id="reader" style="width: 100%;"></div>
 
-        <!-- CONTAINER TOMBOL AKSI UTAMA -->
         <div class="scanner-controls" style="margin-top: 15px; display: flex; justify-content: center; gap: 10px; width: 100%; flex-wrap: wrap;">
-          
-          <!-- Tombol Start Kamera -->
           <button id="btnStartCamera" type="button" class="btn-camera btn-start" style="flex: 1; min-width: 140px; background-color: #0284c7; color: white; border: none; padding: 12px 15px; border-radius: 8px; font-weight: bold; cursor: pointer; display: inline-flex; align-items: center; justify-content: center; gap: 8px;">
             <i class="fa-solid fa-qrcode" style="font-size: 16px;"></i>
             Start Scan
           </button>
           
-          <!-- Tombol Stop Kamera (Sembunyi Default) -->
           <button id="btnStopCamera" type="button" class="btn-camera btn-stop" style="flex: 1; min-width: 140px; background-color: #ef4444; color: white; border: none; padding: 12px 15px; border-radius: 8px; font-weight: bold; cursor: pointer; display: none; align-items: center; justify-content: center; gap: 8px;">
             <i class="fa-solid fa-circle-stop"></i> Stop Scanning
           </button>
-
         </div>
 
-        <!-- FITUR INPUT KODE BARANG MANUAL -->
         <div class="manual-input-box" style="margin-top: 20px; width: 100%; text-align: center; border-top: 1px dashed #cbd5e1; padding-top: 15px;">
           <p style="font-size: 13px; color: #64748b; margin-bottom: 10px; font-weight: 500;">
             <i class="fa-solid fa-keyboard"></i> Atau masukkan kode secara manual jika QR hilang:
@@ -101,10 +81,8 @@
             </button>
           </div>
         </div>
-
       </div>
 
-      <!-- TOMBOL AKSES KHUSUS PETUGAS -->
       <div style="margin-top: 25px; text-align: center; border-top: 2px solid #f1f5f9; padding-top: 15px;">
         <button id="btnOpenPetugas" type="button" onclick="openPinModal()" style="width: 100%; background-color: #334155; color: white; border: none; padding: 12px; border-radius: 8px; font-weight: bold; cursor: pointer; display: inline-flex; align-items: center; justify-content: center; gap: 8px; font-size: 14px;">
           <i class="fa-solid fa-user-shield"></i> Area Khusus Petugas / Pengurus Barang
@@ -112,9 +90,7 @@
       </div>
     </section>
 
-    <!-- ================================================================= -->
     <!-- HALAMAN 2: LEMBAR INFORMASI ASET -->
-    <!-- ================================================================= -->
     <section id="page-informasi" class="content-card" style="display: none;">
       <div class="info-card">
         <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 15px; border-bottom: 2px solid #0284c7; padding-bottom: 8px;">
@@ -123,11 +99,9 @@
           </h3>
         </div>
         
-        <!-- TEMPAT KONTEN INFORMASI BARANG -->
         <div id="infoDetailAset"></div>
       </div>
 
-      <!-- PANEL MENU KHUSUS PETUGAS -->
       <div id="panelPetugas" class="panel-petugas" style="display: none; margin-top: 20px; background-color: #f8fafc; border: 1px solid #e2e8f0; border-radius: 12px; padding: 15px;">
         <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 12px; border-bottom: 1.5px solid #cbd5e1; padding-bottom: 8px;">
           <h3 style="margin: 0; font-size: 15px; color: #1e293b; display: flex; align-items: center; gap: 6px;">
@@ -138,7 +112,6 @@
           </button>
         </div>
 
-        <!-- GRID 4 TOMBOL PETUGAS -->
         <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 10px;">
           <button id="btnCatatUpdate" type="button" style="background-color: #0284c7; color: white; border: none; padding: 12px 10px; border-radius: 8px; font-weight: bold; font-size: 13px; cursor: pointer; display: flex; flex-direction: column; align-items: center; gap: 6px;">
             <i class="fa-solid fa-pen-to-square" style="font-size: 18px;"></i>
@@ -161,14 +134,11 @@
           </button>
         </div>
       </div>
-
     </section>
 
   </main>
 
-  <!-- ================================================================= -->
-  <!-- MODAL POPUP INPUT PIN -->
-  <!-- ================================================================= -->
+  <!-- MODAL PIN -->
   <div id="modalPin" role="dialog" aria-modal="true" style="display: none; position: fixed; top: 0; left: 0; right: 0; bottom: 0; background-color: rgba(15, 23, 42, 0.7); z-index: 9999; justify-content: center; align-items: center; padding: 15px;">
     <div style="background: white; border-radius: 12px; padding: 20px; width: 100%; max-width: 350px; text-align: center; box-shadow: 0 20px 25px -5px rgba(0, 0, 0, 0.2);">
       <div style="width: 50px; height: 50px; background: #e0f2fe; color: #0284c7; border-radius: 50%; display: flex; align-items: center; justify-content: center; margin: 0 auto 12px auto; font-size: 22px;">
@@ -186,9 +156,7 @@
     </div>
   </div>
 
-  <!-- ================================================================= -->
-  <!-- MODAL POPUP PILIHAN CETAK LAPORAN / KIR -->
-  <!-- ================================================================= -->
+  <!-- MODAL LAPORAN -->
   <div id="modalCetakLaporan" role="dialog" aria-modal="true" style="display: none; position: fixed; top: 0; left: 0; right: 0; bottom: 0; background-color: rgba(15, 23, 42, 0.7); z-index: 9999; justify-content: center; align-items: center; padding: 15px;">
     <div style="background: white; border-radius: 12px; padding: 20px; width: 100%; max-width: 420px; text-align: left; box-shadow: 0 20px 25px -5px rgba(0, 0, 0, 0.2);">
       <div style="display: flex; align-items: center; justify-content: space-between; border-bottom: 1.5px solid #e2e8f0; padding-bottom: 10px; margin-bottom: 15px;">
@@ -205,14 +173,13 @@
             <option value="ALL">📄 Export PDF (Siap Cetak)</option>
             <option value="ALL_EXCEL">📊 Export Excel (.xlsx)</option>
           </optgroup>
-          <optgroup label="📑 Kartu Inventaris Ruangan (KIR)">
+          <optgroup label="🏢 Kartu Inventaris Ruangan (KIR)">
             <option value="KIR">📄 Export PDF KIR Ruangan</option>
             <option value="KIR_EXCEL">📊 Export Excel KIR Ruangan (.xlsx)</option>
           </optgroup>
         </select>
       </div>
 
-      <!-- DROPDOWN 13 RUANGAN TARGET (MUNCUL APABILA MEMILIH KIR) -->
       <div id="containerSelectRuangan" style="margin-bottom: 20px; display: none;">
         <label for="selectRuanganKIR" style="display: block; font-size: 13px; font-weight: bold; color: #334155; margin-bottom: 6px;">Pilih Ruangan Target (13 Ruangan):</label>
         <select id="selectRuanganKIR" style="width: 100%; padding: 10px; border: 1.5px solid #cbd5e1; border-radius: 8px; font-size: 13px; outline: none; background: white; color: #1e293b;">
@@ -241,12 +208,21 @@
     </div>
   </div>
 
-  <!-- FOOTER -->
   <footer class="app-footer" style="text-align: center; padding: 15px; font-size: 12px; color: #64748b; margin-top: 20px;">
-    <p style="margin: 0;">SI-ASEP &copy; Satuan Polisi Pamong Praja Kota Serang</p>
+    <p style="margin: 0;">SI-ACEP &copy; Satuan Polisi Pamong Praja Kota Serang</p>
   </footer>
 
-  <!-- SCRIPT UTAMA -->
-  <script src="script.js?v=3.0"></script>
+  <script src="script.js?v=3.1"></script>
+  
+  <!-- Registrasi Service Worker PWA -->
+  <script>
+    if ('serviceWorker' in navigator) {
+      window.addEventListener('load', () => {
+        navigator.serviceWorker.register('./sw.js')
+          .then(reg => console.log('Service Worker terdaftar:', reg.scope))
+          .catch(err => console.error('Gagal daftarkan Service Worker:', err));
+      });
+    }
+  </script>
 </body>
 </html>
