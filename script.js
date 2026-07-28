@@ -12,7 +12,7 @@ window.addEventListener('unhandledrejection', function(event) {
 let scannerAktif = true;
 let html5QrCode = null;
 
-const SCRIPT_URL = "https://script.google.com/macros/s/AKfycbzt9VzVG8IIarlE9GG8iPy67Sj8bU19RA8qXlfiLcaF4S4SM9tapHY1VPibHrAQ9khf/exec";
+const SCRIPT_URL = "https://script.google.com/macros/s/AKfycbxtReVAP3Uu6Kn1LN-lxyaPDt98vMwL28vT5gGnfjiqzcbo5jxIuxCYHgqIxQPh3-CX/exec";
 const PIN_PETUGAS_DEFAULT = "123456";
 
 const safeStr = (val) => (val !== undefined && val !== null && val !== "" && val !== "null") ? val : "-";
