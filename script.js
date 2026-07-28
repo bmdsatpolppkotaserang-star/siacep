@@ -1,5 +1,10 @@
 // =========================================================================
-// MENCEGAH ERROR EKSTENSI BROWSER (Message Channel Closed Error)
+// FRONTEND SCRIPT (script.js) - SI-ASEP
+// Satuan Polisi Pamong Praja Kota Serang
+// =========================================================================
+
+// =========================================================================
+// 1. MENCEGAH ERROR EKSTENSI BROWSER (Message Channel Closed Error)
 // =========================================================================
 window.addEventListener('unhandledrejection', function(event) {
   if (event.reason && event.reason.message && event.reason.message.includes('message channel closed')) {
@@ -8,7 +13,7 @@ window.addEventListener('unhandledrejection', function(event) {
 });
 
 // =========================================================================
-// DEKLARASI VARIABEL GLOBAL & STATE APLIKASI
+// 2. DEKLARASI VARIABEL GLOBAL & STATE APLIKASI
 // =========================================================================
 let scannerAktif = true;
 let html5QrCode = null;
@@ -23,7 +28,7 @@ const PIN_PETUGAS_DEFAULT = "123456"; // PIN Akses Petugas Satpol PP
 const safeStr = (val) => (val !== undefined && val !== null && val !== "" && val !== "null") ? val : "-";
 
 // =========================================================================
-// AUDIO BEEP SCANNER (Base64 Audio - Bebas Error & Memory Leak)
+// 3. AUDIO BEEP SCANNER (Base64 Audio - Bebas Error & Memory Leak)
 // =========================================================================
 const scanBeepSound = new Audio("data:audio/wav;base64,UklGRl9vT19XQVZFZm10IBAAAAABAAEAQB8AAEAfAAABAAgAZGF0YUtvT18AZv8AZv8AZv8AZv8AZv8AZv8AZv8AZv8AZv8AZv8AZv8AZv8AZv8AZv8AZv8AZv8AZv8AZv8AZv8AZv8AZv8AZv8AZv8AZv8AZv8AZv8AZv8AZv8AZv8AZv8AZv8AZv8AZv8AZv8AZv8AZv8AZv8AZv8AZv8AZv8AZv8AZv8AZv8=");
 
@@ -41,7 +46,7 @@ function playScanBeep() {
 }
 
 // =========================================================================
-// FUNGSI NAVIGASI / PINDAH HALAMAN
+// 4. FUNGSI NAVIGASI / PINDAH HALAMAN
 // =========================================================================
 window.tampilkanHalamanScanner = function () {
   const pageScanner = document.getElementById("page-scanner");
@@ -79,7 +84,67 @@ window.tampilkanHalamanInformasi = function () {
 };
 
 // =========================================================================
-// INISIALISASI SETELAH DOM SIAP
+// 5. FUNGSI CETAK EXCEL (INTEGRASI GOOGLE APPS SCRIPT)
+// =========================================================================
+
+// Tombol Cetak KIR per Ruangan (Format Excel .xlsx)
+function cetakKIR() {
+  var ruanganSelect = document.getElementById("selectRuanganKIR") || document.getElementById("selectRuangan");
+  var ruangan = ruanganSelect ? ruanganSelect.value : "";
+
+  if (!ruangan) {
+    alert("Silakan pilih ruangan terlebih dahulu!");
+    return;
+  }
+
+  console.log("Memproses download KIR Excel untuk ruangan:", ruangan);
+
+  if (typeof google !== "undefined" && google.script && google.script.run) {
+    google.script.run
+      .withSuccessHandler(function(downloadUrl) {
+        if (downloadUrl) {
+          window.open(downloadUrl, '_blank');
+        } else {
+          alert("Gagal membuat file Excel KIR.");
+        }
+      })
+      .withFailureHandler(function(err) {
+        alert("Terjadi kesalahan: " + err.message);
+      })
+      .exportKIRToExcel(ruangan);
+  } else {
+    // Fallback jika dijalankan di luar environment Apps Script Web App
+    const urlKIR = `${SCRIPT_URL}?action=export_kir_excel&ruangan=${encodeURIComponent(ruangan)}`;
+    window.open(urlKIR, "_blank");
+  }
+}
+
+// Tombol Cetak Rekap Hasil Inventarisasi (Format Excel .xlsx)
+function cetakHasilInventaris() {
+  console.log("Memproses download Rekap Hasil Inventarisasi Excel...");
+
+  if (typeof google !== "undefined" && google.script && google.script.run) {
+    google.script.run
+      .withSuccessHandler(function(downloadUrl) {
+        if (downloadUrl) {
+          window.open(downloadUrl, '_blank');
+        } else {
+          alert("Gagal membuat file Hasil Inventarisasi.");
+        }
+      })
+      .withFailureHandler(function(err) {
+        alert("Terjadi kesalahan: " + err.message);
+      })
+      .exportHasilInventarisToExcel();
+  } else {
+    // Fallback jika dijalankan di luar environment Apps Script Web App
+    const urlHasil = `${SCRIPT_URL}?action=export_hasil_excel`;
+    window.open(urlHasil, "_blank");
+  }
+}
+
+// =========================================================================
+// 6. INISIALISASI SETELAH DOM SIAP
 // =========================================================================
 document.addEventListener("DOMContentLoaded", function () {
   const infoDetailAset = document.getElementById("infoDetailAset");
@@ -243,7 +308,7 @@ document.addEventListener("DOMContentLoaded", function () {
 });
 
 // =========================================================================
-// FUNGSI CEK DETAIL ASET
+// 7. FUNGSI CEK DETAIL ASET
 // =========================================================================
 window.prosesCekDetailAset = function (kodeQR, tampilkanHarga = false) {
   const infoDetailAset = document.getElementById("infoDetailAset");
@@ -258,6 +323,7 @@ window.prosesCekDetailAset = function (kodeQR, tampilkanHarga = false) {
     </div>
   `;
 
+  // Menggunakan Fetch API sebagai default handler
   fetch(`${SCRIPT_URL}?action=get_detail&kode=${encodeURIComponent(kodeQR)}`)
     .then(response => response.json())
     .then(data => {
@@ -359,7 +425,7 @@ window.prosesCekDetailAset = function (kodeQR, tampilkanHarga = false) {
 };
 
 // =========================================================================
-// FITUR INVENTARISASI & HAPUS
+// 8. FITUR INVENTARISASI & HAPUS
 // =========================================================================
 window.eksekusiInventarisasi = function (kodeBarang) {
   if (!kodeBarang) return;
@@ -424,7 +490,7 @@ window.hapusDataAset = function (kodeBarang) {
 };
 
 // =========================================================================
-// MODAL PIN PETUGAS & PANEL KELOLA PETUGAS
+// 9. MODAL PIN PETUGAS & PANEL KELOLA PETUGAS
 // =========================================================================
 window.openPinModal = function () {
   const modalPin = document.getElementById("modalPin");
@@ -459,7 +525,7 @@ window.verifikasiPin = function () {
     if (kodePrint) {
       window.prosesCekDetailAset(kodePrint, true);
     } else {
-      alert("Akses Petugas Berhasil! Silakan pinda/cari aset untuk kelola data.");
+      alert("Akses Petugas Berhasil! Silakan pindai/cari aset untuk kelola data.");
     }
   } else {
     alert("PIN Salah! Akses ditolak.");
@@ -480,7 +546,7 @@ window.closePanelPetugas = function () {
 };
 
 // =========================================================================
-// MODAL CETAK LAPORAN & DOKUMEN KIR
+// 10. MODAL CETAK LAPORAN & DOKUMEN (PDF / EXCEL)
 // =========================================================================
 window.openModalCetakLaporan = function () {
   const modalCetak = document.getElementById("modalCetakLaporan");
@@ -499,7 +565,7 @@ window.toggleOptionRuangan = function () {
   const selectJenis = document.getElementById("selectJenisDokumen");
   const containerRuangan = document.getElementById("containerSelectRuangan");
   if (selectJenis && containerRuangan) {
-    if (selectJenis.value === "KIR") {
+    if (selectJenis.value === "KIR" || selectJenis.value === "KIR_EXCEL") {
       containerRuangan.style.display = "block";
     } else {
       containerRuangan.style.display = "none";
@@ -514,19 +580,24 @@ window.eksekusiCetakLaporan = function () {
   if (!selectJenis) return;
 
   if (selectJenis.value === "ALL") {
-    // Export Rekap Hasil Inventarisasi Keseluruhan (PDF)
+    // Export Rekap Hasil Inventarisasi Keseluruhan (PDF via Spreadsheet Export)
     const urlExport = `https://docs.google.com/spreadsheets/d/${SPREADSHEET_ID}/export?format=pdf&gid=${GID_REKAP}`;
     window.open(urlExport, "_blank");
+  } else if (selectJenis.value === "ALL_EXCEL") {
+    // Export Rekap Hasil Inventarisasi Keseluruhan (Excel .xlsx)
+    cetakHasilInventaris();
   } else if (selectJenis.value === "KIR") {
+    // Export KIR Printable Page / PDF
     const ruangan = selectRuangan ? selectRuangan.value : "";
     if (!ruangan) {
       alert("Pilih ruangan target terlebih dahulu!");
       return;
     }
-    
-    // Redirect / Buka Cetak KIR dengan Filter Ruangan via Google Apps Script / Printable Page
     const urlKIR = `${SCRIPT_URL}?action=cetak_kir&ruangan=${encodeURIComponent(ruangan)}`;
     window.open(urlKIR, "_blank");
+  } else if (selectJenis.value === "KIR_EXCEL") {
+    // Export KIR Format Excel (.xlsx)
+    cetakKIR();
   }
 
   window.closeModalCetakLaporan();
