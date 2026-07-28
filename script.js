@@ -14,7 +14,7 @@ let scannerAktif = true;
 let html5QrCode = null;
 
 // Konfigurasi Google Apps Script & Google Sheets
-const SCRIPT_URL = "https://script.google.com/macros/s/AKfycbxZyX5mGjXEMJJKusSD-tSjaNA5_kd9OXGzMGk1CyseNFsCtdMJOK_tUZWwdvPPuma9/exec";
+const SCRIPT_URL = "https://script.google.com/macros/s/AKfycbwB45jpdpVL2TK1XEk4n_mAOHpnuXeglC0y2A5aY04aLDUFkte8Kr2WBoDTqgNOc0k7/exec";
 const SPREADSHEET_ID = "1ZpZtmGJyqglogaaq1vgKqp38XgvkUHP_wbMfJPp1Zwc";
 const GID_REKAP = "85327253";
 const PIN_PETUGAS_DEFAULT = "123456";
