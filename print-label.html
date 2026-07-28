@@ -4,8 +4,11 @@
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>Cetak Label Stiker Aset - SI-ACEP</title>
-  <link rel="stylesheet" href="print-style.css">
-  <!-- QRCode.js Library untuk generate QR Code di halaman stiker -->
+
+  <!-- PERBAIKAN 404: Mengarahkan ke file CSS stiker yang benar -->
+  <link rel="stylesheet" href="style-label.css">
+  
+  <!-- QRCode.js Library -->
   <script src="https://cdnjs.cloudflare.com/ajax/libs/qrcodejs/1.0.0/qrcode.min.js"></script>
 </head>
 <body>
@@ -15,10 +18,8 @@
     <button class="btn-close" onclick="window.close()">❌ Tutup</button>
   </div>
 
-  <!-- Container Label Stiker Aset (Ukuran Standar Label Stiker Aset Pemda) -->
   <div class="label-container">
     <div class="label-header">
-      <!-- Logo Kiri -->
       <img src="logo.png" alt="Logo Pemda" class="logo-left" id="img-logo-kiri">
       
       <div class="header-text">
@@ -26,14 +27,11 @@
         <p>SATUAN POLISI PAMONG PRAJA</p>
       </div>
 
-      <!-- Logo Kanan -->
       <img src="polpp.png" alt="Logo Satpol PP" class="logo-right" id="img-logo-kanan">
     </div>
     
     <div class="label-body">
-      <div class="qr-code-box" id="qrcode-label">
-        <!-- QR Code akan digenerate otomatis melalui JS -->
-      </div>
+      <div class="qr-code-box" id="qrcode-label"></div>
       
       <div class="asset-info">
         <div class="info-row">
@@ -58,12 +56,10 @@
 
   <script>
   document.addEventListener("DOMContentLoaded", function () {
-    // 1. Ambil data dari localStorage
     const kode  = localStorage.getItem("print_kode") || "-";
     const nama  = localStorage.getItem("print_nama") || "-";
     const tahun = localStorage.getItem("print_tahun") || "-";
 
-    // 2. Tampilkan ke elemen HTML sesuai ID yang benar
     const elKode  = document.getElementById("lbl-kode");
     const elNama  = document.getElementById("lbl-nama");
     const elTahun = document.getElementById("lbl-tahun");
@@ -73,11 +69,8 @@
     if (elNama) elNama.textContent = nama;
     if (elTahun) elTahun.textContent = tahun;
 
-    // 3. Generate QR Code ke ID qrcode-label
     if (kode !== "-" && elQr) {
-      // Kosongkan container QR terlebih dahulu jika ada isinya
       elQr.innerHTML = "";
-      
       new QRCode(elQr, {
         text: kode,
         width: 85,
