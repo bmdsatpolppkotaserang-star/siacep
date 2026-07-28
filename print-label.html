@@ -109,21 +109,24 @@
     }
 
     .header-text h3 {
-      font-size: 8px;
+      font-size: 7.5px;
       font-weight: 800;
       margin: 0;
       text-transform: uppercase;
+      line-height: 1.1;
     }
 
     .header-text p {
       font-size: 6.5px;
       font-weight: bold;
-      margin: 0;
+      margin-top: 1px;
+      text-transform: uppercase;
     }
 
     .label-body {
       display: flex;
       align-items: center;
+      justify-content: space-between;
       gap: 6px;
       margin: 2px 0;
     }
@@ -136,6 +139,7 @@
       display: flex;
       align-items: center;
       justify-content: center;
+      flex-shrink: 0; /* QR Code tetap di posisi kanan */
     }
 
     .asset-info {
@@ -228,13 +232,13 @@
           <div class="label-header">
             <img src="logo.png" class="logo-left">
             <div class="header-text">
-              <h3>INVENTARIS KOTA SERANG</h3>
-              <p>SATPOL PP KOTA SERANG</p>
+              <h3>PEMERINTAH KOTA SERANG</h3>
+              <p>SATUAN POLISI PAMONG PRAJA</p>
             </div>
             <img src="polpp.png" class="logo-right">
           </div>
           <div class="label-body">
-            <div class="qr-box" id="${qrcodeId}"></div>
+            <!-- Teks Informasi Aset di sebelah KIRI -->
             <div class="asset-info">
               <div class="info-title">Kode Barang:</div>
               <div class="info-val code">${kode}</div>
@@ -243,9 +247,11 @@
               <div class="info-title">Tahun Perolehan:</div>
               <div class="info-val">${tahun}</div>
             </div>
+            <!-- QR Code di sebelah KANAN -->
+            <div class="qr-box" id="${qrcodeId}"></div>
           </div>
           <div class="label-footer">
-            SI-ASEP - SATUAN POLISI PAMONG PRAJA
+            SI-ASEP - KOTA SERANG
           </div>
         `;
 
@@ -264,3 +270,12 @@
   </script>
 </body>
 </html>
+```[cite: 4]
+
+---
+
+### Perubahan Utama yang Dilakukan:
+1. **Header Baru:**[cite: 4]
+   - `<h3>PEMERINTAH KOTA SERANG</h3>`[cite: 4]
+   - `<p>SATUAN POLISI PAMONG PRAJA</p>`[cite: 4]
+2. **Posisi QR Code Ditukar ke Kanan:** Di dalam elemen `.label-body`, blok `<div class="asset-info">` ditempatkan di atas, dan `<div class="qr-box">` dipindah ke bawahnya[cite: 4].
