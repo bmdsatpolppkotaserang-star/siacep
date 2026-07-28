@@ -66,7 +66,7 @@ window.tampilkanHalamanInformasi = function () {
 };
 
 // =========================================================================
-// REVISI POIN 3: FUNGSI UNDUH EXCEL (100% EXCEL, MENGAIRAHKAN FORMAT EXCEL SAJA)
+// UNDUH EXCEL & CETAK STIKER MASSAL VIA GS
 // =========================================================================
 function cetakKIR() {
   var ruanganSelect = document.getElementById("selectRuanganKIR") || document.getElementById("selectRuangan");
@@ -86,8 +86,31 @@ function cetakHasilInventaris() {
   window.open(urlHasil, "_blank");
 }
 
+/**
+ * Membuka halaman cetak stiker massal backend GS berdasarkan array / string kode
+ * @param {Array<string>|string} listKode - Contoh: ["1.3.2.01.001", "1.3.2.01.002"] atau "1.3.2.01.001,1.3.2.01.002"
+ */
+window.cetakStikerMassal = function (listKode) {
+  let arrayKode = [];
+  
+  if (Array.isArray(listKode)) {
+    arrayKode = listKode;
+  } else if (typeof listKode === "string" && listKode.trim() !== "") {
+    arrayKode = listKode.split(",").map(k => k.trim());
+  }
+
+  if (arrayKode.length === 0) {
+    alert("Silakan masukkan minimal 1 Kode Barang untuk dicetak stikernya!");
+    return;
+  }
+
+  const stringKodes = arrayKode.join(",");
+  const urlCetak = `${SCRIPT_URL}?action=cetak_stiker_massal&kodes=${encodeURIComponent(stringKodes)}`;
+  window.open(urlCetak, "_blank");
+};
+
 // =========================================================================
-// REVISI POIN 1: PENCATATAN & UPDATE INVENTARIS DIPASTIKAN TERHUBUNG LANGSUNG KE GS
+// PENCATATAN & UPDATE INVENTARIS
 // =========================================================================
 window.eksekusiInventarisasi = function(kodeBarang) {
   if (!kodeBarang) {
@@ -114,7 +137,6 @@ window.eksekusiInventarisasi = function(kodeBarang) {
       }
       if (data.result === "success") {
         alert("BERHASIL! " + data.message);
-        // Panggil pembaruan data secara langsung setelah berhasil catat di Google Sheets
         window.prosesCekDetailAset(kodeBarang, true);
       } else {
         alert("GAGAL: " + (data.message || "Gagal mencatat inventarisasi."));
@@ -297,23 +319,18 @@ document.addEventListener("DOMContentLoaded", function () {
   }
 
   // =========================================================================
-  // REVISI POIN 2: BUKA HALAMAN CETAK LEMBAR MULTI-STIKER (A4 / GRID 12 STIKER)
+  // BUKA HALAMAN CETAK STIKER (SINGLE / MASSAL)
   // =========================================================================
   if (btnCetakQR) {
     btnCetakQR.addEventListener("click", function () {
       const kode = localStorage.getItem("print_kode");
       if (kode) {
-        window.bukaCetakStikerLabel(kode);
+        window.cetakStikerMassal([kode]);
       } else {
-        alert("Scan barang terlebih dahulu untuk mencetak lembar stiker QR Code!");
+        alert("Scan barang terlebih dahulu untuk mencetak stiker QR Code!");
       }
     });
   }
-
-  window.bukaCetakStikerLabel = function (kodeBarang) {
-    // Membuka file cetak multi-stiker (print-label.html)
-    window.open(`print-label.html?kode=${encodeURIComponent(kodeBarang)}`, "_blank");
-  };
 });
 
 // Cek Detail Aset
@@ -429,7 +446,7 @@ window.prosesCekDetailAset = function (kodeQR, tampilkanHarga = false) {
     });
 };
 
-// Modals
+// Modals PIN
 window.openPinModal = function () {
   const modalPin = document.getElementById("modalPin");
   const inputPin = document.getElementById("inputPinPetugas");
@@ -479,6 +496,7 @@ window.closePanelPetugas = function () {
   }
 };
 
+// Modals Laporan Excel & Stiker Massal
 window.openModalCetakLaporan = function () {
   const modalCetak = document.getElementById("modalCetakLaporan");
   if (modalCetak) {
@@ -492,14 +510,38 @@ window.closeModalCetakLaporan = function () {
   if (modalCetak) modalCetak.style.display = "none";
 };
 
-// =========================================================================
-// REVISI POIN 3: PENGATURAN TAMPILAN MODAL LAPORAN 100% EXCEL
-// =========================================================================
+window.openModalCetakStikerMassal = function () {
+  const modalStiker = document.getElementById("modalCetakStikerMassal");
+  if (modalStiker) {
+    modalStiker.style.display = "flex";
+    const input = document.getElementById("inputKodesStikerMassal");
+    if (input) {
+      const kodeAktif = localStorage.getItem("print_kode");
+      if (kodeAktif) input.value = kodeAktif;
+      input.focus();
+    }
+  }
+};
+
+window.closeModalCetakStikerMassal = function () {
+  const modalStiker = document.getElementById("modalCetakStikerMassal");
+  if (modalStiker) modalStiker.style.display = "none";
+};
+
+window.eksekusiCetakStikerMassalModal = function () {
+  const input = document.getElementById("inputKodesStikerMassal");
+  if (!input || !input.value.trim()) {
+    alert("Masukkan minimal 1 kode barang!");
+    return;
+  }
+  window.cetakStikerMassal(input.value.trim());
+  window.closeModalCetakStikerMassal();
+};
+
 window.toggleOptionRuangan = function () {
   const selectJenis = document.getElementById("selectJenisDokumen");
   const containerRuangan = document.getElementById("containerSelectRuangan");
   if (selectJenis && containerRuangan) {
-    // Menampilkan dropdown ruangan hanya bila memilih KIR_EXCEL
     if (selectJenis.value === "KIR_EXCEL") {
       containerRuangan.style.display = "block";
     } else {
@@ -512,7 +554,6 @@ window.eksekusiCetakLaporan = function () {
   const selectJenis = document.getElementById("selectJenisDokumen");
   if (!selectJenis) return;
 
-  // Hanya memproses eksekusi Excel
   if (selectJenis.value === "ALL_EXCEL") {
     cetakHasilInventaris();
   } else if (selectJenis.value === "KIR_EXCEL") {
