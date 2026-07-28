@@ -3,82 +3,264 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Cetak Label Stiker Aset - SI-ACEP</title>
-
-  <!-- PERBAIKAN 404: Mengarahkan ke file CSS stiker yang benar -->
+  <title>Lembar Stiker QR Code Aset - SI-ACEP</title>
   <link rel="stylesheet" href="style-label.css">
-  
-  <!-- QRCode.js Library -->
   <script src="https://cdnjs.cloudflare.com/ajax/libs/qrcodejs/1.0.0/qrcode.min.js"></script>
+  <style>
+    /* Styling Lembar Multi-Stiker A4 */
+    @page {
+      size: A4 portrait;
+      margin: 10mm;
+    }
+    
+    body {
+      background-color: #f1f5f9;
+      margin: 0;
+      padding: 20px;
+      font-family: Arial, sans-serif;
+    }
+
+    .toolbar {
+      background: #ffffff;
+      padding: 15px;
+      border-radius: 8px;
+      margin-bottom: 20px;
+      display: flex;
+      gap: 15px;
+      align-items: center;
+      justify-content: space-between;
+      box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+    }
+
+    .toolbar-left {
+      display: flex;
+      gap: 10px;
+      align-items: center;
+    }
+
+    .toolbar label {
+      font-size: 13px;
+      font-weight: bold;
+      color: #334155;
+    }
+
+    .toolbar input {
+      width: 70px;
+      padding: 6px;
+      border: 1px solid #cbd5e1;
+      border-radius: 4px;
+      text-align: center;
+      font-weight: bold;
+    }
+
+    .btn {
+      padding: 8px 16px;
+      border: none;
+      border-radius: 6px;
+      font-weight: bold;
+      cursor: pointer;
+    }
+
+    .btn-primary { background: #0284c7; color: white; }
+    .btn-danger { background: #ef4444; color: white; }
+
+    .sheet-grid {
+      display: grid;
+      grid-template-columns: repeat(3, 1fr);
+      gap: 8mm;
+      background: white;
+      padding: 10mm;
+      width: 210mm;
+      min-height: 297mm;
+      margin: 0 auto;
+      box-shadow: 0 4px 6px rgba(0,0,0,0.1);
+      box-sizing: border-box;
+    }
+
+    .label-container {
+      width: 100%;
+      height: 52mm;
+      border: 1.5px dashed #000000;
+      border-radius: 4px;
+      padding: 4px 6px;
+      display: flex;
+      flex-direction: column;
+      justify-content: space-between;
+      box-sizing: border-box;
+      background: #fff;
+    }
+
+    .label-header {
+      border-bottom: 1.5px solid #000;
+      padding-bottom: 2px;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+    }
+
+    .logo-left, .logo-right {
+      width: 22px;
+      height: 22px;
+      object-fit: contain;
+    }
+
+    .header-text {
+      text-align: center;
+    }
+
+    .header-text h3 {
+      font-size: 8px;
+      font-weight: 800;
+      margin: 0;
+      text-transform: uppercase;
+    }
+
+    .header-text p {
+      font-size: 6.5px;
+      font-weight: bold;
+      margin: 0;
+    }
+
+    .label-body {
+      display: flex;
+      align-items: center;
+      gap: 6px;
+      margin: 2px 0;
+    }
+
+    .qr-box {
+      width: 55px;
+      height: 55px;
+      border: 1px solid #ddd;
+      padding: 1px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+    }
+
+    .asset-info {
+      flex: 1;
+      overflow: hidden;
+    }
+
+    .info-title {
+      font-size: 6.5px;
+      color: #444;
+      font-weight: bold;
+      text-transform: uppercase;
+    }
+
+    .info-val {
+      font-size: 8px;
+      font-weight: bold;
+      color: #000;
+      white-space: nowrap;
+      overflow: hidden;
+      text-overflow: ellipsis;
+      margin-bottom: 2px;
+    }
+
+    .info-val.code {
+      font-family: monospace;
+      font-size: 9px;
+      font-weight: 800;
+    }
+
+    .label-footer {
+      border-top: 1px dashed #000;
+      padding-top: 2px;
+      text-align: center;
+      font-size: 6px;
+      font-weight: bold;
+    }
+
+    @media print {
+      body {
+        background: none;
+        padding: 0;
+      }
+      .toolbar { display: none !important; }
+      .sheet-grid {
+        box-shadow: none;
+        padding: 0;
+        margin: 0;
+        width: 100%;
+      }
+      .label-container {
+        border-style: solid;
+        page-break-inside: avoid;
+      }
+    }
+  </style>
 </head>
 <body>
 
-  <div class="print-actions">
-    <button class="btn-print-now" onclick="window.print()">🖨️ Cetak Label Sekarang</button>
-    <button class="btn-close" onclick="window.close()">❌ Tutup</button>
-  </div>
-
-  <div class="label-container">
-    <div class="label-header">
-      <img src="logo.png" alt="Logo Pemda" class="logo-left" id="img-logo-kiri">
-      
-      <div class="header-text">
-        <h3>INVENTARIS KOTA SERANG</h3>
-        <p>SATUAN POLISI PAMONG PRAJA</p>
-      </div>
-
-      <img src="polpp.png" alt="Logo Satpol PP" class="logo-right" id="img-logo-kanan">
+  <div class="toolbar">
+    <div class="toolbar-left">
+      <label for="inputJumlah">Jumlah Stiker Per Lembar:</label>
+      <input type="number" id="inputJumlah" value="12" min="1" max="24" onchange="generateStikers()">
+      <button class="btn btn-primary" onclick="generateStikers()">🔄 Update Display</button>
     </div>
-    
-    <div class="label-body">
-      <div class="qr-code-box" id="qrcode-label"></div>
-      
-      <div class="asset-info">
-        <div class="info-row">
-          <span class="label-title">Kode Barang:</span>
-          <span class="label-val code" id="lbl-kode">-</span>
-        </div>
-        <div class="info-row">
-          <span class="label-title">Nama Barang:</span>
-          <span class="label-val" id="lbl-nama">-</span>
-        </div>
-        <div class="info-row">
-          <span class="label-title">Tahun:</span>
-          <span class="label-val" id="lbl-tahun">-</span>
-        </div>
-      </div>
-    </div>
-
-    <div class="label-footer">
-      <span>SI-ACEP - SATPOL PP KOTA SERANG</span>
+    <div>
+      <button class="btn btn-primary" onclick="window.print()">🖨️ Cetak / Download Lembar Stiker (PDF)</button>
+      <button class="btn btn-danger" onclick="window.close()">❌ Tutup</button>
     </div>
   </div>
+
+  <div id="sheetGrid" class="sheet-grid"></div>
 
   <script>
-  document.addEventListener("DOMContentLoaded", function () {
-    const kode  = localStorage.getItem("print_kode") || "-";
-    const nama  = localStorage.getItem("print_nama") || "-";
-    const tahun = localStorage.getItem("print_tahun") || "-";
+    function generateStikers() {
+      const kode = localStorage.getItem("print_kode") || "KODE-SAMPLE";
+      const nama = localStorage.getItem("print_nama") || "NAMA BARANG SAMPLE";
+      const tahun = localStorage.getItem("print_tahun") || "2026";
+      const jumlah = parseInt(document.getElementById("inputJumlah").value) || 12;
 
-    const elKode  = document.getElementById("lbl-kode");
-    const elNama  = document.getElementById("lbl-nama");
-    const elTahun = document.getElementById("lbl-tahun");
-    const elQr    = document.getElementById("qrcode-label");
+      const grid = document.getElementById("sheetGrid");
+      grid.innerHTML = "";
 
-    if (elKode) elKode.textContent = kode;
-    if (elNama) elNama.textContent = nama;
-    if (elTahun) elTahun.textContent = tahun;
+      for (let i = 0; i < jumlah; i++) {
+        const item = document.createElement("div");
+        item.className = "label-container";
+        const qrcodeId = `qr-code-${i}`;
 
-    if (kode !== "-" && elQr) {
-      elQr.innerHTML = "";
-      new QRCode(elQr, {
-        text: kode,
-        width: 85,
-        height: 85,
-        correctLevel: QRCode.CorrectLevel.M
-      });
+        item.innerHTML = `
+          <div class="label-header">
+            <img src="logo.png" class="logo-left">
+            <div class="header-text">
+              <h3>INVENTARIS KOTA SERANG</h3>
+              <p>SATPOL PP KOTA SERANG</p>
+            </div>
+            <img src="polpp.png" class="logo-right">
+          </div>
+          <div class="label-body">
+            <div class="qr-box" id="${qrcodeId}"></div>
+            <div class="asset-info">
+              <div class="info-title">Kode Barang:</div>
+              <div class="info-val code">${kode}</div>
+              <div class="info-title">Nama Barang:</div>
+              <div class="info-val">${nama}</div>
+              <div class="info-title">Tahun Perolehan:</div>
+              <div class="info-val">${tahun}</div>
+            </div>
+          </div>
+          <div class="label-footer">
+            SI-ASEP - SATUAN POLISI PAMONG PRAJA
+          </div>
+        `;
+
+        grid.appendChild(item);
+
+        new QRCode(document.getElementById(qrcodeId), {
+          text: kode,
+          width: 55,
+          height: 55,
+          correctLevel: QRCode.CorrectLevel.M
+        });
+      }
     }
-  });
+
+    document.addEventListener("DOMContentLoaded", generateStikers);
   </script>
 </body>
 </html>
