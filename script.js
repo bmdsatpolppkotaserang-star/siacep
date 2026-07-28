@@ -14,7 +14,7 @@ let scannerAktif = true;
 let html5QrCode = null;
 
 // Konfigurasi Google Apps Script & Google Sheets
-const SCRIPT_URL = "https://script.google.com/macros/s/AKfycbzKb2RcUC2mno6ohaTvhuI1fsQ3bLvaDFFdPTqTizJX5IXe8NYQSt9SZP_LjSad5Uw/exec";
+const SCRIPT_URL = "https://script.google.com/macros/s/AKfycbxZyX5mGjXEMJJKusSD-tSjaNA5_kd9OXGzMGk1CyseNFsCtdMJOK_tUZWwdvPPuma9/exec";
 const SPREADSHEET_ID = "1ZpZtmGJyqglogaaq1vgKqp38XgvkUHP_wbMfJPp1Zwc";
 const GID_REKAP = "85327253";
 const PIN_PETUGAS_DEFAULT = "123456"; // PIN Akses Petugas Satpol PP
