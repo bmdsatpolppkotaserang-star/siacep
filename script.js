@@ -13,7 +13,7 @@ window.addEventListener('unhandledrejection', function(event) {
 let scannerAktif = true;
 let html5QrCode = null;
 
-// Konfigurasi Google Apps Script
+// Konfigurasi Google Apps Script & Google Sheets
 const SCRIPT_URL = "https://script.google.com/macros/s/AKfycbxLNY3gSte8JgnJJ1gtBQnjnEw-MnWse70M1xJQOHEBDZpWq7adR_eh5o8A5ozuwZWc/exec";
 const SPREADSHEET_ID = "1ZpZtmGJyqglogaaq1vgKqp38XgvkUHP_wbMfJPp1Zwc";
 const GID_REKAP = "85327253";
@@ -23,20 +23,17 @@ const PIN_PETUGAS_DEFAULT = "123456"; // PIN Akses Petugas Satpol PP
 const safeStr = (val) => (val !== undefined && val !== null && val !== "" && val !== "null") ? val : "-";
 
 // =========================================================================
-// AUDIO BEEP SCANNER (Menggunakan Base64 Audio - Bebas Error & Memory Leak)
+// AUDIO BEEP SCANNER (Base64 Audio - Bebas Error & Memory Leak)
 // =========================================================================
 const scanBeepSound = new Audio("data:audio/wav;base64,UklGRl9vT19XQVZFZm10IBAAAAABAAEAQB8AAEAfAAABAAgAZGF0YUtvT18AZv8AZv8AZv8AZv8AZv8AZv8AZv8AZv8AZv8AZv8AZv8AZv8AZv8AZv8AZv8AZv8AZv8AZv8AZv8AZv8AZv8AZv8AZv8AZv8AZv8AZv8AZv8AZv8AZv8AZv8AZv8AZv8AZv8AZv8AZv8AZv8AZv8AZv8AZv8AZv8AZv8AZv8AZv8=");
 
 function playScanBeep() {
   try {
-    scanBeepSound.currentTime = 0; // Reset durasi audio ke awal
-    scanBeepSound.volume = 1.0;    // Volume maksimal
-    
+    scanBeepSound.currentTime = 0;
+    scanBeepSound.volume = 1.0;
     const playPromise = scanBeepSound.play();
     if (playPromise !== undefined) {
-      playPromise.catch(error => {
-        console.warn("Audio autoplay diblokir browser atau belum disentuh:", error);
-      });
+      playPromise.catch(error => console.warn("Audio autoplay diblokir browser:", error));
     }
   } catch (e) {
     console.error("Gagal memutar suara beep:", e);
@@ -75,7 +72,6 @@ window.tampilkanHalamanInformasi = function () {
   const pageScanner = document.getElementById("page-scanner");
   const pageInformasi = document.getElementById("page-informasi");
 
-  // Sembunyikan Scanner & Tampilkan Halaman Informasi Aset
   if (pageScanner) pageScanner.style.display = "none";
   if (pageInformasi) pageInformasi.style.display = "block";
 
@@ -96,15 +92,13 @@ document.addEventListener("DOMContentLoaded", function () {
   const btnCatatUpdate = document.getElementById("btnCatatUpdate");
   const btnHapusInventaris = document.getElementById("btnHapusInventaris");
   const btnCetakQR = document.getElementById("btnCetakQR");
-  const btnDownloadRekap = document.getElementById("btnDownloadRekap");
 
-  // UNLOCK AUDIO BROWSER PADA SENTUHAN/KLIK PERTAMA
+  // Unlock Audio
   function unlockAudio() {
     scanBeepSound.play().then(() => {
       scanBeepSound.pause();
       scanBeepSound.currentTime = 0;
     }).catch(() => {});
-    
     document.removeEventListener("touchstart", unlockAudio);
     document.removeEventListener("click", unlockAudio);
   }
@@ -118,7 +112,6 @@ document.addEventListener("DOMContentLoaded", function () {
 
   window.mulaiKamera = function () {
     if (!html5QrCode) return;
-
     if (html5QrCode.isScanning) {
       scannerAktif = true;
       return;
@@ -133,7 +126,7 @@ document.addEventListener("DOMContentLoaded", function () {
         if (scannerAktif) {
           scannerAktif = false;
           playScanBeep();
-          matikanKamera(); // Matikan kamera saat berhasil scan
+          matikanKamera();
           window.prosesCekDetailAset(decodedText, false);
         }
       },
@@ -210,127 +203,7 @@ document.addEventListener("DOMContentLoaded", function () {
     });
   }
 
-  // =========================================================================
-  // FUNGSI PROSES CEK DETAIL ASET & PINDAH HALAMAN
-  // =========================================================================
-  window.prosesCekDetailAset = function (kodeQR, tampilkanHarga = false) {
-    if (!infoDetailAset) return;
-
-    // Pindah Tampilan ke Halaman 2 (Informasi Aset)
-    window.tampilkanHalamanInformasi();
-
-    infoDetailAset.innerHTML = `
-      <div style="text-align:center; padding: 30px 10px;">
-        <i class="fa-solid fa-spinner fa-spin" style="font-size:36px; color:#0284c7;"></i>
-        <p style="margin-top:12px; color:#475569; font-weight:bold;">Mencari data barang [${kodeQR}]...</p>
-      </div>
-    `;
-
-    fetch(`${SCRIPT_URL}?action=get_detail&kode=${encodeURIComponent(kodeQR)}`)
-      .then(response => response.json())
-      .then(data => {
-        if (data.result === "found") {
-          const isTerinventaris = data.sudah_inventaris === true;
-
-          // Simpan data di LocalStorage untuk cetak
-          localStorage.setItem("print_kode", data.kode || kodeQR);
-          localStorage.setItem("print_nama", data.nama || "-");
-          localStorage.setItem("print_tahun", data.tahun_perolehan || data.tahun || "-");
-
-          let teksHarga = `<span style="font-size: 13px; color: #64748b; font-weight: normal; font-style: italic;">*** (Akses via Petugas untuk lihat)</span>`;
-          if (tampilkanHarga && data.harga_total) {
-            teksHarga = `Rp ${Number(data.harga_total).toLocaleString('id-ID')}`;
-          }
-
-          infoDetailAset.innerHTML = `
-            <div style="margin-bottom: 15px; text-align: center;">
-              <span class="info-badge-status ${isTerinventaris ? 'status-good' : 'status-bad'}">
-                <i class="fa-solid ${isTerinventaris ? 'fa-circle-check' : 'fa-clock'}"></i> ${isTerinventaris ? 'TER-INVENTARISASI DIGITAL' : 'BELUM DICATAT PERIODE INI'}
-              </span>
-            </div>
-
-            <div class="info-detail-grid">
-              
-              <div class="info-item">
-                <span class="info-label">KODE BARANG / ID BARANG</span>
-                <span class="info-value code-highlight">${safeStr(data.kode)}</span>
-              </div>
-
-              <div class="info-item">
-                <span class="info-label">NAMA BARANG / MERK / REG</span>
-                <span class="info-value">${safeStr(data.nama)} ${data.merk && data.merk !== '-' ? ' - ' + data.merk : ''} (Reg: ${safeStr(data.reg)})</span>
-              </div>
-
-              <div class="info-item">
-                <span class="info-label">SPESIFIKASI & TAHUN</span>
-                <span class="info-value" style="font-size:13px; font-weight:500;">Ukuran: ${safeStr(data.ukuran)} | Bahan: ${safeStr(data.bahan)} | Tahun: ${safeStr(data.tahun_perolehan || data.tahun)}</span>
-              </div>
-
-              <div class="info-item">
-                <span class="info-label">NOMOR LEGALITAS / KENDARAAN</span>
-                <span class="info-value" style="font-size:13px; font-weight:500;">Pabrik: ${safeStr(data.no_pabrik)} | Rangka: ${safeStr(data.no_rangka)} | Mesin: ${safeStr(data.no_mesin)} | Polisi: ${safeStr(data.no_polisi)} | BPKB: ${safeStr(data.no_bpkb)}</span>
-              </div>
-
-              <div class="info-item">
-                <span class="info-label">KONDISI & STATUS ASET</span>
-                <span class="info-value" style="font-size:13px; font-weight:500;">${safeStr(data.kondisi_status)} (Status: ${safeStr(data.status_aset)})</span>
-              </div>
-
-              <div class="info-item" style="background-color: ${tampilkanHarga ? '#f0fdf4' : 'transparent'}; padding: 6px; border-radius: 6px;">
-                <span class="info-label">NILAI / HARGA BARANG</span>
-                <span class="info-value" style="color: #166534;">${teksHarga}</span>
-              </div>
-
-              <div class="info-item" style="border-bottom: none;">
-                <span class="info-label">KETERANGAN DOKUMEN</span>
-                <span class="info-value" style="font-size:13px; font-weight:500;">${safeStr(data.keterangan_aset)}</span>
-              </div>
-
-            </div>
-
-            <!-- TOMBOL KEMBALI SCAN BARANG LAINNYA DI HALAMAN INFORMASI -->
-            <div style="margin-top: 20px; display: flex; gap: 8px; justify-content: center;">
-              <button 
-                type="button" 
-                onclick="window.tampilkanHalamanScanner()"
-                style="background-color: #0284c7; color: white; border: none; padding: 12px 18px; border-radius: 8px; font-weight: bold; cursor: pointer; display: inline-flex; align-items: center; justify-content: center; gap: 8px; font-size: 14px; width: 100%;">
-                <i class="fa-solid fa-arrow-left"></i> Scan Barang Lainnya
-              </button>
-            </div>
-          `;
-        } else {
-          infoDetailAset.innerHTML = `
-            <div style="text-align:center; color:#ef4444; padding:20px 10px;">
-              <i class="fa-solid fa-circle-xmark" style="font-size:40px;"></i>
-              <p style="margin-top:10px; font-weight:bold; font-size:15px;">Kode [${kodeQR}] tidak ditemukan dalam Database!</p>
-              
-              <button 
-                type="button" 
-                onclick="window.tampilkanHalamanScanner()"
-                style="background-color: #0284c7; color: white; border: none; padding: 12px 18px; border-radius: 8px; font-weight: bold; cursor: pointer; margin-top: 15px; display: inline-flex; align-items: center; gap: 8px;">
-                <i class="fa-solid fa-arrow-left"></i> Coba Kode Lain
-              </button>
-            </div>
-          `;
-        }
-      })
-      .catch(err => {
-        console.error("Error Fetch:", err);
-        infoDetailAset.innerHTML = `
-          <div style="text-align:center; padding:20px 10px;">
-            <p style="color:#ef4444; font-weight:bold;">Gagal terhubung ke Google Sheets. Periksa koneksi internet!</p>
-            <button 
-              type="button" 
-              onclick="window.tampilkanHalamanScanner()"
-              style="background-color: #0284c7; color: white; border: none; padding: 10px 18px; border-radius: 8px; font-weight: bold; cursor: pointer; margin-top: 15px;">
-              <i class="fa-solid fa-arrow-left"></i> Kembali ke Scanner
-            </button>
-          </div>
-        `;
-      });
-  };
-
-  // AKSI PETUGAS
+  // AKSI TOMBOL PETUGAS
   if (btnCatatUpdate) {
     btnCatatUpdate.addEventListener("click", function () {
       const kodePrint = localStorage.getItem("print_kode");
@@ -364,19 +237,130 @@ document.addEventListener("DOMContentLoaded", function () {
     });
   }
 
-  if (btnDownloadRekap) {
-    btnDownloadRekap.addEventListener("click", function () {
-      const urlExport = `https://docs.google.com/spreadsheets/d/${SPREADSHEET_ID}/export?format=pdf&gid=${GID_REKAP}`;
-      window.open(urlExport, "_blank");
-    });
-  }
-
   window.bukaCetakStikerLabel = function (kodeBarang) {
     window.open("print-label.html", "_blank", "width=420,height=320");
   };
 });
 
-// INVENTARISASI & HAPUS
+// =========================================================================
+// FUNGSI CEK DETAIL ASET
+// =========================================================================
+window.prosesCekDetailAset = function (kodeQR, tampilkanHarga = false) {
+  const infoDetailAset = document.getElementById("infoDetailAset");
+  if (!infoDetailAset) return;
+
+  window.tampilkanHalamanInformasi();
+
+  infoDetailAset.innerHTML = `
+    <div style="text-align:center; padding: 30px 10px;">
+      <i class="fa-solid fa-spinner fa-spin" style="font-size:36px; color:#0284c7;"></i>
+      <p style="margin-top:12px; color:#475569; font-weight:bold;">Mencari data barang [${kodeQR}]...</p>
+    </div>
+  `;
+
+  fetch(`${SCRIPT_URL}?action=get_detail&kode=${encodeURIComponent(kodeQR)}`)
+    .then(response => response.json())
+    .then(data => {
+      if (data.result === "found") {
+        const isTerinventaris = data.sudah_inventaris === true;
+
+        // Simpan data di LocalStorage untuk cetak label
+        localStorage.setItem("print_kode", data.kode || kodeQR);
+        localStorage.setItem("print_nama", data.nama || "-");
+        localStorage.setItem("print_tahun", data.tahun_perolehan || data.tahun || "-");
+
+        let teksHarga = `<span style="font-size: 13px; color: #64748b; font-weight: normal; font-style: italic;">*** (Akses via Petugas untuk lihat)</span>`;
+        if (tampilkanHarga && data.harga_total) {
+          teksHarga = `Rp ${Number(data.harga_total).toLocaleString('id-ID')}`;
+        }
+
+        infoDetailAset.innerHTML = `
+          <div style="margin-bottom: 15px; text-align: center;">
+            <span class="info-badge-status ${isTerinventaris ? 'status-good' : 'status-bad'}">
+              <i class="fa-solid ${isTerinventaris ? 'fa-circle-check' : 'fa-clock'}"></i> ${isTerinventaris ? 'TER-INVENTARISASI DIGITAL' : 'BELUM DICATAT PERIODE INI'}
+            </span>
+          </div>
+
+          <div class="info-detail-grid">
+            <div class="info-item">
+              <span class="info-label">KODE BARANG / ID BARANG</span>
+              <span class="info-value code-highlight">${safeStr(data.kode)}</span>
+            </div>
+
+            <div class="info-item">
+              <span class="info-label">NAMA BARANG / MERK / REG</span>
+              <span class="info-value">${safeStr(data.nama)} ${data.merk && data.merk !== '-' ? ' - ' + data.merk : ''} (Reg: ${safeStr(data.reg)})</span>
+            </div>
+
+            <div class="info-item">
+              <span class="info-label">SPESIFIKASI & TAHUN</span>
+              <span class="info-value" style="font-size:13px; font-weight:500;">Ukuran: ${safeStr(data.ukuran)} | Bahan: ${safeStr(data.bahan)} | Tahun: ${safeStr(data.tahun_perolehan || data.tahun)}</span>
+            </div>
+
+            <div class="info-item">
+              <span class="info-label">NOMOR LEGALITAS / KENDARAAN</span>
+              <span class="info-value" style="font-size:13px; font-weight:500;">Pabrik: ${safeStr(data.no_pabrik)} | Rangka: ${safeStr(data.no_rangka)} | Mesin: ${safeStr(data.no_mesin)} | Polisi: ${safeStr(data.no_polisi)} | BPKB: ${safeStr(data.no_bpkb)}</span>
+            </div>
+
+            <div class="info-item">
+              <span class="info-label">KONDISI & STATUS ASET</span>
+              <span class="info-value" style="font-size:13px; font-weight:500;">${safeStr(data.kondisi_status)} (Status: ${safeStr(data.status_aset)})</span>
+            </div>
+
+            <div class="info-item" style="background-color: ${tampilkanHarga ? '#f0fdf4' : 'transparent'}; padding: 6px; border-radius: 6px;">
+              <span class="info-label">NILAI / HARGA BARANG</span>
+              <span class="info-value" style="color: #166534;">${teksHarga}</span>
+            </div>
+
+            <div class="info-item" style="border-bottom: none;">
+              <span class="info-label">KETERANGAN DOKUMEN</span>
+              <span class="info-value" style="font-size:13px; font-weight:500;">${safeStr(data.keterangan_aset)}</span>
+            </div>
+          </div>
+
+          <div style="margin-top: 20px; display: flex; gap: 8px; justify-content: center;">
+            <button 
+              type="button" 
+              onclick="window.tampilkanHalamanScanner()"
+              style="background-color: #0284c7; color: white; border: none; padding: 12px 18px; border-radius: 8px; font-weight: bold; cursor: pointer; display: inline-flex; align-items: center; justify-content: center; gap: 8px; font-size: 14px; width: 100%;">
+              <i class="fa-solid fa-arrow-left"></i> Scan Barang Lainnya
+            </button>
+          </div>
+        `;
+      } else {
+        infoDetailAset.innerHTML = `
+          <div style="text-align:center; color:#ef4444; padding:20px 10px;">
+            <i class="fa-solid fa-circle-xmark" style="font-size:40px;"></i>
+            <p style="margin-top:10px; font-weight:bold; font-size:15px;">Kode [${kodeQR}] tidak ditemukan dalam Database!</p>
+            <button 
+              type="button" 
+              onclick="window.tampilkanHalamanScanner()"
+              style="background-color: #0284c7; color: white; border: none; padding: 12px 18px; border-radius: 8px; font-weight: bold; cursor: pointer; margin-top: 15px; display: inline-flex; align-items: center; gap: 8px;">
+              <i class="fa-solid fa-arrow-left"></i> Coba Kode Lain
+            </button>
+          </div>
+        `;
+      }
+    })
+    .catch(err => {
+      console.error("Error Fetch:", err);
+      infoDetailAset.innerHTML = `
+        <div style="text-align:center; padding:20px 10px;">
+          <p style="color:#ef4444; font-weight:bold;">Gagal terhubung ke Database. Periksa koneksi internet!</p>
+          <button 
+            type="button" 
+            onclick="window.tampilkanHalamanScanner()"
+            style="background-color: #0284c7; color: white; border: none; padding: 10px 18px; border-radius: 8px; font-weight: bold; cursor: pointer; margin-top: 15px;">
+            <i class="fa-solid fa-arrow-left"></i> Kembali ke Scanner
+          </button>
+        </div>
+      `;
+    });
+};
+
+// =========================================================================
+// FITUR INVENTARISASI & HAPUS
+// =========================================================================
 window.eksekusiInventarisasi = function (kodeBarang) {
   if (!kodeBarang) return;
   if (!confirm(`Apakah Anda yakin ingin mencatat inventarisasi untuk kode: ${kodeBarang}?`)) return;
@@ -410,31 +394,46 @@ window.eksekusiInventarisasi = function (kodeBarang) {
 
 window.hapusDataAset = function (kodeBarang) {
   if (!kodeBarang) return;
-  if (!confirm(`Peringatan: Hapus pencatatan inventaris untuk kode ${kodeBarang}?`)) return;
+  if (!confirm(`Apakah Anda yakin ingin MENGHAPUS status inventaris untuk kode: ${kodeBarang}?`)) return;
+
+  const infoDetailAset = document.getElementById("infoDetailAset");
+  if (infoDetailAset) {
+    infoDetailAset.innerHTML = `
+      <div style="text-align:center; padding: 20px;">
+        <i class="fa-solid fa-spinner fa-spin" style="font-size:32px; color:#ef4444;"></i>
+        <p style="margin-top:10px; color:#475569; font-weight:500;">Menghapus status inventaris...</p>
+      </div>
+    `;
+  }
 
   fetch(`${SCRIPT_URL}?action=hapus_inventaris&kode=${encodeURIComponent(kodeBarang)}`)
     .then(res => res.json())
     .then(res => {
       if (res.result === "success") {
-        alert("Status inventarisasi berhasil dihapus.");
+        alert("Status inventarisasi berhasil dihapus!");
         window.prosesCekDetailAset(kodeBarang, true);
       } else {
         alert("Gagal menghapus status: " + (res.message || "Kesalahan server"));
+        window.prosesCekDetailAset(kodeBarang, true);
       }
     })
-    .catch(err => alert("Gagal terhubung ke server."));
+    .catch(err => {
+      alert("Terjadi kesalahan jaringan.");
+      window.prosesCekDetailAset(kodeBarang, true);
+    });
 };
 
-// CONTROLLER MODAL PIN & PANEL PETUGAS
+// =========================================================================
+// MODAL PIN PETUGAS & PANEL KELOLA PETUGAS
+// =========================================================================
 window.openPinModal = function () {
   const modalPin = document.getElementById("modalPin");
-  const inputPinPetugas = document.getElementById("inputPinPetugas");
-
+  const inputPin = document.getElementById("inputPinPetugas");
   if (modalPin) {
     modalPin.style.display = "flex";
-    if (inputPinPetugas) {
-      inputPinPetugas.value = "";
-      setTimeout(() => inputPinPetugas.focus(), 100);
+    if (inputPin) {
+      inputPin.value = "";
+      inputPin.focus();
     }
   }
 };
@@ -446,21 +445,21 @@ window.closePinModal = function () {
 
 window.verifikasiPin = function () {
   const inputPin = document.getElementById("inputPinPetugas");
-  const panelPetugas = document.getElementById("panelPetugas");
-
   if (!inputPin) return;
 
-  if (inputPin.value === PIN_PETUGAS_DEFAULT) {
+  if (inputPin.value.trim() === PIN_PETUGAS_DEFAULT) {
     window.closePinModal();
+    const panelPetugas = document.getElementById("panelPetugas");
     if (panelPetugas) {
       panelPetugas.style.display = "block";
-      panelPetugas.scrollIntoView({ behavior: 'smooth' });
     }
-    alert("Akses Petugas Diberikan!");
 
+    // Jika sedang di halaman detail aset, muat ulang harga barang
     const kodePrint = localStorage.getItem("print_kode");
-    if (kodePrint && typeof window.prosesCekDetailAset === "function") {
+    if (kodePrint) {
       window.prosesCekDetailAset(kodePrint, true);
+    } else {
+      alert("Akses Petugas Berhasil! Silakan pinda/cari aset untuk kelola data.");
     }
   } else {
     alert("PIN Salah! Akses ditolak.");
@@ -471,7 +470,64 @@ window.verifikasiPin = function () {
 
 window.closePanelPetugas = function () {
   const panelPetugas = document.getElementById("panelPetugas");
-  if (panelPetugas) {
-    panelPetugas.style.display = "none";
+  if (panelPetugas) panelPetugas.style.display = "none";
+
+  // Sembunyikan kembali informasi sensitif (harga)
+  const kodePrint = localStorage.getItem("print_kode");
+  if (kodePrint) {
+    window.prosesCekDetailAset(kodePrint, false);
   }
+};
+
+// =========================================================================
+// MODAL CETAK LAPORAN & DOKUMEN KIR
+// =========================================================================
+window.openModalCetakLaporan = function () {
+  const modalCetak = document.getElementById("modalCetakLaporan");
+  if (modalCetak) {
+    modalCetak.style.display = "flex";
+    window.toggleOptionRuangan();
+  }
+};
+
+window.closeModalCetakLaporan = function () {
+  const modalCetak = document.getElementById("modalCetakLaporan");
+  if (modalCetak) modalCetak.style.display = "none";
+};
+
+window.toggleOptionRuangan = function () {
+  const selectJenis = document.getElementById("selectJenisDokumen");
+  const containerRuangan = document.getElementById("containerSelectRuangan");
+  if (selectJenis && containerRuangan) {
+    if (selectJenis.value === "KIR") {
+      containerRuangan.style.display = "block";
+    } else {
+      containerRuangan.style.display = "none";
+    }
+  }
+};
+
+window.eksekusiCetakLaporan = function () {
+  const selectJenis = document.getElementById("selectJenisDokumen");
+  const selectRuangan = document.getElementById("selectRuanganKIR");
+
+  if (!selectJenis) return;
+
+  if (selectJenis.value === "ALL") {
+    // Export Rekap Hasil Inventarisasi Keseluruhan (PDF)
+    const urlExport = `https://docs.google.com/spreadsheets/d/${SPREADSHEET_ID}/export?format=pdf&gid=${GID_REKAP}`;
+    window.open(urlExport, "_blank");
+  } else if (selectJenis.value === "KIR") {
+    const ruangan = selectRuangan ? selectRuangan.value : "";
+    if (!ruangan) {
+      alert("Pilih ruangan target terlebih dahulu!");
+      return;
+    }
+    
+    // Redirect / Buka Cetak KIR dengan Filter Ruangan via Google Apps Script / Printable Page
+    const urlKIR = `${SCRIPT_URL}?action=cetak_kir&ruangan=${encodeURIComponent(ruangan)}`;
+    window.open(urlKIR, "_blank");
+  }
+
+  window.closeModalCetakLaporan();
 };
