@@ -3,7 +3,6 @@
 // Satuan Polisi Pamong Praja Kota Serang
 // =========================================================================
 
-// MENCEGAH ERROR EKSTENSI BROWSER
 window.addEventListener('unhandledrejection', function(event) {
   if (event.reason && event.reason.message && event.reason.message.includes('message channel closed')) {
     event.preventDefault();
@@ -13,15 +12,11 @@ window.addEventListener('unhandledrejection', function(event) {
 let scannerAktif = true;
 let html5QrCode = null;
 
-// Konfigurasi Google Apps Script & Google Sheets
 const SCRIPT_URL = "https://script.google.com/macros/s/AKfycbwB45jpdpVL2TK1XEk4n_mAOHpnuXeglC0y2A5aY04aLDUFkte8Kr2WBoDTqgNOc0k7/exec";
-const SPREADSHEET_ID = "1ZpZtmGJyqglogaaq1vgKqp38XgvkUHP_wbMfJPp1Zwc";
-const GID_REKAP = "85327253";
 const PIN_PETUGAS_DEFAULT = "123456";
 
 const safeStr = (val) => (val !== undefined && val !== null && val !== "" && val !== "null") ? val : "-";
 
-// Audio Beep Scanner
 const scanBeepSound = new Audio("data:audio/wav;base64,UklGRl9vT19XQVZFZm10IBAAAAABAAEAQB8AAEAfAAABAAgAZGF0YUtvT18AZv8AZv8AZv8AZv8AZv8AZv8AZv8AZv8AZv8AZv8AZv8AZv8AZv8AZv8AZv8AZv8AZv8AZv8AZv8AZv8AZv8AZv8AZv8AZv8AZv8AZv8AZv8AZv8AZv8AZv8AZv8AZv8AZv8AZv8AZv8AZv8AZv8AZv8AZv8AZv8AZv8AZv8AZv8=");
 
 function playScanBeep() {
@@ -70,7 +65,9 @@ window.tampilkanHalamanInformasi = function () {
   window.scrollTo({ top: 0, behavior: 'smooth' });
 };
 
-// Cetak Excel
+// =========================================================================
+// REVISI POIN 3: FUNGSI UNDUH EXCEL (100% EXCEL, MENGAIRAHKAN FORMAT EXCEL SAJA)
+// =========================================================================
 function cetakKIR() {
   var ruanganSelect = document.getElementById("selectRuanganKIR") || document.getElementById("selectRuangan");
   var ruangan = ruanganSelect ? ruanganSelect.value : "";
@@ -80,38 +77,85 @@ function cetakKIR() {
     return;
   }
 
-  if (typeof google !== "undefined" && google.script && google.script.run) {
-    google.script.run
-      .withSuccessHandler(function(downloadUrl) {
-        if (downloadUrl) window.open(downloadUrl, '_blank');
-        else alert("Gagal membuat file Excel KIR.");
-      })
-      .withFailureHandler(function(err) {
-        alert("Terjadi kesalahan: " + err.message);
-      })
-      .exportKIRToExcel(ruangan);
-  } else {
-    const urlKIR = `${SCRIPT_URL}?action=export_kir_excel&ruangan=${encodeURIComponent(ruangan)}`;
-    window.open(urlKIR, "_blank");
-  }
+  const urlKIR = `${SCRIPT_URL}?action=export_kir_excel&ruangan=${encodeURIComponent(ruangan)}`;
+  window.open(urlKIR, "_blank");
 }
 
 function cetakHasilInventaris() {
-  if (typeof google !== "undefined" && google.script && google.script.run) {
-    google.script.run
-      .withSuccessHandler(function(downloadUrl) {
-        if (downloadUrl) window.open(downloadUrl, '_blank');
-        else alert("Gagal membuat file Hasil Inventarisasi.");
-      })
-      .withFailureHandler(function(err) {
-        alert("Terjadi kesalahan: " + err.message);
-      })
-      .exportHasilInventarisToExcel();
-  } else {
-    const urlHasil = `${SCRIPT_URL}?action=export_hasil_excel`;
-    window.open(urlHasil, "_blank");
-  }
+  const urlHasil = `${SCRIPT_URL}?action=export_hasil_excel`;
+  window.open(urlHasil, "_blank");
 }
+
+// =========================================================================
+// REVISI POIN 1: PENCATATAN & UPDATE INVENTARIS DIPASTIKAN TERHUBUNG LANGSUNG KE GS
+// =========================================================================
+window.eksekusiInventarisasi = function(kodeBarang) {
+  if (!kodeBarang) {
+    alert("Kode barang tidak valid.");
+    return;
+  }
+
+  if (!confirm(`Apakah Anda yakin ingin mencatat/meng-update status inventaris barang [${kodeBarang}]?`)) {
+    return;
+  }
+
+  const btnCatat = document.getElementById("btnCatatUpdate");
+  if (btnCatat) {
+    btnCatat.disabled = true;
+    btnCatat.innerHTML = `<i class="fa-solid fa-spinner fa-spin"></i> Memproses...`;
+  }
+
+  fetch(`${SCRIPT_URL}?action=update_inventaris&kode=${encodeURIComponent(kodeBarang)}`)
+    .then(res => res.json())
+    .then(data => {
+      if (btnCatat) {
+        btnCatat.disabled = false;
+        btnCatat.innerHTML = `<i class="fa-solid fa-square-check"></i> Catat / Update Inventaris`;
+      }
+      if (data.result === "success") {
+        alert("BERHASIL! " + data.message);
+        // Panggil pembaruan data secara langsung setelah berhasil catat di Google Sheets
+        window.prosesCekDetailAset(kodeBarang, true);
+      } else {
+        alert("GAGAL: " + (data.message || "Gagal mencatat inventarisasi."));
+      }
+    })
+    .catch(err => {
+      if (btnCatat) {
+        btnCatat.disabled = false;
+        btnCatat.innerHTML = `<i class="fa-solid fa-square-check"></i> Catat / Update Inventaris`;
+      }
+      console.error("Error Catat Inventaris:", err);
+      alert("Terjadi kesalahan koneksi saat mencatat inventaris ke Google Sheets!");
+    });
+};
+
+// Fungsi Hapus Status Inventaris
+window.hapusDataAset = function(kodeBarang) {
+  if (!kodeBarang) {
+    alert("Kode barang tidak valid.");
+    return;
+  }
+
+  if (!confirm(`Apakah Anda yakin ingin MENGHAPUS status inventarisasi dari aset [${kodeBarang}]?`)) {
+    return;
+  }
+
+  fetch(`${SCRIPT_URL}?action=hapus_inventaris&kode=${encodeURIComponent(kodeBarang)}`)
+    .then(res => res.json())
+    .then(data => {
+      if (data.result === "success") {
+        alert("BERHASIL: " + data.message);
+        window.prosesCekDetailAset(kodeBarang, true);
+      } else {
+        alert("GAGAL: " + (data.message || "Gagal menghapus inventarisasi."));
+      }
+    })
+    .catch(err => {
+      console.error("Error Hapus Inventaris:", err);
+      alert("Terjadi kesalahan koneksi saat menghapus data!");
+    });
+};
 
 // Inisialisasi DOM
 document.addEventListener("DOMContentLoaded", function () {
@@ -159,7 +203,7 @@ document.addEventListener("DOMContentLoaded", function () {
           window.prosesCekDetailAset(decodedText, false);
         }
       },
-      (errorMessage) => { }
+      () => { }
     ).then(() => {
       if (btnStart && btnStop) {
         btnStart.style.display = "none";
@@ -229,6 +273,7 @@ document.addEventListener("DOMContentLoaded", function () {
     });
   }
 
+  // Event listener tombol Catat/Update
   if (btnCatatUpdate) {
     btnCatatUpdate.addEventListener("click", function () {
       const kodePrint = localStorage.getItem("print_kode");
@@ -251,19 +296,23 @@ document.addEventListener("DOMContentLoaded", function () {
     });
   }
 
+  // =========================================================================
+  // REVISI POIN 2: BUKA HALAMAN CETAK LEMBAR MULTI-STIKER (A4 / GRID 12 STIKER)
+  // =========================================================================
   if (btnCetakQR) {
     btnCetakQR.addEventListener("click", function () {
       const kode = localStorage.getItem("print_kode");
       if (kode) {
         window.bukaCetakStikerLabel(kode);
       } else {
-        alert("Scan barang terlebih dahulu untuk mencetak stiker QR Code!");
+        alert("Scan barang terlebih dahulu untuk mencetak lembar stiker QR Code!");
       }
     });
   }
 
   window.bukaCetakStikerLabel = function (kodeBarang) {
-    window.open("print-label.html", "_blank", "width=420,height=320");
+    // Membuka file cetak multi-stiker (print-label.html)
+    window.open(`print-label.html?kode=${encodeURIComponent(kodeBarang)}`, "_blank");
   };
 });
 
@@ -380,7 +429,7 @@ window.prosesCekDetailAset = function (kodeQR, tampilkanHarga = false) {
     });
 };
 
-// Akses Petugas & Modal
+// Modals
 window.openPinModal = function () {
   const modalPin = document.getElementById("modalPin");
   const inputPin = document.getElementById("inputPinPetugas");
@@ -443,11 +492,15 @@ window.closeModalCetakLaporan = function () {
   if (modalCetak) modalCetak.style.display = "none";
 };
 
+// =========================================================================
+// REVISI POIN 3: PENGATURAN TAMPILAN MODAL LAPORAN 100% EXCEL
+// =========================================================================
 window.toggleOptionRuangan = function () {
   const selectJenis = document.getElementById("selectJenisDokumen");
   const containerRuangan = document.getElementById("containerSelectRuangan");
   if (selectJenis && containerRuangan) {
-    if (selectJenis.value === "KIR" || selectJenis.value === "KIR_EXCEL") {
+    // Menampilkan dropdown ruangan hanya bila memilih KIR_EXCEL
+    if (selectJenis.value === "KIR_EXCEL") {
       containerRuangan.style.display = "block";
     } else {
       containerRuangan.style.display = "none";
@@ -457,23 +510,11 @@ window.toggleOptionRuangan = function () {
 
 window.eksekusiCetakLaporan = function () {
   const selectJenis = document.getElementById("selectJenisDokumen");
-  const selectRuangan = document.getElementById("selectRuanganKIR");
-
   if (!selectJenis) return;
 
-  if (selectJenis.value === "ALL") {
-    const urlExport = `https://docs.google.com/spreadsheets/d/${SPREADSHEET_ID}/export?format=pdf&gid=${GID_REKAP}`;
-    window.open(urlExport, "_blank");
-  } else if (selectJenis.value === "ALL_EXCEL") {
+  // Hanya memproses eksekusi Excel
+  if (selectJenis.value === "ALL_EXCEL") {
     cetakHasilInventaris();
-  } else if (selectJenis.value === "KIR") {
-    const ruangan = selectRuangan ? selectRuangan.value : "";
-    if (!ruangan) {
-      alert("Pilih ruangan target terlebih dahulu!");
-      return;
-    }
-    const urlKIR = `${SCRIPT_URL}?action=cetak_kir&ruangan=${encodeURIComponent(ruangan)}`;
-    window.open(urlKIR, "_blank");
   } else if (selectJenis.value === "KIR_EXCEL") {
     cetakKIR();
   }
