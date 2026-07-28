@@ -1,8 +1,8 @@
 // =========================================================================
-// SERVICE WORKER - SI-ACEP (PWA CACHE MANAGEMENT)
+// SERVICE WORKER - SI-ASEP (PWA CACHE MANAGEMENT)
 // =========================================================================
 
-const CACHE_NAME = 'si-acep-cache-v38'; // <--- Naikkan versi cache
+const CACHE_NAME = 'si-acep-cache-v39'; // Versi cache diperbarui
 const ASSETS_TO_CACHE = [
   './',
   './index.html',
@@ -10,6 +10,8 @@ const ASSETS_TO_CACHE = [
   './style.css',
   './script.js',
   './manifest.json',
+  './logo.png',
+  './polpp.png',
   './icons/icon-192.png',
   './icons/icon-512.png'
 ];
@@ -46,8 +48,7 @@ self.addEventListener('activate', (e) => {
 self.addEventListener('fetch', (e) => {
   const reqUrl = new URL(e.request.url);
 
-  // 🔴 PERBAIKAN UTAMA: Filter langsung di awal sebelum diproses apapun
-  // Abaikan request yang BUKAN http/https (seperti chrome-extension://, file://, data:)
+  // Filter request yang BUKAN http/https
   if (reqUrl.protocol !== 'http:' && reqUrl.protocol !== 'https:') {
     return;
   }
@@ -56,7 +57,8 @@ self.addEventListener('fetch', (e) => {
   if (
     reqUrl.hostname.includes('script.google.com') ||
     reqUrl.hostname.includes('api.iconify.design') ||
-    reqUrl.hostname.includes('cdnjs.cloudflare.com')
+    reqUrl.hostname.includes('cdnjs.cloudflare.com') ||
+    reqUrl.hostname.includes('unpkg.com')
   ) {
     return;
   }
@@ -65,7 +67,6 @@ self.addEventListener('fetch', (e) => {
   e.respondWith(
     fetch(e.request)
       .then((networkResponse) => {
-        // Hanya simpan ke cache jika respon HTTP 200/valid dan metode request 'GET'
         if (
           networkResponse && 
           networkResponse.status === 200 && 
@@ -80,7 +81,6 @@ self.addEventListener('fetch', (e) => {
         return networkResponse;
       })
       .catch(() => {
-        // Hanya cari di cache jika request bertipe GET
         if (e.request.method === 'GET') {
           return caches.match(e.request);
         }
