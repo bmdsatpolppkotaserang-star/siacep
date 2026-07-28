@@ -1,5 +1,5 @@
 /* =========================================================================
-   STYLING UTAMA SI-ACEP (Satpol PP Kota Serang)
+   STYLING UTAMA SI-ASEP (Satpol PP Kota Serang)
    ========================================================================= */
 
 :root {
@@ -195,7 +195,6 @@ body {
   margin-bottom: 12px;
 }
 
-/* Tambahan status inventarisasi digital */
 .status-good, .status-verified {
   background-color: #d1fae5;
   color: #065f46;
@@ -244,7 +243,7 @@ body {
 }
 
 /* =========================================================================
-   PANEL MENU PETUGAS, MODAL, & FORM ELEMEN (DITAMBAHKAN)
+   PANEL MENU PETUGAS, MODAL, & FORM ELEMEN
    ========================================================================= */
 
 .panel-petugas {
@@ -255,7 +254,6 @@ body {
   animation: fadeIn 0.3s ease-in-out;
 }
 
-/* Modal Styling untuk Cetak KIR & PIN */
 .modal {
   display: none;
   position: fixed;
@@ -318,7 +316,6 @@ body {
   to { opacity: 1; transform: translateY(0); }
 }
 
-/* Footer Aplikasi */
 .app-footer {
   text-align: center;
   padding: 15px;
