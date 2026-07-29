@@ -96,21 +96,6 @@ function onScanFailure(error) {
     // Abaikan error konstan dari proses pengemindaian kamera
 }
 
-// =========================================================================
-// FRONTEND SCRIPT PWA SI-ASEP - FIXED FETCH & CORS HANDLER
-// Satuan Polisi Pamong Praja Kota Serang
-// =========================================================================
-
-// CONFIGURATION: Ganti dengan URL Web App Deployment Anda!
-const GS_WEB_APP_URL = "https://script.google.com/macros/s/AKfycbxYOUR_DEPLOYMENT_ID_HERE/exec";
-const PIN_SAH = "123456";
-
-let html5QrcodeScanner = null;
-let currentBarangData = null;
-
-document.addEventListener("DOMContentLoaded", () => {
-    initApp();
-});
 
 function initApp() {
     registerServiceWorker();
