@@ -1,423 +1,556 @@
 // =========================================================================
-// FRONTEND SCRIPT PWA SI-ASEP - INTEGRATED WITH BACKEND GS
+// FRONTEND SCRIPT (script.js) - SI-ACEP
 // Satuan Polisi Pamong Praja Kota Serang
 // =========================================================================
 
-// CONFIGURATION: Ganti URL di bawah ini dengan URL Deployment Web App Google Apps Script Anda!
-const GS_WEB_APP_URL = "https://script.google.com/macros/s/AKfycbwlEZavprex-PUPL4MR57q6k8q3se4qLL33zxRMuOvN89viFT-iagj9vqD2sdkyl-hF/exec";
-const PIN_SAH = "123456";
-
-let html5QrcodeScanner = null;
-let currentBarangData = null;
-
-document.addEventListener("DOMContentLoaded", () => {
-    initApp();
+window.addEventListener('unhandledrejection', function(event) {
+  if (event.reason && event.reason.message && event.reason.message.includes('message channel closed')) {
+    event.preventDefault();
+  }
 });
 
-function initApp() {
-    registerServiceWorker();
-    setupEventListeners();
-    initScanner();
-}
+let scannerAktif = true;
+let html5QrCode = null;
 
-// -------------------------------------------------------------------------
-// 1. SERVICE WORKER REGISTRATION
-// -------------------------------------------------------------------------
-function registerServiceWorker() {
-    if ('serviceWorker' in navigator) {
-        navigator.serviceWorker.register('./sw.js')
-            .then(reg => console.log('SI-ASEP SW Registered:', reg.scope))
-            .catch(err => console.error('SI-ASEP SW Register Failed:', err));
+const SCRIPT_URL = "https://script.google.com/macros/s/AKfycbwlEZavprex-PUPL4MR57q6k8q3se4qLL33zxRMuOvN89viFT-iagj9vqD2sdkyl-hF/exec";
+const PIN_PETUGAS_DEFAULT = "123456";
+
+const safeStr = (val) => (val !== undefined && val !== null && val !== "" && val !== "null") ? val : "-";
+
+const scanBeepSound = new Audio("data:audio/wav;base64,UklGRl9vT19XQVZFZm10IBAAAAABAAEAQB8AAEAfAAABAAgAZGF0YUtvT18AZv8AZv8AZv8AZv8AZv8AZv8AZv8AZv8AZv8AZv8AZv8AZv8AZv8AZv8AZv8AZv8AZv8AZv8AZv8AZv8AZv8AZv8AZv8AZv8AZv8AZv8AZv8AZv8AZv8AZv8AZv8AZv8AZv8AZv8AZv8AZv8AZv8AZv8AZv8AZv8AZv8AZv8AZv8=");
+
+function playScanBeep() {
+  try {
+    scanBeepSound.currentTime = 0;
+    scanBeepSound.volume = 1.0;
+    const playPromise = scanBeepSound.play();
+    if (playPromise !== undefined) {
+      playPromise.catch(error => console.warn("Audio autoplay diblokir browser:", error));
     }
+  } catch (e) {
+    console.error("Gagal memutar suara beep:", e);
+  }
 }
 
-// -------------------------------------------------------------------------
-// 2. EVENT LISTENERS SETUP
-// -------------------------------------------------------------------------
-function setupEventListeners() {
-    // Search Manual
-    const btnCari = document.getElementById('btnCari');
-    const inputKode = document.getElementById('inputKode');
-    
-    if (btnCari) {
-        btnCari.addEventListener('click', () => {
-            const val = inputKode.value.trim();
-            if (val) cariDetailBarang(val);
-            else alert("Silakan masukkan Kode Barang/Register!");
-        });
-    }
+// Navigasi Halaman
+window.tampilkanHalamanScanner = function () {
+  const pageScanner = document.getElementById("page-scanner");
+  const pageInformasi = document.getElementById("page-informasi");
+  const inputKodeManual = document.getElementById("inputKodeManual");
 
-    if (inputKode) {
-        inputKode.addEventListener('keypress', (e) => {
-            if (e.key === 'Enter') {
-                const val = inputKode.value.trim();
-                if (val) cariDetailBarang(val);
-            }
-        });
-    }
+  localStorage.removeItem("print_kode");
+  localStorage.removeItem("print_nama");
+  localStorage.removeItem("print_tahun");
 
-    // Action Buttons
-    const btnSimpan = document.getElementById('btnSimpan');
-    const btnHapus = document.getElementById('btnHapus');
-    const btnCetakStiker = document.getElementById('btnCetakStiker');
-    const btnCetakKIR = document.getElementById('btnCetakKIR');
-    const btnExportExcel = document.getElementById('btnExportExcel');
+  if (inputKodeManual) inputKodeManual.value = "";
 
-    if (btnSimpan) btnSimpan.addEventListener('click', handleUpdateInventaris);
-    if (btnHapus) btnHapus.addEventListener('click', handleHapusInventaris);
-    if (btnCetakStiker) btnCetakStiker.addEventListener('click', handleCetakStiker);
-    if (btnCetakKIR) btnCetakKIR.addEventListener('click', handleCetakKIR);
-    if (btnExportExcel) btnExportExcel.addEventListener('click', handleExportExcel);
+  if (pageInformasi) pageInformasi.style.display = "none";
+  if (pageScanner) pageScanner.style.display = "block";
+
+  scannerAktif = true;
+  if (typeof window.mulaiKamera === "function") {
+    window.mulaiKamera();
+  }
+
+  window.scrollTo({ top: 0, behavior: 'smooth' });
+};
+
+window.tampilkanHalamanInformasi = function () {
+  const pageScanner = document.getElementById("page-scanner");
+  const pageInformasi = document.getElementById("page-informasi");
+
+  if (pageScanner) pageScanner.style.display = "none";
+  if (pageInformasi) pageInformasi.style.display = "block";
+
+  window.scrollTo({ top: 0, behavior: 'smooth' });
+};
+
+// =========================================================================
+// UNDUH EXCEL & CETAK STIKER MASSAL VIA GS
+// =========================================================================
+function cetakKIR() {
+  var ruanganSelect = document.getElementById("selectRuanganKIR") || document.getElementById("selectRuangan");
+  var ruangan = ruanganSelect ? ruanganSelect.value : "";
+
+  if (!ruangan) {
+    alert("Silakan pilih ruangan terlebih dahulu!");
+    return;
+  }
+
+  const urlKIR = `${SCRIPT_URL}?action=export_kir_excel&ruangan=${encodeURIComponent(ruangan)}`;
+  window.open(urlKIR, "_blank");
 }
 
-// -------------------------------------------------------------------------
-// 3. QR CODE SCANNER (html5-qrcode)
-// -------------------------------------------------------------------------
-function initScanner() {
-    if (!document.getElementById("reader")) return;
-
-    html5QrcodeScanner = new Html5QrcodeScanner(
-        "reader",
-        { fps: 10, qrbox: { width: 250, height: 250 } },
-        /* verbose= */ false
-    );
-
-    html5QrcodeScanner.render(onScanSuccess, onScanFailure);
+function cetakHasilInventaris() {
+  const urlHasil = `${SCRIPT_URL}?action=export_hasil_excel`;
+  window.open(urlHasil, "_blank");
 }
 
-function onScanSuccess(decodedText) {
-    if (decodedText) {
-        document.getElementById('inputKode').value = decodedText;
-        cariDetailBarang(decodedText);
-    }
-}
+window.cetakStikerMassal = function (listKode) {
+  let arrayKode = [];
+  
+  if (Array.isArray(listKode)) {
+    arrayKode = listKode;
+  } else if (typeof listKode === "string" && listKode.trim() !== "") {
+    arrayKode = listKode.split(",").map(k => k.trim()).filter(k => k !== "");
+  }
 
-function onScanFailure(error) {
-    // Abaikan error konstan dari proses pengemindaian kamera
-}
+  if (arrayKode.length === 0) {
+    alert("Silakan masukkan minimal 1 Kode Barang untuk dicetak stikernya!");
+    return;
+  }
 
+  const stringKodes = arrayKode.join(",");
+  const urlCetak = `${SCRIPT_URL}?action=cetak_stiker_massal&kodes=${encodeURIComponent(stringKodes)}`;
+  window.open(urlCetak, "_blank");
+};
 
-function initApp() {
-    registerServiceWorker();
-    setupEventListeners();
-    initScanner();
-}
+// =========================================================================
+// PENCATATAN & UPDATE INVENTARIS
+// =========================================================================
+window.eksekusiInventarisasi = function(kodeBarang) {
+  if (!kodeBarang) {
+    alert("Kode barang tidak valid.");
+    return;
+  }
 
-function registerServiceWorker() {
-    if ('serviceWorker' in navigator) {
-        navigator.serviceWorker.register('./sw.js')
-            .then(reg => console.log('SI-ASEP SW Registered:', reg.scope))
-            .catch(err => console.error('SI-ASEP SW Register Failed:', err));
-    }
-}
+  if (!confirm(`Apakah Anda yakin ingin mencatat/meng-update status inventaris barang [${kodeBarang}]?`)) {
+    return;
+  }
 
-function setupEventListeners() {
-    const btnCari = document.getElementById('btnCari');
-    const inputKode = document.getElementById('inputKode');
-    
-    if (btnCari) {
-        btnCari.addEventListener('click', () => {
-            const val = inputKode.value.trim();
-            if (val) cariDetailBarang(val);
-            else alert("Silakan masukkan Kode Barang/Register!");
-        });
-    }
+  const btnCatat = document.getElementById("btnCatatUpdate");
+  if (btnCatat) {
+    btnCatat.disabled = true;
+    btnCatat.innerHTML = `<i class="fa-solid fa-spinner fa-spin"></i> Memproses...`;
+  }
 
-    if (inputKode) {
-        inputKode.addEventListener('keypress', (e) => {
-            if (e.key === 'Enter') {
-                const val = inputKode.value.trim();
-                if (val) cariDetailBarang(val);
-            }
-        });
-    }
-
-    const btnSimpan = document.getElementById('btnSimpan');
-    const btnHapus = document.getElementById('btnHapus');
-    const btnCetakStiker = document.getElementById('btnCetakStiker');
-    const btnCetakKIR = document.getElementById('btnCetakKIR');
-    const btnExportExcel = document.getElementById('btnExportExcel');
-
-    if (btnSimpan) btnSimpan.addEventListener('click', handleUpdateInventaris);
-    if (btnHapus) btnHapus.addEventListener('click', handleHapusInventaris);
-    if (btnCetakStiker) btnCetakStiker.addEventListener('click', handleCetakStiker);
-    if (btnCetakKIR) btnCetakKIR.addEventListener('click', handleCetakKIR);
-    if (btnExportExcel) btnExportExcel.addEventListener('click', handleExportExcel);
-}
-
-function initScanner() {
-    if (!document.getElementById("reader")) return;
-
-    html5QrcodeScanner = new Html5QrcodeScanner(
-        "reader",
-        { fps: 10, qrbox: { width: 250, height: 250 } },
-        false
-    );
-
-    html5QrcodeScanner.render(onScanSuccess, onScanFailure);
-}
-
-function onScanSuccess(decodedText) {
-    if (decodedText) {
-        document.getElementById('inputKode').value = decodedText;
-        cariDetailBarang(decodedText);
-    }
-}
-
-function onScanFailure(error) {
-    // Abaikan error konstan scanner kamera
-}
-
-// -------------------------------------------------------------------------
-// PEMBANTU UTAMA: HELPER KONEKSI API BACKEND (BEBAS CORS)
-// -------------------------------------------------------------------------
-async function callBackend(params) {
-    const urlParams = new URLSearchParams(params).toString();
-    const fullUrl = `${GS_WEB_APP_URL}?${urlParams}`;
-
-    // Menggunakan fetch standar dengan penanganan redirect otomatis dari Google
-    const response = await fetch(fullUrl, {
-        method: 'GET',
-        redirect: 'follow', // Penting untuk mengikuti URL redirect Google Apps Script
-        headers: {
-            'Content-Type': 'text/plain;charset=utf-8'
-        }
+  fetch(`${SCRIPT_URL}?action=update_inventaris&kode=${encodeURIComponent(kodeBarang)}`)
+    .then(res => res.json())
+    .then(data => {
+      if (btnCatat) {
+        btnCatat.disabled = false;
+        btnCatat.innerHTML = `<i class="fa-solid fa-pen-to-square"></i> Catat / Update`;
+      }
+      if (data.result === "success") {
+        alert("BERHASIL! " + data.message);
+        window.prosesCekDetailAset(kodeBarang, true);
+      } else {
+        alert("GAGAL: " + (data.message || "Gagal mencatat inventarisasi."));
+      }
+    })
+    .catch(err => {
+      if (btnCatat) {
+        btnCatat.disabled = false;
+        btnCatat.innerHTML = `<i class="fa-solid fa-pen-to-square"></i> Catat / Update`;
+      }
+      console.error("Error Catat Inventaris:", err);
+      alert("Terjadi kesalahan koneksi saat mencatat inventaris ke Google Sheets!");
     });
+};
 
-    if (!response.ok) {
-        throw new Error(`HTTP Error Status: ${response.status}`);
+window.hapusDataAset = function(kodeBarang) {
+  if (!kodeBarang) {
+    alert("Kode barang tidak valid.");
+    return;
+  }
+
+  if (!confirm(`Apakah Anda yakin ingin MENGHAPUS status inventarisasi dari aset [${kodeBarang}]?`)) {
+    return;
+  }
+
+  fetch(`${SCRIPT_URL}?action=hapus_inventaris&kode=${encodeURIComponent(kodeBarang)}`)
+    .then(res => res.json())
+    .then(data => {
+      if (data.result === "success") {
+        alert("BERHASIL: " + data.message);
+        window.prosesCekDetailAset(kodeBarang, true);
+      } else {
+        alert("GAGAL: " + (data.message || "Gagal menghapus inventarisasi."));
+      }
+    })
+    .catch(err => {
+      console.error("Error Hapus Inventaris:", err);
+      alert("Terjadi kesalahan koneksi saat menghapus data!");
+    });
+};
+
+// Inisialisasi DOM
+document.addEventListener("DOMContentLoaded", function () {
+  const btnStart = document.getElementById("btnStartCamera");
+  const btnStop = document.getElementById("btnStopCamera");
+  const inputKodeManual = document.getElementById("inputKodeManual");
+  const btnCariManual = document.getElementById("btnCariManual");
+
+  const btnCatatUpdate = document.getElementById("btnCatatUpdate");
+  const btnHapusInventaris = document.getElementById("btnHapusInventaris");
+  const btnCetakQR = document.getElementById("btnCetakQR");
+
+  function unlockAudio() {
+    scanBeepSound.play().then(() => {
+      scanBeepSound.pause();
+      scanBeepSound.currentTime = 0;
+    }).catch(() => {});
+    document.removeEventListener("touchstart", unlockAudio);
+    document.removeEventListener("click", unlockAudio);
+  }
+  document.addEventListener("touchstart", unlockAudio, { once: true });
+  document.addEventListener("click", unlockAudio, { once: true });
+
+  if (document.getElementById("reader")) {
+    html5QrCode = new Html5Qrcode("reader");
+  }
+
+  window.mulaiKamera = function () {
+    if (!html5QrCode) return;
+    if (html5QrCode.isScanning) {
+      scannerAktif = true;
+      return;
     }
 
-    return await response.json();
-}
+    const config = { fps: 10, qrbox: { width: 220, height: 220 } };
 
-// -------------------------------------------------------------------------
-// FUNGSI AKSI UTAMA
-// -------------------------------------------------------------------------
-async function cariDetailBarang(kode) {
-    showLoading(true);
-    try {
-        const data = await callBackend({
-            action: 'get_detail',
-            kode: kode
-        });
-
-        showLoading(false);
-
-        if (data.result === "found") {
-            currentBarangData = data;
-            tampilkanDetailBarang(data);
-        } else {
-            currentBarangData = null;
-            alert(data.message || "Barang tidak ditemukan di database.");
-            resetView();
+    html5QrCode.start(
+      { facingMode: "environment" },
+      config,
+      (decodedText) => {
+        if (scannerAktif) {
+          scannerAktif = false;
+          playScanBeep();
+          matikanKamera();
+          window.prosesCekDetailAset(decodedText, false);
         }
-    } catch (err) {
-        showLoading(false);
-        console.error("Error Detail:", err);
-        alert("Gagal terhubung ke backend server. Pastikan URL Deployment Apps Script sudah benar dan hak akses 'Anyone'.");
-    }
-}
+      },
+      () => { }
+    ).then(() => {
+      if (btnStart && btnStop) {
+        btnStart.style.display = "none";
+        btnStop.style.display = "inline-flex";
+      }
+    }).catch(err => {
+      console.error("Gagal membuka kamera:", err);
+    });
+  };
 
-async function handleUpdateInventaris() {
-    if (!currentBarangData) return alert("Pilih atau scan barang terlebih dahulu.");
-
-    const pin = prompt("Masukkan PIN Petugas:");
-    if (pin !== PIN_SAH) return alert("PIN Petugas Salah!");
-
-    showLoading(true);
-    try {
-        const data = await callBackend({
-            action: 'update_inventaris',
-            kode: currentBarangData.kode
-        });
-
-        showLoading(false);
-
-        if (data.result === "success") {
-            alert("Berhasil! Status inventarisasi digital tersimpan.");
-            cariDetailBarang(currentBarangData.kode);
-        } else {
-            alert(data.message || "Gagal memperbarui status inventaris.");
+  function matikanKamera() {
+    if (html5QrCode && html5QrCode.isScanning) {
+      html5QrCode.stop().then(() => {
+        if (btnStart && btnStop) {
+          btnStart.style.display = "inline-flex";
+          btnStop.style.display = "none";
         }
-    } catch (err) {
-        showLoading(false);
-        alert("Terjadi kesalahan saat menyimpan data.");
+      }).catch(err => {
+        console.error("Gagal menghentikan kamera:", err);
+      });
     }
-}
+  }
 
-async function handleHapusInventaris() {
-    if (!currentBarangData) return alert("Pilih atau scan barang terlebih dahulu.");
+  if (btnStart) btnStart.addEventListener("click", () => { scannerAktif = true; window.mulaiKamera(); });
+  if (btnStop) btnStop.addEventListener("click", () => matikanKamera());
 
-    const pin = prompt("Masukkan PIN Petugas:");
-    if (pin !== PIN_SAH) return alert("PIN Petugas Salah!");
+  document.addEventListener("visibilitychange", function () {
+    if (document.hidden) matikanKamera();
+  });
 
-    showLoading(true);
-    try {
-        const data = await callBackend({
-            action: 'hapus_inventaris',
-            kode: currentBarangData.kode
-        });
+  window.mulaiKamera();
 
-        showLoading(false);
-
-        if (data.result === "success") {
-            alert("Status inventarisasi berhasil dihapus!");
-            cariDetailBarang(currentBarangData.kode);
-        } else {
-            alert(data.message || "Gagal menghapus status.");
-        }
-    } catch (err) {
-        showLoading(false);
-        alert("Terjadi kesalahan saat menghapus data.");
-    }
-}
-
-function handleCetakStiker() {
-    let kodeInput = currentBarangData ? currentBarangData.kode : document.getElementById('inputKode').value.trim();
+  function eksekusiCariManual() {
+    if (!inputKodeManual) return;
+    const kodeInput = inputKodeManual.value.trim();
 
     if (!kodeInput) {
-        const masukan = prompt("Masukkan Kode Barang:");
-        if (masukan) kodeInput = masukan.trim();
-        else return;
+      alert("Masukkan Kode Barang atau ID Aset terlebih dahulu!");
+      inputKodeManual.focus();
+      return;
     }
 
-    const printUrl = `${GS_WEB_APP_URL}?action=cetak_stiker_massal&kodes=${encodeURIComponent(kodeInput)}`;
-    window.open(printUrl, '_blank');
-}
+    playScanBeep();
+    scannerAktif = false;
+    matikanKamera();
+    window.prosesCekDetailAset(kodeInput, false);
+  }
 
-function handleCetakKIR() {
-    const ruangan = prompt("Masukkan Nama Ruangan / Lokasi (Kosongkan untuk Semua):", "");
-    if (ruangan === null) return;
+  if (btnCariManual) btnCariManual.addEventListener("click", eksekusiCariManual);
 
-    const printUrl = `${GS_WEB_APP_URL}?action=cetak_kir&ruangan=${encodeURIComponent(ruangan)}`;
-    window.open(printUrl, '_blank');
-}
+  if (inputKodeManual) {
+    inputKodeManual.addEventListener("keypress", function (e) {
+      if (e.key === "Enter") {
+        e.preventDefault();
+        eksekusiCariManual();
+      }
+    });
+  }
 
-async function handleExportExcel() {
-    const ruangan = prompt("Masukkan Nama Ruangan untuk Ekspor Excel KIR:", "");
-    if (ruangan === null) return;
+  const inputPinPetugas = document.getElementById("inputPinPetugas");
+  if (inputPinPetugas) {
+    inputPinPetugas.addEventListener("keypress", function (e) {
+      if (e.key === "Enter") {
+        e.preventDefault();
+        window.verifikasiPin();
+      }
+    });
+  }
 
-    showLoading(true);
-    try {
-        const data = await callBackend({
-            action: 'export_kir',
-            ruangan: ruangan
-        });
+  if (btnCatatUpdate) {
+    btnCatatUpdate.addEventListener("click", function () {
+      const kodePrint = localStorage.getItem("print_kode");
+      if (kodePrint) {
+        window.eksekusiInventarisasi(kodePrint);
+      } else {
+        alert("Scan atau cari barang terlebih dahulu!");
+      }
+    });
+  }
 
-        showLoading(false);
+  if (btnHapusInventaris) {
+    btnHapusInventaris.addEventListener("click", function () {
+      const kodePrint = localStorage.getItem("print_kode");
+      if (kodePrint) {
+        window.hapusDataAset(kodePrint);
+      } else {
+        alert("Scan barang terlebih dahulu!");
+      }
+    });
+  }
 
-        if (data.result === "success" && data.url) {
-            alert("File Excel berhasil dibuat! Pengunduhan dimulai.");
-            window.open(data.url, '_blank');
-        } else {
-            alert(data.message || "Gagal mengekspor file Excel.");
+  if (btnCetakQR) {
+    btnCetakQR.addEventListener("click", function () {
+      const kode = localStorage.getItem("print_kode");
+      if (kode) {
+        window.cetakStikerMassal([kode]);
+      } else {
+        alert("Scan barang terlebih dahulu untuk mencetak stiker QR Code!");
+      }
+    });
+  }
+});
+
+// Cek Detail Aset
+window.prosesCekDetailAset = function (kodeQR, tampilkanHarga = false) {
+  const infoDetailAset = document.getElementById("infoDetailAset");
+  if (!infoDetailAset) return;
+
+  window.tampilkanHalamanInformasi();
+
+  infoDetailAset.innerHTML = `
+    <div style="text-align:center; padding: 30px 10px;">
+      <i class="fa-solid fa-spinner fa-spin" style="font-size:36px; color:#0284c7;"></i>
+      <p style="margin-top:12px; color:#475569; font-weight:bold;">Mencari data barang [${kodeQR}]...</p>
+    </div>
+  `;
+
+  fetch(`${SCRIPT_URL}?action=get_detail&kode=${encodeURIComponent(kodeQR)}`)
+    .then(response => response.json())
+    .then(data => {
+      if (data.result === "found") {
+        const isTerinventaris = data.sudah_inventaris === true;
+
+        localStorage.setItem("print_kode", data.kode || kodeQR);
+        localStorage.setItem("print_nama", data.nama || "-");
+        localStorage.setItem("print_tahun", data.tahun_perolehan || data.tahun || "-");
+
+        let teksHarga = `<span style="font-size: 13px; color: #64748b; font-weight: normal; font-style: italic;">*** (Akses via Petugas untuk lihat)</span>`;
+        if (tampilkanHarga && data.harga_total !== undefined && data.harga_total !== null) {
+          const numHarga = Number(data.harga_total);
+          teksHarga = isNaN(numHarga) ? safeStr(data.harga_total) : `Rp ${numHarga.toLocaleString('id-ID')}`;
         }
-    } catch (err) {
-        showLoading(false);
-        alert("Terjadi kesalahan saat memproses ekspor Excel.");
+
+        infoDetailAset.innerHTML = `
+          <div style="margin-bottom: 15px; text-align: center;">
+            <span class="info-badge-status ${isTerinventaris ? 'status-good' : 'status-bad'}">
+              <i class="fa-solid ${isTerinventaris ? 'fa-circle-check' : 'fa-clock'}"></i> ${isTerinventaris ? 'TER-INVENTARISASI DIGITAL' : 'BELUM DICATAT PERIODE INI'}
+            </span>
+          </div>
+
+          <div class="info-detail-grid">
+            <div class="info-item">
+              <span class="info-label">KODE BARANG / ID BARANG</span>
+              <span class="info-value code-highlight">${safeStr(data.kode)}</span>
+            </div>
+
+            <div class="info-item">
+              <span class="info-label">NAMA BARANG / MERK / REG</span>
+              <span class="info-value">${safeStr(data.nama)} ${data.merk && data.merk !== '-' ? ' - ' + data.merk : ''} (Reg: ${safeStr(data.reg)})</span>
+            </div>
+
+            <div class="info-item">
+              <span class="info-label">SPESIFIKASI & TAHUN</span>
+              <span class="info-value" style="font-size:13px; font-weight:500;">Ukuran: ${safeStr(data.ukuran)} | Bahan: ${safeStr(data.bahan)} | Tahun: ${safeStr(data.tahun_perolehan || data.tahun)}</span>
+            </div>
+
+            <div class="info-item">
+              <span class="info-label">NOMOR LEGALITAS / KENDARAAN</span>
+              <span class="info-value" style="font-size:13px; font-weight:500;">Pabrik: ${safeStr(data.no_pabrik)} | Rangka: ${safeStr(data.no_rangka)} | Mesin: ${safeStr(data.no_mesin)} | Polisi: ${safeStr(data.no_polisi)} | BPKB: ${safeStr(data.no_bpkb)}</span>
+            </div>
+
+            <div class="info-item">
+              <span class="info-label">KONDISI & STATUS ASET</span>
+              <span class="info-value" style="font-size:13px; font-weight:500;">${safeStr(data.kondisi_status)} (Status: ${safeStr(data.status_aset)})</span>
+            </div>
+
+            <div class="info-item" style="background-color: ${tampilkanHarga ? '#f0fdf4' : 'transparent'}; padding: 6px; border-radius: 6px;">
+              <span class="info-label">NILAI / HARGA BARANG</span>
+              <span class="info-value" style="color: #166534;">${teksHarga}</span>
+            </div>
+
+            <div class="info-item" style="border-bottom: none;">
+              <span class="info-label">KETERANGAN DOKUMEN</span>
+              <span class="info-value" style="font-size:13px; font-weight:500;">${safeStr(data.keterangan_aset)}</span>
+            </div>
+          </div>
+
+          <div style="margin-top: 20px; display: flex; gap: 8px; justify-content: center;">
+            <button 
+              type="button" 
+              onclick="window.tampilkanHalamanScanner()"
+              style="background-color: #0284c7; color: white; border: none; padding: 12px 18px; border-radius: 8px; font-weight: bold; cursor: pointer; display: inline-flex; align-items: center; justify-content: center; gap: 8px; font-size: 14px; width: 100%;">
+              <i class="fa-solid fa-arrow-left"></i> Scan Barang Lainnya
+            </button>
+          </div>
+        `;
+      } else {
+        infoDetailAset.innerHTML = `
+          <div style="text-align:center; color:#ef4444; padding:20px 10px;">
+            <i class="fa-solid fa-circle-xmark" style="font-size:40px;"></i>
+            <p style="margin-top:10px; font-weight:bold; font-size:15px;">Kode [${kodeQR}] tidak ditemukan dalam Database!</p>
+            <button 
+              type="button" 
+              onclick="window.tampilkanHalamanScanner()"
+              style="background-color: #0284c7; color: white; border: none; padding: 12px 18px; border-radius: 8px; font-weight: bold; cursor: pointer; margin-top: 15px; display: inline-flex; align-items: center; gap: 8px;">
+              <i class="fa-solid fa-arrow-left"></i> Coba Kode Lain
+            </button>
+          </div>
+        `;
+      }
+    })
+    .catch(err => {
+      console.error("Error Fetch:", err);
+      infoDetailAset.innerHTML = `
+        <div style="text-align:center; padding:20px 10px;">
+          <p style="color:#ef4444; font-weight:bold;">Gagal terhubung ke Database. Periksa koneksi internet!</p>
+          <button 
+            type="button" 
+            onclick="window.tampilkanHalamanScanner()"
+            style="background-color: #0284c7; color: white; border: none; padding: 10px 18px; border-radius: 8px; font-weight: bold; cursor: pointer; margin-top: 15px;">
+            <i class="fa-solid fa-arrow-left"></i> Kembali ke Scanner
+          </button>
+        </div>
+      `;
+    });
+};
+
+// Modals PIN
+window.openPinModal = function () {
+  const modalPin = document.getElementById("modalPin");
+  const inputPin = document.getElementById("inputPinPetugas");
+  if (modalPin) {
+    modalPin.style.display = "flex";
+    if (inputPin) {
+      inputPin.value = "";
+      inputPin.focus();
     }
-}
+  }
+};
 
-// -------------------------------------------------------------------------
-// HELPER UI
-// -------------------------------------------------------------------------
-function tampilkanDetailBarang(d) {
-    const detailBox = document.getElementById('detailBarangBox');
-    if (!detailBox) return;
+window.closePinModal = function () {
+  const modalPin = document.getElementById("modalPin");
+  if (modalPin) modalPin.style.display = "none";
+};
 
-    detailBox.style.display = "block";
+window.verifikasiPin = function () {
+  const inputPin = document.getElementById("inputPinPetugas");
+  if (!inputPin) return;
 
-    setTextContent('lblKode', d.kode);
-    setTextContent('lblReg', d.reg);
-    setTextContent('lblNama', d.nama);
-    setTextContent('lblMerk', d.merk);
-    setTextContent('lblUkuran', d.ukuran);
-    setTextContent('lblBahan', d.bahan);
-    setTextContent('lblTahun', d.tahun);
-    setTextContent('lblKondisi', d.kondisi_status);
-    setTextContent('lblHargaSatuan', d.harga_satuan_formatted);
-    setTextContent('lblHargaTotal', d.harga_total_formatted);
-    setTextContent('lblKeterangan', d.keterangan);
+  if (inputPin.value.trim() === PIN_PETUGAS_DEFAULT) {
+    window.closePinModal();
+    const panelPetugas = document.getElementById("panelPetugas");
+    if (panelPetugas) panelPetugas.style.display = "block";
 
-    const badgeStatus = document.getElementById('badgeStatus');
-    if (badgeStatus) {
-        if (d.sudah_inventaris) {
-            badgeStatus.className = "badge status-success";
-            badgeStatus.innerText = "Ter-inventarisasi Digital";
-        } else {
-            badgeStatus.className = "badge status-pending";
-            badgeStatus.innerText = "Belum Ter-inventarisasi";
-        }
+    const kodePrint = localStorage.getItem("print_kode");
+    if (kodePrint) {
+      window.prosesCekDetailAset(kodePrint, true);
+    } else {
+      alert("Akses Petugas Berhasil!");
     }
-}
+  } else {
+    alert("PIN Salah! Akses ditolak.");
+    inputPin.value = "";
+    inputPin.focus();
+  }
+};
 
-function resetView() {
-    const detailBox = document.getElementById('detailBarangBox');
-    if (detailBox) detailBox.style.display = "none";
-}
+window.closePanelPetugas = function () {
+  const panelPetugas = document.getElementById("panelPetugas");
+  if (panelPetugas) panelPetugas.style.display = "none";
 
-function setTextContent(elementId, text) {
-    const el = document.getElementById(elementId);
-    if (el) el.innerText = text || "-";
-}
+  const kodePrint = localStorage.getItem("print_kode");
+  if (kodePrint) {
+    window.prosesCekDetailAset(kodePrint, false);
+  }
+};
 
-function showLoading(isLoading) {
-    const loader = document.getElementById('loadingSpinner');
-    if (loader) {
-        loader.style.display = isLoading ? "flex" : "none";
+// Modals Laporan Excel & Stiker Massal
+window.openModalCetakLaporan = function () {
+  const modalCetak = document.getElementById("modalCetakLaporan");
+  if (modalCetak) {
+    modalCetak.style.display = "flex";
+    window.toggleOptionRuangan();
+  }
+};
+
+window.closeModalCetakLaporan = function () {
+  const modalCetak = document.getElementById("modalCetakLaporan");
+  if (modalCetak) modalCetak.style.display = "none";
+};
+
+window.openModalCetakStikerMassal = function () {
+  const modalStiker = document.getElementById("modalCetakStikerMassal");
+  if (modalStiker) {
+    modalStiker.style.display = "flex";
+    const input = document.getElementById("inputKodesStikerMassal");
+    if (input) {
+      const kodeAktif = localStorage.getItem("print_kode");
+      if (kodeAktif) input.value = kodeAktif;
+      input.focus();
     }
-}
+  }
+};
 
-// -------------------------------------------------------------------------
-// 6. UI & DISPLAY HELPERS
-// -------------------------------------------------------------------------
-function tampilkanDetailBarang(d) {
-    const detailBox = document.getElementById('detailBarangBox');
-    if (!detailBox) return;
+window.closeModalCetakStikerMassal = function () {
+  const modalStiker = document.getElementById("modalCetakStikerMassal");
+  if (modalStiker) modalStiker.style.display = "none";
+};
 
-    // Menampilkan kontainer detail
-    detailBox.style.display = "block";
+window.eksekusiCetakStikerMassalModal = function () {
+  const input = document.getElementById("inputKodesStikerMassal");
+  if (!input || !input.value.trim()) {
+    alert("Masukkan minimal 1 kode barang!");
+    return;
+  }
+  window.cetakStikerMassal(input.value.trim());
+  window.closeModalCetakStikerMassal();
+};
 
-    // Mapping nilai elemen HTML
-    setTextContent('lblKode', d.kode);
-    setTextContent('lblReg', d.reg);
-    setTextContent('lblNama', d.nama);
-    setTextContent('lblMerk', d.merk);
-    setTextContent('lblUkuran', d.ukuran);
-    setTextContent('lblBahan', d.bahan);
-    setTextContent('lblTahun', d.tahun);
-    setTextContent('lblKondisi', d.kondisi_status);
-    setTextContent('lblHargaSatuan', d.harga_satuan_formatted);
-    setTextContent('lblHargaTotal', d.harga_total_formatted);
-    setTextContent('lblKeterangan', d.keterangan);
-
-    // Indikator Status Inventaris
-    const badgeStatus = document.getElementById('badgeStatus');
-    if (badgeStatus) {
-        if (d.sudah_inventaris) {
-            badgeStatus.className = "badge status-success";
-            badgeStatus.innerText = "Ter-inventarisasi Digital";
-        } else {
-            badgeStatus.className = "badge status-pending";
-            badgeStatus.innerText = "Belum Ter-inventarisasi";
-        }
+window.toggleOptionRuangan = function () {
+  const selectJenis = document.getElementById("selectJenisDokumen");
+  const containerRuangan = document.getElementById("containerSelectRuangan");
+  if (selectJenis && containerRuangan) {
+    if (selectJenis.value === "KIR_EXCEL") {
+      containerRuangan.style.display = "block";
+    } else {
+      containerRuangan.style.display = "none";
     }
-}
+  }
+};
 
-function resetView() {
-    const detailBox = document.getElementById('detailBarangBox');
-    if (detailBox) detailBox.style.display = "none";
-}
+window.eksekusiCetakLaporan = function () {
+  const selectJenis = document.getElementById("selectJenisDokumen");
+  if (!selectJenis) return;
 
-function setTextContent(elementId, text) {
-    const el = document.getElementById(elementId);
-    if (el) el.innerText = text || "-";
-}
+  if (selectJenis.value === "ALL_EXCEL") {
+    cetakHasilInventaris();
+  } else if (selectJenis.value === "KIR_EXCEL") {
+    cetakKIR();
+  }
 
-function showLoading(isLoading) {
-    const loader = document.getElementById('loadingSpinner');
-    if (loader) {
-        loader.style.display = isLoading ? "flex" : "none";
-    }
-}
+  window.closeModalCetakLaporan();
+};
