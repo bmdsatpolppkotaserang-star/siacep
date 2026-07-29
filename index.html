@@ -203,24 +203,11 @@
         </select>
       </div>
 
-      <div id="containerSelectRuangan" style="margin-bottom: 20px; display: none;">
-        <label for="selectRuanganKIR" style="display: block; font-size: 13px; font-weight: bold; color: #334155; margin-bottom: 6px;">Pilih Ruangan Target:</label>
-        <select id="selectRuanganKIR" style="width: 100%; padding: 10px; border: 1.5px solid #cbd5e1; border-radius: 8px; font-size: 13px; outline: none; background: white; color: #1e293b;">
-          <option value="KASAT">Ruang KASAT</option>
-          <option value="UMPEG">Ruang UMPEG</option>
-          <option value="SEKRETARIS">Ruang SEKRETARIS</option>
-          <option value="KEUANGAN">Ruang KEUANGAN</option>
-          <option value="RESEPSIONIS">Ruang RESEPSIONIS</option>
-          <option value="ASET">Ruang ASET</option>
-          <option value="LINMAS">Ruang LINMAS</option>
-          <option value="DALOPS">Ruang DALOPS</option>
-          <option value="TRANTIBUM">Ruang TRANTIBUM</option>
-          <option value="RAPAT">Ruang RAPAT</option>
-          <option value="GUDANG">Ruang GUDANG</option>
-          <option value="PPNS">Ruang PPNS</option>
-          <option value="PEP">Ruang PEP</option>
-        </select>
-      </div>
+      <div id="containerSelectRuangan" style="display: none !important;">
+  <select id="selectRuanganKIR">
+    <option value="SEMUA" selected>Semua Ruangan</option>
+  </select>
+</div>
 
       <div style="display: flex; gap: 8px; justify-content: flex-end; margin-top: 10px;">
         <button type="button" onclick="closeModalCetakLaporan()" style="padding: 10px 15px; background: #94a3b8; color: white; border: none; border-radius: 6px; font-weight: bold; cursor: pointer; font-size: 13px;">Batal</button>
