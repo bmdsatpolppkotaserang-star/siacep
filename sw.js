@@ -1,12 +1,11 @@
 // =========================================================================
-// SERVICE WORKER - SI-ASEP (PWA CACHE MANAGEMENT)
+// SERVICE WORKER - SI-ACEP (PWA CACHE MANAGEMENT)
 // =========================================================================
 
-const CACHE_NAME = 'si-acep-cache-v45'; // Versi cache diperbarui
+const CACHE_NAME = 'si-acep-cache-v45'; // Versi cache diperbarui & diselaraskan
 const ASSETS_TO_CACHE = [
   './',
   './index.html',
-  './print-label.html',
   './style.css',
   './script.js',
   './manifest.json',
