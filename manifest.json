@@ -1,7 +1,7 @@
 {
   "name": "SI-ACEP",
   "short_name": "SI-ACEP",
-  "description": "Sistem Informasi Aset Cepat Efisien & Praktis",
+  "description": "Sistem Informasi Aset Cepat Efisien & Praktis - Satpol PP Kota Serang",
   "start_url": "./index.html",
   "display": "standalone",
   "background_color": "#ffffff",
