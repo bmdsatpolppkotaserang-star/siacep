@@ -1,5 +1,5 @@
 /* =========================================================================
-   STYLING UTAMA SI-ASEP (Satpol PP Kota Serang)
+   STYLING UTAMA SI-ACEP (Satpol PP Kota Serang)
    ========================================================================= */
 
 :root {
@@ -79,10 +79,7 @@ body {
   color: var(--text-muted);
 }
 
-/* =========================================================================
-   AREA CAMERA & SCANNER HTML5-QRCODE
-   ========================================================================= */
-
+/* AREA CAMERA & SCANNER HTML5-QRCODE */
 .scanner-box {
   width: 100%;
   height: auto !important;
@@ -167,10 +164,7 @@ body {
   background-color: #dc2626;
 }
 
-/* =========================================================================
-   LEMBAR INFORMASI ASET & STATUS BADGE
-   ========================================================================= */
-
+/* LEMBAR INFORMASI ASET & STATUS BADGE */
 .info-card {
   background-color: #f8fafc;
   border: 1px solid var(--border-color);
@@ -242,10 +236,7 @@ body {
   font-weight: bold;
 }
 
-/* =========================================================================
-   PANEL MENU PETUGAS, MODAL, & FORM ELEMEN
-   ========================================================================= */
-
+/* PANEL MENU PETUGAS, MODAL, & FORM ELEMEN */
 .panel-petugas {
   background-color: #f8fafc;
   border: 1px solid var(--border-color);
