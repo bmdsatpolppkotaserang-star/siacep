@@ -95,18 +95,10 @@ window.tampilkanHalamanInformasi = function () {
 // UNDUH EXCEL & CETAK STIKER MASSAL VIA GS
 // =========================================================================
 function cetakKIR() {
-  var ruanganSelect = document.getElementById("selectRuanganKIR") || document.getElementById("selectRuangan");
-  var ruangan = ruanganSelect ? ruanganSelect.value : "";
-
-  if (!ruangan) {
-    alert("Silakan pilih ruangan terlebih dahulu!");
-    return;
-  }
-
-  const urlKIR = `${SCRIPT_URL}?action=export_kir_excel&ruangan=${encodeURIComponent(ruangan)}`;
+  // Langsung ekspor seluruh data KIR tanpa perlu cek pilihan ruangan
+  const urlKIR = `${SCRIPT_URL}?action=export_kir_excel`;
   window.open(urlKIR, "_blank");
 }
-
 function cetakHasilInventaris() {
   const urlHasil = `${SCRIPT_URL}?action=export_hasil_excel`;
   window.open(urlHasil, "_blank");
