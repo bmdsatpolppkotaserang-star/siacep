@@ -4,7 +4,7 @@
 // =========================================================================
 
 // CONFIGURATION: Ganti URL di bawah ini dengan URL Deployment Web App Google Apps Script Anda!
-const GS_WEB_APP_URL = "https://script.google.com/macros/s/AKfycbxYOUR_DEPLOYMENT_ID_HERE/exec";
+const GS_WEB_APP_URL = "https://script.google.com/macros/s/AKfycbwlEZavprex-PUPL4MR57q6k8q3se4qLL33zxRMuOvN89viFT-iagj9vqD2sdkyl-hF/exec";
 const PIN_SAH = "123456";
 
 let html5QrcodeScanner = null;
