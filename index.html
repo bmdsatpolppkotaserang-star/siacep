@@ -236,6 +236,57 @@
       box-shadow: 0 0 0 3px var(--primary-soft);
     }
 
+    /* ----------------------------------------------------------------- */
+    /* FIX UI: CUSTOM FILE UPLOAD (RAPI & TIDAK KELUAR KOTAK)            */
+    /* ----------------------------------------------------------------- */
+    .custom-file-upload {
+      width: 100%;
+    }
+
+    .btn-upload-file {
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      gap: 8px;
+      width: 100%;
+      padding: 10px 12px;
+      background-color: #ffffff;
+      color: var(--text);
+      border: 1.5px dashed var(--primary);
+      border-radius: 8px;
+      font-size: 12px;
+      font-weight: 600;
+      cursor: pointer;
+      box-sizing: border-box;
+      transition: all 0.2s ease;
+    }
+
+    .btn-upload-file:active {
+      background-color: var(--primary-soft);
+    }
+
+    .text-truncate {
+      white-space: nowrap;
+      overflow: hidden;
+      text-overflow: ellipsis;
+      max-width: 100%;
+      display: inline-block;
+    }
+
+    #preview_container {
+      margin-top: 10px;
+      text-align: center;
+      display: none;
+    }
+
+    #preview_img {
+      max-width: 100%;
+      max-height: 180px;
+      border-radius: 8px;
+      border: 1px solid var(--border);
+      object-fit: cover;
+    }
+
     /* Detail Layout & Badge */
     .info-card {
       background-color: var(--bg);
@@ -443,10 +494,22 @@
           </button>
         </div>
 
-        <!-- UPLOAD FOTO ASET KONDISI FISIK -->
+        <!-- UPLOAD FOTO ASET KONDISI FISIK (FIXED CUSTOM BUTTON UI) -->
         <div style="margin-bottom: 12px; background: white; padding: 10px; border-radius: 8px; border: 1px solid var(--border);">
-          <label style="font-size: 11px; font-weight: 700; color: var(--text-muted); display: block; margin-bottom: 4px;">FOTO KONDISI ASET REAL-TIME</label>
-          <input type="file" id="inputFotoAset" accept="image/*" capture="environment" class="form-control" style="font-size: 11px; padding: 6px;">
+          <label style="font-size: 11px; font-weight: 700; color: var(--text-muted); display: block; margin-bottom: 6px;">FOTO KONDISI ASET REAL-TIME</label>
+          
+          <div class="custom-file-upload">
+            <input type="file" id="inputFotoAset" accept="image/*" capture="environment" onchange="handleFotoChange(this)" hidden>
+            <label for="inputFotoAset" class="btn-upload-file" id="btnLabelFoto">
+              <i class="fa-solid fa-camera" style="color: var(--primary);"></i>
+              <span id="txtLabelFoto" class="text-truncate">Ambil / Pilih Foto Aset</span>
+            </label>
+          </div>
+
+          <!-- Preview Tempat Menampilkan Foto -->
+          <div id="preview_container">
+            <img id="preview_img" src="" alt="Pratinjau Foto Aset">
+          </div>
         </div>
 
         <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 8px;">
@@ -587,8 +650,38 @@
       return str;
     }
 
+    /* HANDLE CUSTOM FILE SELECT & PREVIEW */
+    function handleFotoChange(input) {
+      const txtLabel = document.getElementById("txtLabelFoto");
+      const btnLabel = document.getElementById("btnLabelFoto");
+      const previewContainer = document.getElementById("preview_container");
+      const previewImg = document.getElementById("preview_img");
+
+      if (input.files && input.files[0]) {
+        const file = input.files[0];
+        txtLabel.innerText = "Foto: " + file.name;
+        btnLabel.style.borderColor = "var(--success)";
+        btnLabel.style.backgroundColor = "var(--success-soft)";
+        btnLabel.style.color = "#065f46";
+
+        const reader = new FileReader();
+        reader.onload = function(e) {
+          previewImg.src = e.target.result;
+          previewContainer.style.display = "block";
+        };
+        reader.readAsDataURL(file);
+      } else {
+        txtLabel.innerText = "Ambil / Pilih Foto Aset";
+        btnLabel.style.borderColor = "var(--primary)";
+        btnLabel.style.backgroundColor = "#ffffff";
+        btnLabel.style.color = "var(--text)";
+        previewContainer.style.display = "none";
+        previewImg.src = "";
+      }
+    }
+
     /* BEEP & HAPTIC VIBRATION FEEDBACK */
-    const scanBeepSound = new Audio("data:audio/wav;base64,UklGRl9vT19XQVZFZm10IBAAAAABAAEAQB8AAEAfAAABAAgAZGF0YUtvT18AZv8AZv8AZv8AZv8AZv8AZv8AZv8AZv8AZv8AZv8AZv8AZv8AZv8AZv8AZv8AZv8AZv8AZv8AZv8AZv8AZv8AZv8AZv8AZv8AZv8AZv8AZv8AZv8AZv8AZv8AZv8AZv8AZv8AZv8AZv8AZv8AZv8AZv8AZv8AZv8AZv8AZv8AZv8=");
+    const scanBeepSound = new Audio("data:audio/wav;base64,UklGRl9vT19XQVZFZm10IBAAAAABAAEAQB8AAEAfAAABAAgAZGF0YUtvT18AZv8AZv8AZv8AZv8AZv8AZv8AZv8AZv8AZv8AZv8AZv8AZv8AZv8AZv8AZv8AZv8AZv8AZv8AZv8AZv8AZv8AZv8AZv8AZv8AZv8AZv8AZv8AZv8AZv8AZv8AZv8AZv8AZv8AZv8AZv8AZv8AZv8AZv8AZv8AZv8AZv8AZv8=");
 
     function triggerSuccessFeedback() {
       try {
@@ -700,7 +793,7 @@
       window.open(`${SCRIPT_URL}?action=cetak_stiker_massal&kodes=${encodeURIComponent(arrayKode.join(","))}`, "_blank");
     };
 
-    /* EKSEKUSI UPDATE INVENTARIS + GEOLOCATION + FOTO REALTIME (PERBAIKAN FORM DATA & BASE64) */
+    /* EKSEKUSI UPDATE INVENTARIS + GEOLOCATION + FOTO REALTIME */
     window.eksekusiInventarisasi = async function(kodeBarang) {
       const kodeBersih = ekstrakKodeMurni(kodeBarang);
       if (!kodeBersih) return alert("Kode barang tidak valid.");
@@ -757,7 +850,7 @@
         return;
       }
 
-      // 4. Kirim data menggunakan FormData (Agar Base64 Foto dan GPS terkirim utuh tanpa terpotong URL Limit)
+      // 4. Kirim data menggunakan FormData
       const formData = new FormData();
       formData.append("action", "update_inventaris");
       formData.append("kode", kodeBersih);
@@ -776,7 +869,10 @@
           }
           if (data.result === "success") {
             alert("BERHASIL! " + data.message);
-            if (inputFoto) inputFoto.value = ""; // Reset input foto
+            if (inputFoto) {
+              inputFoto.value = "";
+              handleFotoChange(inputFoto); // Reset label & preview foto
+            }
             window.prosesCekDetailAset(kodeBersih, true);
           } else {
             alert("GAGAL: " + (data.message || "Gagal mencatat inventaris."));
