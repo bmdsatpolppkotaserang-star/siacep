@@ -30,6 +30,8 @@
       --success: #059669;
       --success-soft: #d1fae5;
       --danger: #ef4444;
+      --danger-hover: #dc2626;
+      --danger-dark: #991b1b;
       --danger-soft: #fee2e2;
       --warning: #d97706;
       --warning-soft: #fef3c7;
@@ -195,7 +197,9 @@
     .btn-primary { background-color: var(--primary); color: white; }
     .btn-primary:hover { background-color: var(--primary-hover); }
     .btn-danger { background-color: var(--danger); color: white; }
-    .btn-danger:hover { background-color: #dc2626; }
+    .btn-danger:hover { background-color: var(--danger-hover); }
+    .btn-danger-dark { background-color: var(--danger-dark); color: white; }
+    .btn-danger-dark:hover { background-color: #7f1d1d; }
     .btn-dark { background-color: var(--dark-panel); color: white; }
     .btn-dark:hover { background-color: #1e293b; }
     .btn-success { background-color: var(--success); color: white; }
@@ -236,9 +240,7 @@
       box-shadow: 0 0 0 3px var(--primary-soft);
     }
 
-    /* ----------------------------------------------------------------- */
-    /* FIX UI: CUSTOM FILE UPLOAD (RAPI & TIDAK KELUAR KOTAK)            */
-    /* ----------------------------------------------------------------- */
+    /* CUSTOM FILE UPLOAD BUTTON UI */
     .custom-file-upload {
       width: 100%;
     }
@@ -494,7 +496,7 @@
           </button>
         </div>
 
-        <!-- UPLOAD FOTO ASET KONDISI FISIK (FIXED CUSTOM BUTTON UI) -->
+        <!-- UPLOAD FOTO ASET KONDISI FISIK -->
         <div style="margin-bottom: 12px; background: white; padding: 10px; border-radius: 8px; border: 1px solid var(--border);">
           <label style="font-size: 11px; font-weight: 700; color: var(--text-muted); display: block; margin-bottom: 6px;">FOTO KONDISI ASET REAL-TIME</label>
           
@@ -517,8 +519,9 @@
             <i class="fa-solid fa-pen-to-square"></i> Update + GPS
           </button>
 
+          <!-- REVISI: TOMBOL HAPUS 1 ASET -->
           <button id="btnHapusInventaris" type="button" class="btn btn-danger" style="font-size: 12px; padding: 10px;">
-            <i class="fa-solid fa-trash-can"></i> Hapus
+            <i class="fa-solid fa-trash-can"></i> Hapus 1 Data Ini
           </button>
 
           <button id="btnCetakQR" type="button" class="btn btn-indigo" style="font-size: 12px; padding: 10px;">
@@ -531,6 +534,11 @@
 
           <button id="btnDownloadRekap" type="button" onclick="openModalCetakLaporan()" class="btn btn-emerald" style="grid-column: span 2; font-size: 12px; padding: 10px;">
             <i class="fa-solid fa-file-excel"></i> Unduh Laporan Excel
+          </button>
+
+          <!-- REVISI: TOMBOL HAPUS SEMUA HASIL INVENTARISASI -->
+          <button id="btnHapusSemuaInventaris" type="button" onclick="openModalHapusSemua()" class="btn btn-danger-dark" style="grid-column: span 2; font-size: 12px; padding: 10px; margin-top: 4px;">
+            <i class="fa-solid fa-triangle-exclamation"></i> Reset Semua Hasil Inventarisasi
           </button>
         </div>
       </div>
@@ -552,6 +560,29 @@
       <div style="display: flex; gap: 8px;">
         <button type="button" onclick="closePinModal()" class="btn btn-dark" style="flex: 1; padding: 10px;">Batal</button>
         <button type="button" onclick="verifikasiPin()" class="btn btn-primary" style="flex: 1; padding: 10px;">Masuk</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- MODAL HAPUS SEMUA DATA INVENTARISASI -->
+  <div id="modalHapusSemua" class="modal" role="dialog" aria-modal="true">
+    <div class="modal-box" style="text-align: center;">
+      <div style="width: 48px; height: 48px; background: var(--danger-soft); color: var(--danger-dark); border-radius: 50%; display: flex; align-items: center; justify-content: center; margin: 0 auto 12px auto; font-size: 22px;">
+        <i class="fa-solid fa-triangle-exclamation"></i>
+      </div>
+      <h3 style="margin: 0 0 6px 0; color: var(--danger-dark); font-size: 16px;">RESET SEMUA DATA?</h3>
+      <p style="margin: 0 0 12px 0; color: var(--text-muted); font-size: 12px;">
+        Tindakan ini akan **MENGHAPUS SEMUA STATUS HASIL INVENTARISASI** secara permanen dari server!
+      </p>
+      <p style="margin: 0 0 12px 0; color: var(--text); font-size: 12px; font-weight: 700;">
+        Ketik kata <span style="color:var(--danger); font-family:monospace;">HAPUS</span> di bawah ini untuk konfirmasi:
+      </p>
+      
+      <input type="text" id="inputKonfirmasiHapusSemua" class="form-control" placeholder="Ketik HAPUS..." style="text-align: center; font-weight: 700; letter-spacing: 2px; margin-bottom: 16px;">
+
+      <div style="display: flex; gap: 8px;">
+        <button type="button" onclick="closeModalHapusSemua()" class="btn btn-dark" style="flex: 1; padding: 10px;">Batal</button>
+        <button type="button" onclick="eksekusiHapusSemuaData()" class="btn btn-danger-dark" style="flex: 1; padding: 10px;">RESET SEMUA</button>
       </div>
     </div>
   </div>
@@ -690,7 +721,6 @@
         scanBeepSound.play().catch(() => {});
       } catch (e) {}
 
-      // Getar Haptik Mobile
       if ("vibrate" in navigator) {
         navigator.vibrate([100, 50, 100]);
       }
@@ -744,7 +774,7 @@
       }
     }
 
-    /* GEOLOCATION TAGGING (OPTIMIZED HIGH ACCURACY & TIMEOUT) */
+    /* GEOLOCATION TAGGING */
     function getGPSLocation() {
       return new Promise((resolve) => {
         if (!navigator.geolocation) {
@@ -793,7 +823,7 @@
       window.open(`${SCRIPT_URL}?action=cetak_stiker_massal&kodes=${encodeURIComponent(arrayKode.join(","))}`, "_blank");
     };
 
-    /* EKSEKUSI UPDATE INVENTARIS + GEOLOCATION + FOTO REALTIME */
+    /* EKSEKUSI UPDATE INVENTARIS */
     window.eksekusiInventarisasi = async function(kodeBarang) {
       const kodeBersih = ekstrakKodeMurni(kodeBarang);
       if (!kodeBersih) return alert("Kode barang tidak valid.");
@@ -805,11 +835,9 @@
         btnCatat.innerHTML = `<i class="fa-solid fa-spinner fa-spin"></i> Mengirim Data...`;
       }
 
-      // 1. Ambil Koordinat GPS
       const coords = await getGPSLocation();
       const gpsString = coords ? `${coords.lat},${coords.lng}` : "";
 
-      // 2. Convert Foto ke Base64 jika ada file yang dipilih
       let fotoBase64 = "";
       const inputFoto = document.getElementById("inputFotoAset");
       if (inputFoto && inputFoto.files && inputFoto.files[0]) {
@@ -829,7 +857,6 @@
         }
       }
 
-      // 3. Penanganan Offline Queue
       const payloadData = {
         action: "update_inventaris",
         kode: kodeBersih,
@@ -850,7 +877,6 @@
         return;
       }
 
-      // 4. Kirim data menggunakan FormData
       const formData = new FormData();
       formData.append("action", "update_inventaris");
       formData.append("kode", kodeBersih);
@@ -871,7 +897,7 @@
             alert("BERHASIL! " + data.message);
             if (inputFoto) {
               inputFoto.value = "";
-              handleFotoChange(inputFoto); // Reset label & preview foto
+              handleFotoChange(inputFoto);
             }
             window.prosesCekDetailAset(kodeBersih, true);
           } else {
@@ -892,10 +918,8 @@
     window.addEventListener("online", () => {
       let offlineQueue = JSON.parse(localStorage.getItem("siacep_offline_queue") || "[]");
       if (offlineQueue.length > 0) {
-        console.log("Sinkronisasi data offline...");
-        
         let pending = offlineQueue.length;
-        offlineQueue.forEach((item, index) => {
+        offlineQueue.forEach((item) => {
           const formData = new FormData();
           formData.append("action", "update_inventaris");
           formData.append("kode", item.kode);
@@ -919,10 +943,11 @@
       }
     });
 
+    /* REVISI 1: HAPUS 1 DATA INVENTARIS ASET INI */
     window.hapusDataAset = function(kodeBarang) {
       const kodeBersih = ekstrakKodeMurni(kodeBarang);
       if (!kodeBersih) return alert("Kode barang tidak valid.");
-      if (!confirm(`Hapus status inventarisasi dari aset [${kodeBersih}]?`)) return;
+      if (!confirm(`Hapus status inventarisasi khusus dari aset [${kodeBersih}]?`)) return;
 
       fetch(`${SCRIPT_URL}?action=hapus_inventaris&kode=${encodeURIComponent(kodeBersih)}`)
         .then(res => res.json())
@@ -933,7 +958,41 @@
           } else {
             alert("GAGAL: " + data.message);
           }
-        });
+        })
+        .catch(err => alert("Terjadi kesalahan jaringan/server!"));
+    };
+
+    /* REVISI 2: HAPUS SEMUA HASIL INVENTARISASI */
+    window.openModalHapusSemua = function() {
+      document.getElementById("modalHapusSemua").style.display = "flex";
+      document.getElementById("inputKonfirmasiHapusSemua").value = "";
+      document.getElementById("inputKonfirmasiHapusSemua").focus();
+    };
+
+    window.closeModalHapusSemua = function() {
+      document.getElementById("modalHapusSemua").style.display = "none";
+    };
+
+    window.eksekusiHapusSemuaData = function() {
+      const teksInput = document.getElementById("inputKonfirmasiHapusSemua").value.trim();
+      if (teksInput !== "HAPUS") {
+        return alert('Konfirmasi gagal! Anda harus mengetik kata "HAPUS" persis untuk melanjutkan.');
+      }
+
+      window.closeModalHapusSemua();
+
+      fetch(`${SCRIPT_URL}?action=hapus_semua_inventaris`)
+        .then(res => res.json())
+        .then(data => {
+          if (data.result === "success") {
+            alert("BERHASIL: " + data.message);
+            const kodeAktif = localStorage.getItem("print_kode");
+            if (kodeAktif) window.prosesCekDetailAset(kodeAktif, true);
+          } else {
+            alert("GAGAL: " + data.message);
+          }
+        })
+        .catch(err => alert("Terjadi kesalahan koneksi saat mereset semua data!"));
     };
 
     /* SKELETON LOADER UI DISPLAY */
@@ -996,7 +1055,7 @@
 
       window.mulaiKamera();
 
-      /* EVENT LISTENERS MANUAL LOOKUP & ENTER KEY */
+      /* EVENT LISTENERS MANUAL LOOKUP */
       const btnCariManual = document.getElementById("btnCariManual");
       const inputKodeManual = document.getElementById("inputKodeManual");
 
@@ -1090,7 +1149,7 @@
         });
     };
 
-    /* AUTHENTICATION & SESSION TIMEOUT MANAGEMENT */
+    /* AUTHENTICATION & SESSION TIMEOUT */
     window.openPinModal = function () {
       document.getElementById("modalPin").style.display = "flex";
       document.getElementById("inputPinPetugas").focus();
