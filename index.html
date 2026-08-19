@@ -631,7 +631,7 @@
 
         <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 8px;">
           <button id="btnCatatUpdate" type="button" class="btn btn-primary" style="font-size: 12px; padding: 10px;">
-            <i class="fa-solid fa-pen-to-square"></i> Update + GPS
+            <i class="fa-solid fa-pen-to-square"></i> Simpan / Update
           </button>
 
           <button id="btnHapusInventaris" type="button" class="btn btn-danger" style="font-size: 12px; padding: 10px;">
@@ -928,25 +928,6 @@
       }
     }
 
-    /* GEOLOCATION TAGGING */
-    function getGPSLocation() {
-      return new Promise((resolve) => {
-        if (!navigator.geolocation) {
-          alert("Browser Anda tidak mendukung Geolocation GPS.");
-          resolve(null);
-          return;
-        }
-        navigator.geolocation.getCurrentPosition(
-          (pos) => resolve({ lat: pos.coords.latitude, lng: pos.coords.longitude }),
-          (err) => {
-            console.warn("GPS Gagal/Ditolak:", err.message);
-            resolve(null);
-          },
-          { enableHighAccuracy: true, timeout: 10000, maximumAge: 0 }
-        );
-      });
-    }
-
     /* NAVIGASI HALAMAN */
     window.tampilkanHalamanScanner = function () {
       document.getElementById("page-informasi").style.display = "none";
@@ -985,9 +966,6 @@
         btnCatat.innerHTML = `<i class="fa-solid fa-spinner fa-spin"></i> Mengirim...`;
       }
 
-      const coords = await getGPSLocation();
-      const gpsString = coords ? `${coords.lat},${coords.lng}` : "";
-
       let fotoBase64 = "";
       const inputFoto = document.getElementById("inputFotoAset");
       if (inputFoto && inputFoto.files && inputFoto.files[0]) {
@@ -1010,7 +988,6 @@
       const payloadData = {
         action: "update_inventaris",
         kode: kodeBersih,
-        gps: gpsString,
         foto: fotoBase64
       };
 
@@ -1021,7 +998,7 @@
         
         if (btnCatat) {
           btnCatat.disabled = false;
-          btnCatat.innerHTML = `<i class="fa-solid fa-pen-to-square"></i> Update + GPS`;
+          btnCatat.innerHTML = `<i class="fa-solid fa-pen-to-square"></i> Simpan / Update`;
         }
         updateNetworkStatus();
         alert("MODE LURING: Data tersimpan di HP dan akan tersinkron otomatis saat terhubung ke internet.");
@@ -1031,7 +1008,6 @@
       const formData = new FormData();
       formData.append("action", "update_inventaris");
       formData.append("kode", kodeBersih);
-      formData.append("gps", gpsString);
       formData.append("foto", fotoBase64);
 
       fetch(SCRIPT_URL, {
@@ -1042,7 +1018,7 @@
         .then(data => {
           if (btnCatat) {
             btnCatat.disabled = false;
-            btnCatat.innerHTML = `<i class="fa-solid fa-pen-to-square"></i> Update + GPS`;
+            btnCatat.innerHTML = `<i class="fa-solid fa-pen-to-square"></i> Simpan / Update`;
           }
           if (data.result === "success") {
             alert("BERHASIL! " + data.message);
@@ -1057,7 +1033,7 @@
           console.error("Fetch Error:", err);
           if (btnCatat) {
             btnCatat.disabled = false;
-            btnCatat.innerHTML = `<i class="fa-solid fa-pen-to-square"></i> Update + GPS`;
+            btnCatat.innerHTML = `<i class="fa-solid fa-pen-to-square"></i> Simpan / Update`;
           }
           alert("Terjadi kesalahan jaringan saat mengirim data!");
         });
