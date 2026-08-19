@@ -13,6 +13,7 @@
   <!-- External Resources -->
   <link rel="preconnect" href="https://script.google.com" crossorigin>
   <link rel="preconnect" href="https://script.googleusercontent.com" crossorigin>
+  <link rel="dns-prefetch" href="https://script.google.com">
   <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css">
   <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800&display=swap" rel="stylesheet">
   <script src="https://unpkg.com/html5-qrcode" defer></script>
@@ -724,7 +725,7 @@
     </div>
   </div>
 
-  <!-- MODAL LAPORAN EXCEL (DESAIN RAPI TERIAP) -->
+  <!-- MODAL LAPORAN EXCEL -->
   <div id="modalCetakLaporan" class="modal" role="dialog" aria-modal="true">
     <div class="modal-box">
       <div style="display: flex; align-items: center; justify-content: space-between; border-bottom: 1px solid var(--border); padding-bottom: 10px; margin-bottom: 14px;">
@@ -769,9 +770,17 @@
     let isTorchOn = false;
     let sessionTimer = null;
 
+    // Fast Cache Memory (Client-side)
+    const memoryCache = new Map();
+
     const SCRIPT_URL = "https://script.google.com/macros/s/AKfycbz4DcVVh0ORsCAngL3PzQChef8Rzryo1Ts4e1ySKchv_WSa7d2zUY9yXWK7NgVai1yP/exec";
     const PIN_PETUGAS_DEFAULT = "123456";
-    const SESSION_TIMEOUT_MS = 15 * 60 * 1000; // 15 Menit Session Timeout
+    const SESSION_TIMEOUT_MS = 15 * 60 * 1000; 
+
+    // Warm-up connection secara stealth untuk eliminasi HTTPS handshake latency
+    function pingWarmupServer() {
+      fetch(`${SCRIPT_URL}?action=ping`, { method: 'GET', mode: 'no-cors' }).catch(() => {});
+    }
 
     function safeStr(val) {
       if (val === undefined || val === null || val === "" || val === "null") return "-";
@@ -1037,8 +1046,9 @@
           }
           if (data.result === "success") {
             alert("BERHASIL! " + data.message);
+            memoryCache.delete(kodeBersih); // Invalidate Cache
             resetFotoSelection();
-            window.prosesCekDetailAset(kodeBersih, true);
+            window.prosesCekDetailAset(kodeBersih, true, true);
           } else {
             alert("GAGAL: " + (data.message || "Gagal mencatat inventaris."));
           }
@@ -1070,6 +1080,7 @@
           .then(resData => {
             if (resData && resData.result === "success") {
               localStorage.removeItem("siacep_offline_queue");
+              memoryCache.clear();
               updateNetworkStatus();
               alert("SINKRONISASI BERHASIL: " + resData.message);
             }
@@ -1089,7 +1100,8 @@
         .then(data => {
           if (data.result === "success") {
             alert("BERHASIL: " + data.message);
-            window.prosesCekDetailAset(kodeBersih, true);
+            memoryCache.delete(kodeBersih);
+            window.prosesCekDetailAset(kodeBersih, true, true);
           } else {
             alert("GAGAL: " + data.message);
           }
@@ -1121,8 +1133,9 @@
         .then(data => {
           if (data.result === "success") {
             alert("BERHASIL: " + data.message);
+            memoryCache.clear();
             const kodeAktif = localStorage.getItem("print_kode");
-            if (kodeAktif) window.prosesCekDetailAset(kodeAktif, true);
+            if (kodeAktif) window.prosesCekDetailAset(kodeAktif, true, true);
           } else {
             alert("GAGAL: " + data.message);
           }
@@ -1149,12 +1162,12 @@
     document.addEventListener("DOMContentLoaded", function () {
       updateNetworkStatus();
       renderScanHistory();
+      pingWarmupServer();
 
       if (document.getElementById("reader")) {
         html5QrCode = new Html5Qrcode("reader");
       }
 
-      // Scanner dioptimalkan untuk Scan Instan & Hardware Acceleration
       let scannerStarting = false;
       let lastDecodedCode = "";
       let lastDecodedAt = 0;
@@ -1164,13 +1177,13 @@
         scannerStarting = true;
 
         const config = {
-          fps: 30,                             // Naikan ke 30 FPS untuk pembacaan instan tanpa delay
-          qrbox: { width: 250, height: 250 },  // Area tangkap scan lebih luas & fokus
+          fps: 30,
+          qrbox: { width: 250, height: 250 },
           aspectRatio: 1.0,
           disableFlip: true,
           formatsToSupport: [Html5QrcodeSupportedFormats.QR_CODE],
           experimentalFeatures: {
-            useBarCodeDetectorIfSupported: true // Gunakan akselerasi hardware chipset HP
+            useBarCodeDetectorIfSupported: true
           }
         };
 
@@ -1179,17 +1192,13 @@
           config,
           (decodedText) => {
             const now = Date.now();
-            // Mencegah pembacaan ganda dalam rentang waktu singkat
             if (!scannerAktif || (decodedText === lastDecodedCode && now - lastDecodedAt < 1500)) return;
 
             lastDecodedCode = decodedText;
             lastDecodedAt = now;
             scannerAktif = false;
 
-            // Umpan balik suara & getar
             triggerSuccessFeedback();
-            
-            // Hentikan/pause pemindaian & langsung request detail aset
             matikanKamera();
             window.prosesCekDetailAset(decodedText, false);
           },
@@ -1253,20 +1262,76 @@
       });
     });
 
-    /* GET DETAIL DATA ASET */
-    window.prosesCekDetailAset = function (kodeQR, tampilkanHarga = false) {
+    /* GET DETAIL DATA ASET DENGAN OPTIMASI SPEED CACHE & PARALLEL FETCH */
+    window.prosesCekDetailAset = function (kodeQR, tampilkanHarga = false, forceRefresh = false) {
       const kodeBersih = ekstrakKodeMurni(kodeQR);
       if (!kodeBersih) return alert("Kode barang tidak valid!");
 
       window.tampilkanHalamanInformasi();
+
+      // Render fungsi detail dari payload JSON
+      function renderDetailUI(data) {
+        const infoDetailAset = document.getElementById("infoDetailAset");
+        if (data && data.result === "found") {
+          const isTerinventaris = (data.sudah_inventaris === true);
+          localStorage.setItem("print_kode", data.kode || kodeBersih);
+          saveToHistory(data.kode || kodeBersih, data.nama || "Aset Satpol PP");
+
+          let teksHarga = `<span style="font-size: 12px; color: var(--text-muted); font-style: italic;">*** (Akses Pengurus Barang untuk lihat)</span>`;
+          if (tampilkanHarga && data.harga_total !== undefined && data.harga_total !== null) {
+            const numHarga = Number(data.harga_total);
+            teksHarga = isNaN(numHarga) ? safeStr(data.harga_total) : `Rp ${numHarga.toLocaleString('id-ID')}`;
+          }
+
+          infoDetailAset.innerHTML = `
+            <div style="margin-bottom: 12px; text-align: center;">
+              <span class="info-badge-status ${isTerinventaris ? 'status-good' : 'status-bad'}">
+                <i class="fa-solid ${isTerinventaris ? 'fa-circle-check' : 'fa-clock'}"></i> 
+                ${isTerinventaris ? 'TERINVENTARISASI DIGITAL' : 'BELUM DICATAT PERIODE INI'}
+              </span>
+            </div>
+
+            <div class="info-detail-grid">
+              <div class="info-item"><span class="info-label">KODE BARANG / ID BARANG</span><span class="info-value code-highlight">${safeStr(data.kode)}</span></div>
+              <div class="info-item"><span class="info-label">NAMA BARANG / MERK / REG</span><span class="info-value">${safeStr(data.nama)} ${data.merk && data.merk !== '-' ? ' - ' + data.merk : ''} (Reg: ${safeStr(data.reg)})</span></div>
+              <div class="info-item"><span class="info-label">SPESIFIKASI & TAHUN</span><span class="info-value">Ukuran: ${safeStr(data.ukuran)} | Bahan: ${safeStr(data.bahan)} | Tahun: ${safeStr(data.tahun_perolehan || data.tahun)}</span></div>
+              <div class="info-item"><span class="info-label">NOMOR LEGALITAS / KENDARAAN</span><span class="info-value">Pabrik: ${safeStr(data.no_pabrik)} | Rangka: ${safeStr(data.no_rangka)} | Mesin: ${safeStr(data.no_mesin)} | Polisi: ${safeStr(data.no_polisi)} | BPKB: ${safeStr(data.no_bpkb)}</span></div>
+              <div class="info-item"><span class="info-label">KONDISI & STATUS ASET</span><span class="info-value">${safeStr(data.kondisi_status)} (Status: ${safeStr(data.status_aset)})</span></div>
+              <div class="info-item" style="background-color: ${tampilkanHarga ? 'var(--success-soft)' : 'transparent'}; padding: 6px; border-radius: 8px;"><span class="info-label">NILAI / HARGA BARANG</span><span class="info-value" style="color: #065f46;">${teksHarga}</span></div>
+              <div class="info-item"><span class="info-label">KETERANGAN DOKUMEN</span><span class="info-value">${safeStr(data.keterangan_aset || data.keterangan)}</span></div>
+            </div>
+
+            <div style="margin-top: 16px;">
+              <button type="button" onclick="window.tampilkanHalamanScanner()" class="btn btn-primary" style="width: 100%;">
+                <i class="fa-solid fa-arrow-left"></i> Scan Barang Lain
+              </button>
+            </div>
+          `;
+        } else {
+          infoDetailAset.innerHTML = `
+            <div style="text-align:center; color:var(--danger); padding:16px 10px;">
+              <i class="fa-solid fa-circle-xmark" style="font-size:36px;"></i>
+              <p style="margin-top:10px; font-weight:700; font-size:14px;">Kode [${kodeBersih}] tidak ditemukan!</p>
+              <button type="button" onclick="window.tampilkanHalamanScanner()" class="btn btn-primary" style="margin-top: 12px;">
+                <i class="fa-solid fa-arrow-left"></i> Coba Kode Lain
+              </button>
+            </div>
+          `;
+        }
+      }
+
+      // Cek apakah data tersedia di Fast Memory Cache (Super Instant < 10ms)
+      if (!forceRefresh && memoryCache.has(kodeBersih)) {
+        renderDetailUI(memoryCache.get(kodeBersih));
+        return;
+      }
+
       showSkeletonLoading(kodeBersih);
 
-      // Request GET langsung tanpa menunggu proses kamera selesai.
-      // Timestamp tetap dipakai agar data inventaris selalu fresh.
-      const waktuRequest = performance.now();
-      fetch(`${SCRIPT_URL}?action=get_detail&kode=${encodeURIComponent(kodeBersih)}&_ts=${Date.now()}`, {
+      // Request Fetch tanpa URL redirect berantai
+      fetch(`${SCRIPT_URL}?action=get_detail&kode=${encodeURIComponent(kodeBersih)}`, {
         method: "GET",
-        cache: "no-store",
+        cache: "force-cache",
         redirect: "follow"
       })
         .then(response => {
@@ -1274,55 +1339,10 @@
           return response.json();
         })
         .then(data => {
-          console.log(`[SI-ACEP] get_detail ${kodeBersih}: ${(performance.now() - waktuRequest).toFixed(0)} ms`);
-          const infoDetailAset = document.getElementById("infoDetailAset");
           if (data && data.result === "found") {
-            const isTerinventaris = (data.sudah_inventaris === true);
-            localStorage.setItem("print_kode", data.kode || kodeBersih);
-
-            saveToHistory(data.kode || kodeBersih, data.nama || "Aset Satpol PP");
-
-            let teksHarga = `<span style="font-size: 12px; color: var(--text-muted); font-style: italic;">*** (Akses Pengurus Barang untuk lihat)</span>`;
-            if (tampilkanHarga && data.harga_total !== undefined && data.harga_total !== null) {
-              const numHarga = Number(data.harga_total);
-              teksHarga = isNaN(numHarga) ? safeStr(data.harga_total) : `Rp ${numHarga.toLocaleString('id-ID')}`;
-            }
-
-            infoDetailAset.innerHTML = `
-              <div style="margin-bottom: 12px; text-align: center;">
-                <span class="info-badge-status ${isTerinventaris ? 'status-good' : 'status-bad'}">
-                  <i class="fa-solid ${isTerinventaris ? 'fa-circle-check' : 'fa-clock'}"></i> 
-                  ${isTerinventaris ? 'TERINVENTARISASI DIGITAL' : 'BELUM DICATAT PERIODE INI'}
-                </span>
-              </div>
-
-              <div class="info-detail-grid">
-                <div class="info-item"><span class="info-label">KODE BARANG / ID BARANG</span><span class="info-value code-highlight">${safeStr(data.kode)}</span></div>
-                <div class="info-item"><span class="info-label">NAMA BARANG / MERK / REG</span><span class="info-value">${safeStr(data.nama)} ${data.merk && data.merk !== '-' ? ' - ' + data.merk : ''} (Reg: ${safeStr(data.reg)})</span></div>
-                <div class="info-item"><span class="info-label">SPESIFIKASI & TAHUN</span><span class="info-value">Ukuran: ${safeStr(data.ukuran)} | Bahan: ${safeStr(data.bahan)} | Tahun: ${safeStr(data.tahun_perolehan || data.tahun)}</span></div>
-                <div class="info-item"><span class="info-label">NOMOR LEGALITAS / KENDARAAN</span><span class="info-value">Pabrik: ${safeStr(data.no_pabrik)} | Rangka: ${safeStr(data.no_rangka)} | Mesin: ${safeStr(data.no_mesin)} | Polisi: ${safeStr(data.no_polisi)} | BPKB: ${safeStr(data.no_bpkb)}</span></div>
-                <div class="info-item"><span class="info-label">KONDISI & STATUS ASET</span><span class="info-value">${safeStr(data.kondisi_status)} (Status: ${safeStr(data.status_aset)})</span></div>
-                <div class="info-item" style="background-color: ${tampilkanHarga ? 'var(--success-soft)' : 'transparent'}; padding: 6px; border-radius: 8px;"><span class="info-label">NILAI / HARGA BARANG</span><span class="info-value" style="color: #065f46;">${teksHarga}</span></div>
-                <div class="info-item"><span class="info-label">KETERANGAN DOKUMEN</span><span class="info-value">${safeStr(data.keterangan_aset || data.keterangan)}</span></div>
-              </div>
-
-              <div style="margin-top: 16px;">
-                <button type="button" onclick="window.tampilkanHalamanScanner()" class="btn btn-primary" style="width: 100%;">
-                  <i class="fa-solid fa-arrow-left"></i> Scan Barang Lain
-                </button>
-              </div>
-            `;
-          } else {
-            infoDetailAset.innerHTML = `
-              <div style="text-align:center; color:var(--danger); padding:16px 10px;">
-                <i class="fa-solid fa-circle-xmark" style="font-size:36px;"></i>
-                <p style="margin-top:10px; font-weight:700; font-size:14px;">Kode [${kodeBersih}] tidak ditemukan!</p>
-                <button type="button" onclick="window.tampilkanHalamanScanner()" class="btn btn-primary" style="margin-top: 12px;">
-                  <i class="fa-solid fa-arrow-left"></i> Coba Kode Lain
-                </button>
-              </div>
-            `;
+            memoryCache.set(kodeBersih, data);
           }
+          renderDetailUI(data);
         })
         .catch(err => {
           console.error("get_detail gagal:", err);
@@ -1330,7 +1350,7 @@
             <div style="text-align:center; color:var(--danger); padding:16px 10px;">
               <i class="fa-solid fa-triangle-exclamation" style="font-size:32px;"></i>
               <p style="margin-top:10px; font-weight:700;">Gagal mengambil data barang.</p>
-              <button type="button" onclick="window.prosesCekDetailAset('${kodeBersih}', ${tampilkanHarga})" class="btn btn-primary" style="margin-top:12px;">Coba Lagi</button>
+              <button type="button" onclick="window.prosesCekDetailAset('${kodeBersih}', ${tampilkanHarga}, true)" class="btn btn-primary" style="margin-top:12px;">Coba Lagi</button>
             </div>`;
         });
     };
