@@ -12,6 +12,7 @@
 
   <!-- External Resources -->
   <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css">
+  <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800&display=swap" rel="stylesheet">
   <script src="https://unpkg.com/html5-qrcode"></script>
 
   <style>
@@ -22,7 +23,7 @@
       --primary: #0284c7;
       --primary-hover: #0369a1;
       --primary-soft: #e0f2fe;
-      --bg: #f1f5f9;
+      --bg: #f8fafc;
       --card-bg: #ffffff;
       --text: #0f172a;
       --text-muted: #64748b;
@@ -38,15 +39,15 @@
       --indigo: #4f46e5;
       --indigo-soft: #e0e7ff;
       --dark-panel: #1e293b;
-      --radius: 14px;
-      --shadow: 0 10px 15px -3px rgba(0, 0, 0, 0.05), 0 4px 6px -2px rgba(0, 0, 0, 0.025);
+      --radius: 16px;
+      --shadow: 0 10px 25px -5px rgba(15, 23, 42, 0.05), 0 8px 10px -6px rgba(15, 23, 42, 0.04);
     }
 
     * {
       box-sizing: border-box;
       margin: 0;
       padding: 0;
-      font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
+      font-family: 'Plus Jakarta Sans', -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
       -webkit-tap-highlight-color: transparent;
     }
 
@@ -64,7 +65,7 @@
       font-size: 11px;
       font-weight: 700;
       text-align: center;
-      padding: 4px 8px;
+      padding: 6px 12px;
       display: none;
       align-items: center;
       justify-content: center;
@@ -76,9 +77,9 @@
     /* Header & Navbar */
     .app-header {
       background-color: var(--card-bg);
-      padding: 12px 16px;
+      padding: 16px;
       border-bottom: 1px solid var(--border);
-      box-shadow: 0 2px 4px rgba(0,0,0,0.03);
+      box-shadow: 0 4px 12px rgba(15, 23, 42, 0.03);
       position: sticky;
       top: 0;
       z-index: 100;
@@ -88,14 +89,15 @@
       display: flex;
       align-items: center;
       justify-content: space-between;
-      max-width: 600px;
+      max-width: 500px;
       margin: 0 auto;
     }
 
     .header-logo-left img, .header-logo-right img {
-      height: 42px;
+      height: 40px;
       width: auto;
       object-fit: contain;
+      filter: drop-shadow(0 2px 4px rgba(0,0,0,0.06));
     }
 
     .header-title {
@@ -104,25 +106,25 @@
 
     .header-title h1 {
       margin: 0;
-      font-size: 19px;
+      font-size: 20px;
       font-weight: 800;
       color: var(--text);
       letter-spacing: -0.5px;
     }
 
     .header-title p {
-      margin: 1px 0 0 0;
-      font-size: 9.5px;
+      margin: 2px 0 0 0;
+      font-size: 9px;
       color: var(--text-muted);
       font-weight: 700;
-      letter-spacing: 0.2px;
+      letter-spacing: 0.4px;
       text-transform: uppercase;
     }
 
     /* Main Container */
     .main-container {
-      max-width: 500px;
-      margin: 16px auto;
+      max-width: 440px;
+      margin: 20px auto;
       padding: 0 16px;
       display: flex;
       flex-direction: column;
@@ -133,30 +135,30 @@
       background: var(--card-bg);
       border: 1px solid var(--border);
       border-radius: var(--radius);
-      padding: 20px;
+      padding: 24px 20px;
       box-shadow: var(--shadow);
       transition: all 0.3s ease;
     }
 
     .card-title {
-      margin-bottom: 16px;
-      border-bottom: 1px solid var(--border);
-      padding-bottom: 12px;
+      margin-bottom: 18px;
     }
 
     .card-title h2 {
       font-size: 16px;
       color: var(--text);
-      font-weight: 700;
+      font-weight: 800;
       display: flex;
       align-items: center;
       gap: 8px;
+      letter-spacing: -0.3px;
     }
 
     .card-title p {
       font-size: 12px;
       color: var(--text-muted);
-      margin-top: 2px;
+      margin-top: 3px;
+      line-height: 1.4;
     }
 
     /* Scanner UI */
@@ -175,7 +177,7 @@
     }
 
     #reader {
-      border: 2px dashed var(--primary) !important;
+      border: 2px dashed #cbd5e1 !important;
       border-radius: var(--radius) !important;
       overflow: hidden !important;
       background-color: #0f172a !important;
@@ -186,9 +188,9 @@
 
     #reader video {
       object-fit: cover !important;
-      border-radius: 10px !important;
+      border-radius: 12px !important;
       width: 100% !important;
-      max-height: 250px !important;
+      max-height: 240px !important;
     }
 
     .scanner-controls {
@@ -202,8 +204,8 @@
     /* Buttons System */
     .btn {
       border: none;
-      padding: 12px 16px;
-      border-radius: 10px;
+      padding: 13px 18px;
+      border-radius: 12px;
       font-weight: 700;
       font-size: 13.5px;
       cursor: pointer;
@@ -213,30 +215,67 @@
       gap: 8px;
       transition: all 0.2s ease;
       text-decoration: none;
-      box-shadow: 0 2px 4px rgba(0,0,0,0.05);
+      box-shadow: 0 4px 10px rgba(0, 0, 0, 0.05);
     }
 
-    .btn:active { transform: scale(0.97); }
+    .btn:active { transform: scale(0.98); }
     .btn:disabled { opacity: 0.6; cursor: not-allowed; }
-    .btn-primary { background-color: var(--primary); color: white; }
+    
+    .btn-primary { 
+      background: linear-gradient(135deg, #0284c7 0%, #0369a1 100%); 
+      color: white; 
+      box-shadow: 0 4px 12px rgba(2, 132, 199, 0.25);
+    }
     .btn-primary:hover { background-color: var(--primary-hover); }
+    
     .btn-danger { background-color: var(--danger); color: white; }
     .btn-danger:hover { background-color: var(--danger-hover); }
     .btn-danger-dark { background-color: var(--danger-dark); color: white; }
     .btn-danger-dark:hover { background-color: #7f1d1d; }
-    .btn-dark { background-color: var(--dark-panel); color: white; }
+    
+    .btn-dark { 
+      background-color: var(--dark-panel); 
+      color: white; 
+      box-shadow: 0 4px 12px rgba(30, 41, 59, 0.15);
+    }
     .btn-dark:hover { background-color: #0f172a; }
+    
     .btn-success { background-color: var(--success); color: white; }
     .btn-indigo { background-color: var(--indigo); color: white; }
     .btn-warning { background-color: var(--warning); color: white; }
 
+    /* Custom Divider */
+    .divider {
+      position: relative;
+      text-align: center;
+      margin: 22px 0 16px 0;
+      width: 100%;
+    }
+
+    .divider::before {
+      content: "";
+      position: absolute;
+      top: 50%;
+      left: 0;
+      width: 100%;
+      height: 1px;
+      background: var(--border);
+    }
+
+    .divider span {
+      position: relative;
+      background: #FFFFFF;
+      padding: 0 12px;
+      font-size: 11px;
+      font-weight: 700;
+      color: var(--text-muted);
+      text-transform: uppercase;
+      letter-spacing: 0.5px;
+    }
+
     /* Inputs & Select Elements */
     .manual-input-box {
-      margin-top: 20px;
       width: 100%;
-      text-align: center;
-      border-top: 1px dashed var(--border);
-      padding-top: 16px;
     }
 
     .input-group {
@@ -249,13 +288,13 @@
     .form-control {
       width: 100%;
       max-width: 100%;
-      padding: 11px 14px;
+      padding: 12px 14px;
       border: 1.5px solid var(--border);
-      border-radius: 10px;
+      border-radius: 12px;
       font-size: 13.5px;
       outline: none;
       transition: border-color 0.2s;
-      background: white;
+      background: #f8fafc;
       color: var(--text);
       appearance: none;
       -webkit-appearance: none;
@@ -275,6 +314,7 @@
 
     .form-control:focus {
       border-color: var(--primary);
+      background: #ffffff;
       box-shadow: 0 0 0 3px var(--primary-soft);
     }
 
@@ -293,7 +333,7 @@
       background-color: #ffffff;
       color: var(--text);
       border: 2px dashed var(--primary);
-      border-radius: 10px;
+      border-radius: 12px;
       font-size: 13px;
       font-weight: 700;
       cursor: pointer;
@@ -323,7 +363,7 @@
     #preview_img {
       max-width: 100%;
       max-height: 200px;
-      border-radius: 10px;
+      border-radius: 12px;
       border: 1px solid var(--border);
       object-fit: cover;
       box-shadow: var(--shadow);
@@ -360,7 +400,7 @@
       gap: 6px;
       padding: 6px 14px;
       border-radius: 20px;
-      font-size: 12px;
+      font-size: 11.5px;
       font-weight: 800;
       letter-spacing: 0.3px;
       text-transform: uppercase;
@@ -405,7 +445,7 @@
     .modal-box {
       background: white;
       border-radius: var(--radius);
-      padding: 20px 24px;
+      padding: 24px;
       width: 100%;
       max-width: 420px;
       box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.25);
@@ -436,23 +476,26 @@
       display: flex;
       justify-content: space-between;
       align-items: center;
-      padding: 10px 12px;
-      background: var(--card-bg);
+      padding: 10px 14px;
+      background: #f8fafc;
       border: 1px solid var(--border);
-      border-radius: 10px;
+      border-radius: 12px;
       margin-bottom: 8px;
       cursor: pointer;
-      transition: background-color 0.2s;
+      transition: all 0.2s;
     }
 
-    .history-item:hover { background-color: var(--primary-soft); }
+    .history-item:hover { 
+      background-color: var(--primary-soft); 
+      border-color: #bae6fd;
+    }
 
     .app-footer {
       text-align: center;
       padding: 16px;
       font-size: 11.5px;
       color: var(--text-muted);
-      font-weight: 500;
+      font-weight: 600;
     }
   </style>
 </head>
@@ -509,11 +552,11 @@
           </button>
         </div>
 
+        <div class="divider">
+          <span>Atau Cari Manual</span>
+        </div>
+
         <div class="manual-input-box">
-          <p style="font-size: 12px; color: var(--text-muted); font-weight: 600;">
-            <i class="fa-solid fa-keyboard"></i> Atau masukkan kode barang manual:
-          </p>
-          
           <div class="input-group">
             <input type="text" id="inputKodeManual" class="form-control" placeholder="Contoh: 1.3.2.01.001...">
             <button id="btnCariManual" type="button" class="btn btn-primary">
@@ -524,9 +567,9 @@
       </div>
 
       <!-- HISTORI SCAN TERAKHIR -->
-      <div style="margin-top: 20px; border-top: 1px solid var(--border); padding-top: 15px;">
-        <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom: 8px;">
-          <h3 style="font-size: 13px; font-weight: 700; color: var(--text-muted);">
+      <div style="margin-top: 24px; border-top: 1px solid var(--border); padding-top: 16px;">
+        <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom: 10px;">
+          <h3 style="font-size: 12px; font-weight: 700; color: var(--text-muted); text-transform: uppercase; letter-spacing: 0.3px;">
             <i class="fa-solid fa-clock-rotate-left"></i> Riwayat Pemindaian Terakhir
           </h3>
           <button type="button" onclick="clearScanHistory()" style="background:none; border:none; font-size:11px; color:var(--danger); cursor:pointer; font-weight:700;">Hapus</button>
@@ -534,7 +577,7 @@
         <div id="scanHistoryContainer"></div>
       </div>
 
-      <div style="margin-top: 15px; border-top: 1px solid var(--border); padding-top: 15px;">
+      <div style="margin-top: 16px; border-top: 1px solid var(--border); padding-top: 16px;">
         <button type="button" onclick="openPinModal()" class="btn btn-dark" style="width: 100%;">
           <i class="fa-solid fa-user-shield"></i> Akses Pengurus Barang
         </button>
@@ -563,7 +606,7 @@
         </div>
 
         <!-- UPLOAD FOTO ASET KONDISI FISIK -->
-        <div style="margin-bottom: 12px; background: #f8fafc; padding: 12px; border-radius: 10px; border: 1px solid var(--border);">
+        <div style="margin-bottom: 12px; background: #f8fafc; padding: 12px; border-radius: 12px; border: 1px solid var(--border);">
           <label style="font-size: 11px; font-weight: 800; color: var(--text-muted); display: block; margin-bottom: 6px;">
             <i class="fa-solid fa-camera"></i> FOTO KONDISI ASET REAL-TIME
           </label>
@@ -623,7 +666,7 @@
       <h3 style="margin: 0 0 4px 0; color: var(--text); font-size: 16px;">Akses Pengurus Barang</h3>
       <p style="margin: 0 0 16px 0; color: var(--text-muted); font-size: 12px;">Masukkan PIN Otentikasi Petugas.</p>
       
-      <input type="password" id="inputPinPetugas" maxlength="6" inputmode="numeric" placeholder="------" style="width: 100%; padding: 10px; font-size: 22px; text-align: center; letter-spacing: 8px; border: 2px solid var(--border); border-radius: 10px; margin-bottom: 16px; outline: none;">
+      <input type="password" id="inputPinPetugas" maxlength="6" inputmode="numeric" placeholder="------" style="width: 100%; padding: 10px; font-size: 22px; text-align: center; letter-spacing: 8px; border: 2px solid var(--border); border-radius: 12px; margin-bottom: 16px; outline: none;">
 
       <div style="display: flex; gap: 8px;">
         <button type="button" onclick="closePinModal()" class="btn btn-dark" style="flex: 1; padding: 10px;">Batal</button>
@@ -679,7 +722,7 @@
     </div>
   </div>
 
-  <!-- MODAL LAPORAN EXCEL -->
+  <!-- MODAL LAPORAN EXCEL (DESAIN RAPI TERIAP) -->
   <div id="modalCetakLaporan" class="modal" role="dialog" aria-modal="true">
     <div class="modal-box">
       <div style="display: flex; align-items: center; justify-content: space-between; border-bottom: 1px solid var(--border); padding-bottom: 10px; margin-bottom: 14px;">
@@ -841,7 +884,7 @@
       if (!container) return;
       const history = JSON.parse(localStorage.getItem("siacep_history") || "[]");
       if (history.length === 0) {
-        container.innerHTML = `<p style="font-size: 11px; color: var(--text-muted); text-align: center;">Belum ada riwayat scan.</p>`;
+        container.innerHTML = `<p style="font-size: 12px; color: var(--text-muted); text-align: center; font-style: italic; padding: 8px 0;">Belum ada riwayat scan.</p>`;
         return;
       }
       container.innerHTML = history.map(item => `
@@ -904,7 +947,6 @@
     };
 
     window.tampilkanHalamanInformasi = function () {
-      if (typeof window.matikanKamera === "function") window.matikanKamera();
       document.getElementById("page-scanner").style.display = "none";
       document.getElementById("page-informasi").style.display = "block";
       window.scrollTo({ top: 0, behavior: 'smooth' });
@@ -1107,38 +1149,20 @@
       renderScanHistory();
 
       if (document.getElementById("reader")) {
-        // Inisialisasi dengan opsi verbose false
-        html5QrCode = new Html5Qrcode("reader", false);
+        html5QrCode = new Html5Qrcode("reader");
       }
 
-      /* OPTIMASI RESOLUSI & FREKUENSI SCANNER */
       window.mulaiKamera = function () {
         if (!html5QrCode || html5QrCode.isScanning) return;
-
-        // Konfigurasi performa tinggi untuk scan instan
-        const config = { 
-          fps: 15, // Ditingkatkan ke 15 FPS untuk pemindaian lebih cepat
-          qrbox: { width: 220, height: 220 }, // Ukuran fokus ideal
-          aspectRatio: 1.0,
-          experimentalFeatures: {
-            useBarCodeDetectorIfSupported: true // Menggunakan hardware acceleration jika HP mendukung
-          }
-        };
-
-        // Membatasi resolusi ke VGA (640x480) agar pemrosesan gambar jauh lebih ringan
-        const cameraConfig = { 
-          facingMode: "environment",
-          width: { ideal: 640 },
-          height: { ideal: 480 }
-        };
+        const config = { fps: 10, qrbox: { width: 200, height: 200 } };
 
         html5QrCode.start(
-          cameraConfig, config,
+          { facingMode: "environment" }, config,
           (decodedText) => {
             if (scannerAktif) {
               scannerAktif = false;
               triggerSuccessFeedback();
-              window.matikanKamera();
+              matikanKamera();
               window.prosesCekDetailAset(decodedText, false);
             }
           }, () => {}
@@ -1149,20 +1173,19 @@
         }).catch(err => console.error("Kamera Gagal:", err));
       };
 
-      window.matikanKamera = function () {
+      function matikanKamera() {
         if (html5QrCode && html5QrCode.isScanning) {
           html5QrCode.stop().then(() => {
-            isTorchOn = false;
             document.getElementById("btnStartCamera").style.display = "inline-flex";
             document.getElementById("btnStopCamera").style.display = "none";
             document.getElementById("btnTorch").style.display = "none";
-          }).catch(err => console.error("Gagal stop kamera:", err));
+          }).catch(err => console.error(err));
         }
-      };
+      }
 
       document.getElementById("btnStartCamera")?.addEventListener("click", () => { scannerAktif = true; window.mulaiKamera(); });
-      document.getElementById("btnStopCamera")?.addEventListener("click", () => window.matikanKamera());
-      document.addEventListener("visibilitychange", () => { if (document.hidden) window.matikanKamera(); });
+      document.getElementById("btnStopCamera")?.addEventListener("click", () => matikanKamera());
+      document.addEventListener("visibilitychange", () => { if (document.hidden) matikanKamera(); });
 
       window.mulaiKamera();
 
@@ -1175,7 +1198,7 @@
         if (!kodeInput) return alert("Masukkan Kode Barang atau ID Aset!");
         triggerSuccessFeedback();
         scannerAktif = false;
-        window.matikanKamera();
+        matikanKamera();
         window.prosesCekDetailAset(kodeInput, false);
       }
 
