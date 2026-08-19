@@ -1154,7 +1154,7 @@
         html5QrCode = new Html5Qrcode("reader");
       }
 
-      // Scanner dioptimalkan untuk QR saja: lebih ringan di HP dan lebih cepat mengenali kode.
+      // Scanner dioptimalkan untuk Scan Instan & Hardware Acceleration
       let scannerStarting = false;
       let lastDecodedCode = "";
       let lastDecodedAt = 0;
@@ -1164,11 +1164,14 @@
         scannerStarting = true;
 
         const config = {
-          fps: 12,
-          qrbox: { width: 180, height: 180 },
+          fps: 30,                             // Naikan ke 30 FPS untuk pembacaan instan tanpa delay
+          qrbox: { width: 250, height: 250 },  // Area tangkap scan lebih luas & fokus
           aspectRatio: 1.0,
           disableFlip: true,
-          formatsToSupport: [Html5QrcodeSupportedFormats.QR_CODE]
+          formatsToSupport: [Html5QrcodeSupportedFormats.QR_CODE],
+          experimentalFeatures: {
+            useBarCodeDetectorIfSupported: true // Gunakan akselerasi hardware chipset HP
+          }
         };
 
         html5QrCode.start(
@@ -1176,17 +1179,19 @@
           config,
           (decodedText) => {
             const now = Date.now();
-            // Cegah QR yang sama diproses berulang kali oleh kamera.
+            // Mencegah pembacaan ganda dalam rentang waktu singkat
             if (!scannerAktif || (decodedText === lastDecodedCode && now - lastDecodedAt < 1500)) return;
 
             lastDecodedCode = decodedText;
             lastDecodedAt = now;
             scannerAktif = false;
 
-            // Proses request data SEGERA. Stop kamera berjalan paralel, tidak menunggu.
+            // Umpan balik suara & getar
             triggerSuccessFeedback();
-            window.prosesCekDetailAset(decodedText, false);
+            
+            // Hentikan/pause pemindaian & langsung request detail aset
             matikanKamera();
+            window.prosesCekDetailAset(decodedText, false);
           },
           () => {}
         ).then(() => {
