@@ -11,9 +11,11 @@
   <title>SI-ACEP - Sistem Inventarisasi Aset Cepat Efisien & Praktis</title>
 
   <!-- External Resources -->
+  <link rel="preconnect" href="https://script.google.com" crossorigin>
+  <link rel="preconnect" href="https://script.googleusercontent.com" crossorigin>
   <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css">
   <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800&display=swap" rel="stylesheet">
-  <script src="https://unpkg.com/html5-qrcode"></script>
+  <script src="https://unpkg.com/html5-qrcode" defer></script>
 
   <style>
     /* =========================================================================
@@ -943,13 +945,13 @@
       scannerAktif = true;
       renderScanHistory();
       if (typeof window.mulaiKamera === "function") window.mulaiKamera();
-      window.scrollTo({ top: 0, behavior: 'smooth' });
+      window.scrollTo({ top: 0, behavior: 'auto' });
     };
 
     window.tampilkanHalamanInformasi = function () {
       document.getElementById("page-scanner").style.display = "none";
       document.getElementById("page-informasi").style.display = "block";
-      window.scrollTo({ top: 0, behavior: 'smooth' });
+      window.scrollTo({ top: 0, behavior: 'auto' });
     };
 
     /* EXPORT EXCEL */
@@ -1152,25 +1154,50 @@
         html5QrCode = new Html5Qrcode("reader");
       }
 
+      // Scanner dioptimalkan untuk QR saja: lebih ringan di HP dan lebih cepat mengenali kode.
+      let scannerStarting = false;
+      let lastDecodedCode = "";
+      let lastDecodedAt = 0;
+
       window.mulaiKamera = function () {
-        if (!html5QrCode || html5QrCode.isScanning) return;
-        const config = { fps: 10, qrbox: { width: 200, height: 200 } };
+        if (!html5QrCode || html5QrCode.isScanning || scannerStarting) return;
+        scannerStarting = true;
+
+        const config = {
+          fps: 12,
+          qrbox: { width: 180, height: 180 },
+          aspectRatio: 1.0,
+          disableFlip: true,
+          formatsToSupport: [Html5QrcodeSupportedFormats.QR_CODE]
+        };
 
         html5QrCode.start(
-          { facingMode: "environment" }, config,
+          { facingMode: "environment" },
+          config,
           (decodedText) => {
-            if (scannerAktif) {
-              scannerAktif = false;
-              triggerSuccessFeedback();
-              matikanKamera();
-              window.prosesCekDetailAset(decodedText, false);
-            }
-          }, () => {}
+            const now = Date.now();
+            // Cegah QR yang sama diproses berulang kali oleh kamera.
+            if (!scannerAktif || (decodedText === lastDecodedCode && now - lastDecodedAt < 1500)) return;
+
+            lastDecodedCode = decodedText;
+            lastDecodedAt = now;
+            scannerAktif = false;
+
+            // Proses request data SEGERA. Stop kamera berjalan paralel, tidak menunggu.
+            triggerSuccessFeedback();
+            window.prosesCekDetailAset(decodedText, false);
+            matikanKamera();
+          },
+          () => {}
         ).then(() => {
+          scannerStarting = false;
           document.getElementById("btnStartCamera").style.display = "none";
           document.getElementById("btnStopCamera").style.display = "inline-flex";
           document.getElementById("btnTorch").style.display = "inline-flex";
-        }).catch(err => console.error("Kamera Gagal:", err));
+        }).catch(err => {
+          scannerStarting = false;
+          console.error("Kamera Gagal:", err);
+        });
       };
 
       function matikanKamera() {
@@ -1179,7 +1206,7 @@
             document.getElementById("btnStartCamera").style.display = "inline-flex";
             document.getElementById("btnStopCamera").style.display = "none";
             document.getElementById("btnTorch").style.display = "none";
-          }).catch(err => console.error(err));
+          }).catch(err => console.error("Gagal menghentikan kamera:", err));
         }
       }
 
@@ -1229,9 +1256,20 @@
       window.tampilkanHalamanInformasi();
       showSkeletonLoading(kodeBersih);
 
-      fetch(`${SCRIPT_URL}?action=get_detail&kode=${encodeURIComponent(kodeBersih)}&_ts=${new Date().getTime()}`)
-        .then(response => response.json())
+      // Request GET langsung tanpa menunggu proses kamera selesai.
+      // Timestamp tetap dipakai agar data inventaris selalu fresh.
+      const waktuRequest = performance.now();
+      fetch(`${SCRIPT_URL}?action=get_detail&kode=${encodeURIComponent(kodeBersih)}&_ts=${Date.now()}`, {
+        method: "GET",
+        cache: "no-store",
+        redirect: "follow"
+      })
+        .then(response => {
+          if (!response.ok) throw new Error(`HTTP ${response.status}`);
+          return response.json();
+        })
         .then(data => {
+          console.log(`[SI-ACEP] get_detail ${kodeBersih}: ${(performance.now() - waktuRequest).toFixed(0)} ms`);
           const infoDetailAset = document.getElementById("infoDetailAset");
           if (data && data.result === "found") {
             const isTerinventaris = (data.sudah_inventaris === true);
@@ -1280,6 +1318,15 @@
               </div>
             `;
           }
+        })
+        .catch(err => {
+          console.error("get_detail gagal:", err);
+          document.getElementById("infoDetailAset").innerHTML = `
+            <div style="text-align:center; color:var(--danger); padding:16px 10px;">
+              <i class="fa-solid fa-triangle-exclamation" style="font-size:32px;"></i>
+              <p style="margin-top:10px; font-weight:700;">Gagal mengambil data barang.</p>
+              <button type="button" onclick="window.prosesCekDetailAset('${kodeBersih}', ${tampilkanHarga})" class="btn btn-primary" style="margin-top:12px;">Coba Lagi</button>
+            </div>`;
         });
     };
 
