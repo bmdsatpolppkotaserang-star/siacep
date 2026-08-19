@@ -2,7 +2,7 @@
 // SERVICE WORKER - SI-ACEP (PWA CACHE MANAGEMENT)
 // =========================================================================
 
-const CACHE_NAME = 'si-acep-cache-v57';
+const CACHE_NAME = 'si-acep-cache-v58';
 const ASSETS_TO_CACHE = [
   './',
   './index.html',
