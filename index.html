@@ -1328,10 +1328,10 @@
 
       showSkeletonLoading(kodeBersih);
 
-      // Request Fetch tanpa URL redirect berantai
+      // Request Fetch tanpa URL redirect berantai (cache diubah ke no-store)
       fetch(`${SCRIPT_URL}?action=get_detail&kode=${encodeURIComponent(kodeBersih)}`, {
         method: "GET",
-        cache: "force-cache",
+        cache: "no-store",
         redirect: "follow"
       })
         .then(response => {
