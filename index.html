@@ -1221,8 +1221,49 @@
 
 
     /* ==========================================================================
-       8. AKSI ASET SINGLE & EXPORT LAPORAN
+       8. AKSI ASET SINGLE & EXPORT LAPORAN (OPTIMIZED & ANTI-FAIL)
        ========================================================================== */
+
+    // HELPER: Kompresi Gambar Otomatis ke Max 800px & Kualitas 0.6
+    function kompresiFotoAset(file) {
+      return new Promise((resolve) => {
+        const reader = new FileReader();
+        reader.onload = (e) => {
+          const img = new Image();
+          img.onload = () => {
+            const canvas = document.createElement("canvas");
+            let width = img.width;
+            let height = img.height;
+            const MAX_WIDTH = 800;
+            const MAX_HEIGHT = 800;
+
+            if (width > height) {
+              if (width > MAX_WIDTH) {
+                height *= MAX_WIDTH / width;
+                width = MAX_WIDTH;
+              }
+            } else {
+              if (height > MAX_HEIGHT) {
+                width *= MAX_HEIGHT / height;
+                height = MAX_HEIGHT;
+              }
+            }
+
+            canvas.width = width;
+            canvas.height = height;
+            const ctx = canvas.getContext("2d");
+            ctx.drawImage(img, 0, 0, width, height);
+            
+            // Ambil Base64 JPEG Kualitas 60% (Sangat Ringan)
+            const base64Str = canvas.toDataURL("image/jpeg", 0.6);
+            resolve(base64Str.includes(",") ? base64Str.split(",")[1] : base64Str);
+          };
+          img.src = e.target.result;
+        };
+        reader.readAsDataURL(file);
+      });
+    }
+
     window.eksekusiInventarisasi = async function(kodeBarang) {
       const kodeBersih = ekstrakKodeMurni(kodeBarang);
       if (!kodeBersih) return alert("Kode barang tidak valid.");
@@ -1236,20 +1277,13 @@
 
       let fotoBase64 = "";
       const inputFoto = document.getElementById("inputFotoAset");
+      
       if (inputFoto && inputFoto.files && inputFoto.files[0]) {
         try {
-          fotoBase64 = await new Promise((resolve, reject) => {
-            const reader = new FileReader();
-            reader.onload = (e) => {
-              const result = e.target.result;
-              const base64Data = result.includes(",") ? result.split(',')[1] : result;
-              resolve(base64Data);
-            };
-            reader.onerror = (err) => reject(err);
-            reader.readAsDataURL(inputFoto.files[0]);
-          });
+          // Kompres foto sebelum dikirim
+          fotoBase64 = await kompresiFotoAset(inputFoto.files[0]);
         } catch (e) {
-          console.error("Gagal membaca foto:", e);
+          console.error("Gagal kompresi foto:", e);
         }
       }
 
@@ -1259,9 +1293,9 @@
         foto: fotoBase64
       };
 
+      // JIKA OFFLINE -> Simpan ke Antrean
       if (!navigator.onLine) {
         StagingManager.addQueueItem(payloadData);
-        
         if (btnCatat) {
           btnCatat.disabled = false;
           btnCatat.innerHTML = `<i class="fa-solid fa-pen-to-square"></i> Simpan / Update`;
@@ -1271,14 +1305,18 @@
         return;
       }
 
-      const formData = new FormData();
-      formData.append("action", "update_inventaris");
-      formData.append("kode", kodeBersih);
-      formData.append("foto", fotoBase64);
+      // JIKA ONLINE -> Kirim Menggunakan URLSearchParams (Agar Tidak Kena Block CORS/FormData)
+      const bodyParams = new URLSearchParams();
+      bodyParams.append("action", "update_inventaris");
+      bodyParams.append("kode", kodeBersih);
+      bodyParams.append("foto", fotoBase64);
 
       fetch(SCRIPT_URL, {
         method: "POST",
-        body: formData
+        headers: {
+          "Content-Type": "application/x-www-form-urlencoded"
+        },
+        body: bodyParams.toString()
       })
         .then(res => res.json())
         .then(data => {
@@ -1423,13 +1461,17 @@
       let offlineQueue = StagingManager.getQueue();
       if (offlineQueue.length > 0) {
         updateNetworkStatus();
-        const formData = new FormData();
-        formData.append("action", "sync_offline_massal");
-        formData.append("data_list", JSON.stringify(offlineQueue));
+
+        const bodyParams = new URLSearchParams();
+        bodyParams.append("action", "sync_offline_massal");
+        bodyParams.append("data_list", JSON.stringify(offlineQueue));
 
         fetch(SCRIPT_URL, {
           method: "POST",
-          body: formData
+          headers: {
+            "Content-Type": "application/x-www-form-urlencoded"
+          },
+          body: bodyParams.toString()
         })
           .then(res => res.json())
           .then(resData => {
