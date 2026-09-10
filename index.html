@@ -70,26 +70,6 @@
     #reader video { object-fit: cover !important; border-radius: 12px !important; width: 100% !important; max-height: 240px !important; }
     .scanner-controls { display: flex; justify-content: center; gap: 10px; margin-top: 16px; width: 100%; }
 
-    /* Toggle Switch */
-    .switch-container { display: flex; align-items: center; justify-content: center; gap: 10px; margin-bottom: 16px; padding: 12px; background: var(--primary-soft); border-radius: var(--radius); border: 1px solid #bae6fd; }
-    .switch-container.kir-mode { background: var(--kir-soft); border-color: #a7f3d0; }
-    .switch { position: relative; display: inline-block; width: 50px; height: 24px; }
-    .switch input { opacity: 0; width: 0; height: 0; }
-    .slider { position: absolute; cursor: pointer; top: 0; left: 0; right: 0; bottom: 0; background-color: #cbd5e1; transition: .4s; border-radius: 24px; }
-    .slider:before { position: absolute; content: ""; height: 18px; width: 18px; left: 3px; bottom: 3px; background-color: white; transition: .4s; border-radius: 50%; }
-    input:checked + .slider { background-color: var(--primary); }
-    .switch-container.kir-mode input:checked + .slider { background-color: var(--kir); }
-    input:checked + .slider:before { transform: translateX(26px); }
-    .switch-label { font-size: 13px; font-weight: 700; color: var(--primary); }
-    .switch-container.kir-mode .switch-label { color: var(--kir-hover); }
-
-    /* Batch List UI */
-    #batchResultContainer { display: none; width: 100%; margin-top: 16px; border: 1px solid var(--border); border-radius: var(--radius); overflow: hidden; }
-    #batchResultContainer.active { display: block; }
-    .batch-header { background: #f1f5f9; padding: 10px 14px; display: flex; justify-content: space-between; align-items: center; border-bottom: 1px solid var(--border); font-size: 12px; font-weight: 700; }
-    .batch-list { max-height: 150px; overflow-y: auto; padding: 0; margin: 0; list-style: none; }
-    .batch-item { padding: 8px 14px; border-bottom: 1px solid var(--border); display: flex; justify-content: space-between; align-items: center; font-size: 12px; }
-
     /* Buttons System */
     .btn { border: none; padding: 13px 18px; border-radius: 12px; font-weight: 700; font-size: 13.5px; cursor: pointer; display: inline-flex; align-items: center; justify-content: center; gap: 8px; transition: all 0.2s ease; box-shadow: 0 4px 10px rgba(0, 0, 0, 0.05); }
     .btn:active { transform: scale(0.98); }
@@ -208,14 +188,6 @@
         <p id="subjudulScanner">Arahkan kamera ke stiker QR Aset.</p>
       </div>
 
-      <div class="switch-container" id="wrapperSwitchBatch">
-        <label class="switch">
-          <input type="checkbox" id="toggleBatchMode" onchange="handleToggleBatchMode(this.checked)">
-          <span class="slider"></span>
-        </label>
-        <span class="switch-label">Mode Scan Massal</span>
-      </div>
-
       <div class="scanner-box">
         <div id="reader"></div>
         <div class="scanner-controls">
@@ -228,20 +200,6 @@
           <button id="btnTorch" type="button" class="btn btn-warning" style="display: none;" onclick="toggleFlashlight()">
             <i class="fa-solid fa-bolt"></i>
           </button>
-        </div>
-
-        <!-- AREA HASIL BATCH SCAN -->
-        <div id="batchResultContainer">
-          <div class="batch-header">
-            <span>Antrean Massal: <span id="batchItemCount">0</span></span>
-            <button type="button" onclick="clearBatchItems()" style="background:none; border:none; color:var(--danger); font-size:11px; font-weight:700; cursor:pointer;">Kosongkan</button>
-          </div>
-          <ul class="batch-list" id="batchList"></ul>
-          <div style="padding: 10px;">
-            <button id="btnSimpanMassal" type="button" onclick="eksekusiSimpanMassal()" class="btn btn-success" style="width: 100%; font-size: 12px; padding: 10px;">
-              <i class="fa-solid fa-cloud-arrow-up"></i> Simpan Semua ke Database
-            </button>
-          </div>
         </div>
 
         <div class="divider" id="dividerManual">
@@ -432,7 +390,7 @@
     });
 
     let scannerAktif = true, html5QrCode = null, isTorchOn = false, sessionTimer = null;
-    let isBatchMode = false, batchSet = new Set(), lastScanTime = 0, lastScanCode = "";
+    let lastScanTime = 0, lastScanCode = "";
     let modeAktif = null, ruanganAktif = "";
     const memoryCache = new Map();
     const scanBeepSound = new Audio("data:audio/wav;base64,UklGRl9vT19XQVZFZm10IBAAAAABAAEAQB8AAEAfAAABAAgAZGF0YUtvT18AZv8AZv8AZv8AZv8AZv8AZv8AZv8AZv8AZv8AZv8AZv8AZv8AZv8AZv8AZv8AZv8AZv8AZv8AZv8AZv8AZv8AZv8AZv8AZv8AZv8AZv8AZv8AZv8AZv8AZv8AZv8AZv8AZv8AZv8AZv8AZv8AZv8AZv8AZv8AZv8AZv8AZv8=");
@@ -468,7 +426,6 @@
       }
     };
 
-    // PENTING: Pindahkan matikanKamera ke Global Scope agar tidak error saat dipanggil oleh tombol!
     window.matikanKamera = function() {
       if (html5QrCode && html5QrCode.isScanning) {
         html5QrCode.stop().then(() => {
@@ -498,8 +455,7 @@
             lastScanCode = decodedText; lastScanTime = now;
             triggerSuccessFeedback();
 
-            if (isBatchMode) { tambahKeBatch(decodedText); } 
-            else { scannerAktif = false; window.matikanKamera(); window.autoSimpanSesuaiMode(decodedText); }
+            scannerAktif = false; window.matikanKamera(); window.autoSimpanSesuaiMode(decodedText);
           }, () => {}
         ).then(() => {
           scannerStarting = false;
@@ -521,8 +477,8 @@
       const kodeInput = document.getElementById("inputKodeManual").value.trim();
       if (!kodeInput) return alert("Masukkan Kode Barang atau ID Aset!");
       triggerSuccessFeedback();
-      if (isBatchMode) { tambahKeBatch(kodeInput); document.getElementById("inputKodeManual").value = ""; } 
-      else { scannerAktif = false; window.matikanKamera(); window.autoSimpanSesuaiMode(kodeInput); }
+      scannerAktif = false; window.matikanKamera(); window.autoSimpanSesuaiMode(kodeInput);
+      document.getElementById("inputKodeManual").value = "";
     };
 
     // --- MODE SELECTION ---
@@ -552,20 +508,18 @@
     function siapkanHalamanScanner() {
       document.getElementById("page-scanner").style.display = "block"; document.getElementById("page-informasi").style.display = "none";
       const judul = document.getElementById("judulScanner"), subjudul = document.getElementById("subjudulScanner");
-      const headerTeks = document.getElementById("teksModeAktif"), switchContainer = document.getElementById("wrapperSwitchBatch");
+      const headerTeks = document.getElementById("teksModeAktif");
 
       if (modeAktif === 'KIR') {
         judul.innerHTML = `<i class="fa-solid fa-door-open" style="color:var(--kir);"></i> Pemetaan KIR`;
         subjudul.innerHTML = `Mencatat aset untuk ruangan: <strong>${ruanganAktif.toUpperCase()}</strong>`;
         headerTeks.innerText = "MODE: KARTU INVENTARIS RUANGAN";
         document.getElementById("btnStartCamera").className = "btn btn-kir";
-        switchContainer.className = "switch-container kir-mode";
       } else {
         judul.innerHTML = `<i class="fa-solid fa-qrcode" style="color:var(--primary);"></i> Scan Global`;
         subjudul.innerHTML = `Pencatatan database master reguler.`;
         headerTeks.innerText = "MODE: INVENTARISASI MASTER";
         document.getElementById("btnStartCamera").className = "btn btn-primary";
-        switchContainer.className = "switch-container";
       }
       scannerAktif = true; window.mulaiKamera(); window.scrollTo({ top: 0, behavior: 'auto' });
     }
@@ -593,48 +547,6 @@
       fetch(CONFIG.API_URL, { method: "POST", headers: { "Content-Type": "application/x-www-form-urlencoded" }, body: bodyParams.toString() })
       .then(res => res.json()).then(data => { memoryCache.delete(kodeBersih); window.prosesCekDetailAset(kodeBersih, false, true, data.result === "success"); })
       .catch(err => { window.prosesCekDetailAset(kodeBersih, false, true, false); });
-    };
-
-    // --- MODE BATCH ---
-    window.handleToggleBatchMode = function (isChecked) {
-      isBatchMode = isChecked;
-      const batchC = document.getElementById("batchResultContainer"), divM = document.getElementById("dividerManual"), boxM = document.getElementById("boxManualInput"), hist = document.getElementById("sectionHistori");
-      if (isChecked) { batchC.classList.add("active"); divM.style.display = "none"; boxM.style.display = "none"; hist.style.display = "none"; } 
-      else { batchC.classList.remove("active"); divM.style.display = "block"; boxM.style.display = "block"; hist.style.display = "block"; }
-    };
-
-    function tambahKeBatch(kodeData) { const kB = ekstrakKodeMurni(kodeData); if (kB && !batchSet.has(kB)) { batchSet.add(kB); renderBatchList(); } }
-    window.clearBatchItems = function() { if(batchSet.size > 0 && confirm("Kosongkan semua daftar scan massal?")) { batchSet.clear(); renderBatchList(); } };
-    window.hapusItemBatch = function(kodeHapus) { batchSet.delete(kodeHapus); renderBatchList(); }
-
-    function renderBatchList() {
-      const listUl = document.getElementById("batchList"); document.getElementById("batchItemCount").innerText = batchSet.size; listUl.innerHTML = "";
-      batchSet.forEach(k => { listUl.innerHTML += `<li class="batch-item"><span style="font-family: monospace; font-weight: 800; color: var(--primary);">${k}</span><button onclick="hapusItemBatch('${k}')" style="background: var(--danger-soft); border: none; color: var(--danger); border-radius: 4px; padding: 4px 8px; cursor: pointer; font-size: 10px; font-weight: 700;">Hapus</button></li>`; });
-    }
-
-    window.eksekusiSimpanMassal = function() {
-      if (batchSet.size === 0) return alert("Antrean massal masih kosong!");
-      if (!confirm(`Simpan pembaruan untuk ${batchSet.size} barang sekaligus?`)) return;
-
-      const btnSimpan = document.getElementById("btnSimpanMassal");
-      btnSimpan.disabled = true; btnSimpan.innerHTML = `<i class="fa-solid fa-spinner fa-spin"></i> Mengirim ${batchSet.size} data...`;
-
-      const arrKodes = Array.from(batchSet), actionAPI = modeAktif === 'KIR' ? "update_kir_massal" : "update_inventaris_massal";
-      const payloadData = { action: actionAPI, kodes: arrKodes };
-      if (modeAktif === 'KIR') payloadData.ruangan = ruanganAktif;
-
-      if (!navigator.onLine) {
-        arrKodes.forEach(k => { let objQ = { action: modeAktif === 'KIR' ? "update_kir" : "update_inventaris", kode: k }; if (modeAktif === 'KIR') objQ.ruangan = ruanganAktif; StagingManager.addQueueItem(objQ); });
-        updateNetworkStatus(); batchSet.clear(); renderBatchList(); btnSimpan.disabled = false; btnSimpan.innerHTML = `<i class="fa-solid fa-cloud-arrow-up"></i> Simpan Semua ke Database`;
-        alert(`MODE LURING: ${arrKodes.length} data tersimpan di HP.`); return;
-      }
-
-      fetch(CONFIG.API_URL, { method: "POST", body: JSON.stringify(payloadData) })
-      .then(res => res.json()).then(data => {
-        btnSimpan.disabled = false; btnSimpan.innerHTML = `<i class="fa-solid fa-cloud-arrow-up"></i> Simpan Semua ke Database`;
-        if (data.result === "success") { alert("BERHASIL: " + data.message); arrKodes.forEach(k => memoryCache.delete(k)); batchSet.clear(); renderBatchList(); } 
-        else { alert("GAGAL: " + (data.message || "Gagal mencatat inventaris massal.")); }
-      }).catch(err => { btnSimpan.disabled = false; btnSimpan.innerHTML = `<i class="fa-solid fa-cloud-arrow-up"></i> Simpan Semua ke Database`; alert("Terjadi kesalahan jaringan saat mengirim data!"); });
     };
 
     // --- SISTEM JARINGAN & UTILITAS ---
