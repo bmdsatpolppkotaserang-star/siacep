@@ -67,15 +67,11 @@
     .switch-label { font-size: 13px; font-weight: 700; color: var(--primary); }
     .switch-container.kir-mode .switch-label { color: var(--kir-hover); }
 
-    /* CSS BARU UNTUK LIST MASSAL */
     #batchResultContainer { display: none; width: 100%; margin-top: 16px; border: 1px solid var(--border); border-radius: var(--radius); overflow: hidden; }
     #batchResultContainer.active { display: block; }
     .batch-header { background: #f1f5f9; padding: 10px 14px; display: flex; justify-content: space-between; align-items: center; border-bottom: 1px solid var(--border); font-size: 12px; font-weight: 700; }
-    .batch-list { max-height: 200px; overflow-y: auto; padding: 0; margin: 0; list-style: none; }
-    .batch-item { padding: 10px 14px; border-bottom: 1px solid var(--border); display: flex; justify-content: space-between; align-items: center; font-size: 12px; border-left: 4px solid transparent; background-color: #ffffff; transition: background 0.2s; }
-    .batch-item.conflict { background-color: var(--warning-soft); border-left-color: var(--warning); }
-    .batch-item.not-found { background-color: var(--danger-soft); border-left-color: var(--danger); }
-    .batch-item.ok { border-left-color: var(--success); }
+    .batch-list { max-height: 180px; overflow-y: auto; padding: 0; margin: 0; list-style: none; }
+    .batch-item { padding: 10px 14px; border-bottom: 1px solid var(--border); display: flex; justify-content: space-between; align-items: center; font-size: 12px; }
 
     .btn { border: none; padding: 13px 18px; border-radius: 12px; font-weight: 700; font-size: 13.5px; cursor: pointer; display: inline-flex; align-items: center; justify-content: center; gap: 8px; transition: all 0.2s ease; box-shadow: 0 4px 10px rgba(0, 0, 0, 0.05); }
     .btn:active { transform: scale(0.98); }
@@ -320,10 +316,7 @@
     });
 
     let scannerAktif = true, html5QrCode = null, isTorchOn = false, sessionTimer = null;
-    
-    // --- VARIABEL BARU UNTUK VALIDASI UI MASSAL ---
-    let isBatchMode = false, batchSet = new Set(), batchInfoMap = new Map(), lastScanTime = 0, lastScanCode = "";
-    
+    let isBatchMode = false, batchSet = new Set(), lastScanTime = 0, lastScanCode = "";
     let modeAktif = null, ruanganAktif = "";
     let isPengurusBarang = false; 
 
@@ -460,7 +453,7 @@
     }
 
     // =========================================================================
-    // LOGIKA UI BATCH SCAN (DENGAN PENGECEKAN LATAR BELAKANG)
+    // LOGIKA UI BATCH SCAN (KILAT TANPA BACKGROUND CHECK)
     // =========================================================================
 
     window.handleToggleBatchMode = function (isChecked) {
@@ -474,75 +467,25 @@
       const kB = ekstrakKodeMurni(kodeData); 
       if (kB && !batchSet.has(kB)) { 
         batchSet.add(kB); 
-        batchInfoMap.set(kB, { status: 'checking' });
         renderBatchList(); 
-
-        // Proses pengecekan latar belakang agar UI menampilkan status
-        if (navigator.onLine) {
-          if (memoryCache.has(kB)) {
-            processBatchValidation(kB, memoryCache.get(kB));
-          } else {
-            fetch(`${CONFIG.API_URL}?action=get_detail&kode=${encodeURIComponent(kB)}`)
-            .then(r => r.json())
-            .then(data => { memoryCache.set(kB, data); processBatchValidation(kB, data); })
-            .catch(e => { batchInfoMap.set(kB, { status: 'error' }); renderBatchList(); });
-          }
-        }
       } 
-    }
-
-    function processBatchValidation(kB, data) {
-      if (data && data.result === 'found') {
-        let currentRoom = (data.ruangan_aset || "").trim().toUpperCase();
-        let conflict = false;
-        
-        // Logika warna: Jika Mode KIR, cek kecocokan ruang asal
-        if (modeAktif === 'KIR' && currentRoom !== "" && currentRoom !== "-" && currentRoom !== "BELUM DIPETAKAN" && currentRoom !== "BELUM DIALOKASIKAN" && currentRoom !== ruanganAktif.toUpperCase()) {
-          conflict = true;
-        }
-        batchInfoMap.set(kB, { status: 'done', conflict: conflict, room: currentRoom });
-      } else {
-        batchInfoMap.set(kB, { status: 'not_found' });
-      }
-      renderBatchList();
     }
 
     window.clearBatchItems = function() { 
       if(batchSet.size > 0 && confirm("Konfirmasi untuk membersihkan seluruh antrean saat ini?")) { 
-        batchSet.clear(); batchInfoMap.clear(); renderBatchList(); 
+        batchSet.clear(); renderBatchList(); 
       } 
     };
 
     window.hapusItemBatch = function(kodeHapus) { 
-      batchSet.delete(kodeHapus); batchInfoMap.delete(kodeHapus); renderBatchList(); 
+      batchSet.delete(kodeHapus); renderBatchList(); 
     }
 
     function renderBatchList() {
       const listUl = document.getElementById("batchList"); document.getElementById("batchItemCount").innerText = batchSet.size; listUl.innerHTML = "";
       batchSet.forEach(k => { 
-        let info = batchInfoMap.get(k);
-        let cssClass = ""; let infoTeks = "";
-
-        if (info) {
-          if (info.status === 'checking') {
-            infoTeks = `<span style="font-size:9px; color:#94a3b8;"><i class="fa-solid fa-spinner fa-spin"></i> Cek latar belakang...</span>`;
-          } else if (info.conflict) {
-            cssClass = "conflict";
-            infoTeks = `<div style="font-size:9px; color:var(--warning-dark, #b45309); font-weight:800; margin-top:2px;"><i class="fa-solid fa-triangle-exclamation"></i> Terdaftar di: ${info.room}</div>`;
-          } else if (info.status === 'not_found') {
-            cssClass = "not-found";
-            infoTeks = `<div style="font-size:9px; color:var(--danger); font-weight:800; margin-top:2px;"><i class="fa-solid fa-xmark"></i> Kode tidak dikenal di Master</div>`;
-          } else if (info.status === 'done') {
-            cssClass = "ok";
-            infoTeks = `<span style="font-size:9px; color:var(--success); font-weight:700;"><i class="fa-solid fa-check"></i> Kode Valid</span>`;
-          }
-        }
-
-        listUl.innerHTML += `<li class="batch-item ${cssClass}">
-          <div>
-            <div style="font-family: monospace; font-weight: 800; color: var(--primary);">${k}</div>
-            ${infoTeks}
-          </div>
+        listUl.innerHTML += `<li class="batch-item">
+          <span style="font-family: monospace; font-weight: 800; color: var(--primary);">${k}</span>
           <button onclick="hapusItemBatch('${k}')" style="background: var(--danger-soft); border: none; color: var(--danger); border-radius: 4px; padding: 6px 10px; cursor: pointer; font-size: 10px; font-weight: 700;">Hapus</button>
         </li>`; 
       });
@@ -560,32 +503,28 @@
 
       if (!navigator.onLine) {
         arrKodes.forEach(k => { let objQ = { action: modeAktif === 'KIR' ? "update_kir" : "update_inventaris", kode: k }; if (modeAktif === 'KIR') objQ.ruangan = ruanganAktif; StagingManager.addQueueItem(objQ); });
-        updateNetworkStatus(); batchSet.clear(); batchInfoMap.clear(); renderBatchList(); btnSimpan.disabled = false; btnSimpan.innerHTML = `<i class="fa-solid fa-cloud-arrow-up"></i> Simpan Antrean`;
+        updateNetworkStatus(); batchSet.clear(); renderBatchList(); btnSimpan.disabled = false; btnSimpan.innerHTML = `<i class="fa-solid fa-cloud-arrow-up"></i> Simpan Antrean`;
         alert(`Koneksi Terputus: ${arrKodes.length} entri disimpan secara lokal.`); return;
       }
 
-      function sendBatchRequest(payload) {
-        fetch(CONFIG.API_URL, { method: "POST", body: JSON.stringify(payload) })
-        .then(res => res.json()).then(data => {
-          if (data.result === "need_confirmation") {
-            if (confirm(data.message)) {
-              payload.force = true; 
-              btnSimpan.innerHTML = `<i class="fa-solid fa-spinner fa-spin"></i> Realokasi Massal...`;
-              sendBatchRequest(payload); 
-            } else {
-              btnSimpan.disabled = false; btnSimpan.innerHTML = `<i class="fa-solid fa-cloud-arrow-up"></i> Simpan Antrean`;
-              alert("Operasi realokasi massal dibatalkan.");
-            }
-            return;
-          }
-          
-          btnSimpan.disabled = false; btnSimpan.innerHTML = `<i class="fa-solid fa-cloud-arrow-up"></i> Simpan Antrean`;
-          if (data.result === "success") { alert("Status: Berhasil. " + data.message); arrKodes.forEach(k => memoryCache.delete(k)); batchSet.clear(); batchInfoMap.clear(); renderBatchList(); } 
-          else { alert("Kesalahan Sistem: " + (data.message || "Gagal melakukan sinkronisasi data.")); }
-        }).catch(err => { btnSimpan.disabled = false; btnSimpan.innerHTML = `<i class="fa-solid fa-cloud-arrow-up"></i> Simpan Antrean`; alert("Gangguan koneksi saat proses sinkronisasi server."); });
-      }
-
-      sendBatchRequest(payloadData);
+      fetch(CONFIG.API_URL, { method: "POST", body: JSON.stringify(payloadData) })
+      .then(res => res.json()).then(data => {
+        btnSimpan.disabled = false; btnSimpan.innerHTML = `<i class="fa-solid fa-cloud-arrow-up"></i> Simpan Antrean`;
+        
+        if (data.result === "success") { 
+          // Memunculkan hasil akhir penyaringan dari server
+          alert("LAPORAN PENYIMPANAN:\n\n" + data.message); 
+          arrKodes.forEach(k => memoryCache.delete(k)); 
+          batchSet.clear(); 
+          renderBatchList(); 
+        } 
+        else { 
+          alert("Kesalahan Sistem: " + (data.message || "Gagal melakukan sinkronisasi data.")); 
+        }
+      }).catch(err => { 
+        btnSimpan.disabled = false; btnSimpan.innerHTML = `<i class="fa-solid fa-cloud-arrow-up"></i> Simpan Antrean`; 
+        alert("Gangguan koneksi saat proses sinkronisasi server."); 
+      });
     };
 
     window.autoSimpanSesuaiMode = function(kodeQR) {
