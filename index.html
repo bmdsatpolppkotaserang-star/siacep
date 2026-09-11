@@ -29,9 +29,9 @@
     }
     * { box-sizing: border-box; margin: 0; padding: 0; font-family: 'Plus Jakarta Sans', sans-serif; -webkit-tap-highlight-color: transparent; }
     body { background-color: var(--bg); color: var(--text); line-height: 1.5; padding-bottom: 30px; }
-    .network-banner { background-color: #334155; color: #fff; font-size: 11px; font-weight: 700; text-align: center; padding: 6px 12px; display: none; align-items: center; justify-content: center; gap: 6px; }
+    .network-banner { background-color: #334155; color: #fff; font-size: 11px; font-weight: 700; text-align: center; padding: 8px 12px; display: none; align-items: center; justify-content: center; gap: 6px; }
     .network-banner.offline { background-color: var(--danger); display: flex; }
-    .network-banner.queue { background-color: var(--warning); display: flex; color: #000; }
+    .network-banner.queue { background-color: var(--warning); display: flex; color: #000; flex-wrap: wrap; }
     .app-header { background-color: var(--card-bg); padding: 16px; border-bottom: 1px solid var(--border); box-shadow: 0 4px 12px rgba(15, 23, 42, 0.03); position: sticky; top: 0; z-index: 100; }
     .header-container { display: flex; align-items: center; justify-content: space-between; max-width: 500px; margin: 0 auto; }
     .header-logo-left img, .header-logo-right img { height: 40px; width: auto; object-fit: contain; }
@@ -142,7 +142,13 @@
   </div>
 
   <div id="networkBanner" class="network-banner">
-    <i class="fa-solid fa-wifi"></i> <span id="networkStatusText">Memeriksa koneksi...</span>
+    <div style="display: flex; align-items: center; gap: 6px;">
+      <i class="fa-solid fa-wifi"></i> <span id="networkStatusText">Memeriksa koneksi...</span>
+    </div>
+    <div id="networkActionButtons" style="display: none; gap: 6px;">
+      <button onclick="prosesSinkronisasiOtomatis()" style="padding: 4px 8px; font-size: 10px; font-weight: 700; border-radius: 6px; background: #0f172a; color: #fff; border: none; cursor: pointer;">Coba Lagi</button>
+      <button onclick="paksaHapusAntrean()" style="padding: 4px 8px; font-size: 10px; font-weight: 700; border-radius: 6px; background: #dc2626; color: #fff; border: none; cursor: pointer;">Hapus</button>
+    </div>
   </div>
 
   <header class="app-header">
@@ -365,6 +371,12 @@
 
     document.addEventListener("DOMContentLoaded", function () {
       updateNetworkStatus(); renderScanHistory(); pingWarmupServer();
+      
+      // TRIGGER SINKRONISASI SAAT APLIKASI DIBUKA (JIKA ONLINE & ADA ANTREAN)
+      if (navigator.onLine) {
+        prosesSinkronisasiOtomatis();
+      }
+
       if (document.getElementById("reader")) html5QrCode = new Html5Qrcode("reader");
       let scannerStarting = false;
 
@@ -452,10 +464,6 @@
       scannerAktif = true; window.mulaiKamera(); window.scrollTo({ top: 0, behavior: 'auto' });
     }
 
-    // =========================================================================
-    // LOGIKA UI BATCH SCAN (KILAT TANPA BACKGROUND CHECK)
-    // =========================================================================
-
     window.handleToggleBatchMode = function (isChecked) {
       isBatchMode = isChecked;
       const batchC = document.getElementById("batchResultContainer"), divM = document.getElementById("dividerManual"), boxM = document.getElementById("boxManualInput"), hist = document.getElementById("sectionHistori");
@@ -512,7 +520,6 @@
         btnSimpan.disabled = false; btnSimpan.innerHTML = `<i class="fa-solid fa-cloud-arrow-up"></i> Simpan Antrean`;
         
         if (data.result === "success") { 
-          // Memunculkan hasil akhir penyaringan dari server
           alert("LAPORAN PENYIMPANAN:\n\n" + data.message); 
           arrKodes.forEach(k => memoryCache.delete(k)); 
           batchSet.clear(); 
@@ -566,14 +573,73 @@
       .catch(err => { window.prosesCekDetailAset(kodeBersih, isPengurusBarang, true, false); });
     };
 
-    async function updateNetworkStatus() {
-      const banner = document.getElementById("networkBanner"), statusText = document.getElementById("networkStatusText");
-      if (!banner || !statusText) return; let offlineQueue = await StagingManager.getQueue();
-      if (!navigator.onLine) { banner.className = "network-banner offline"; statusText.innerText = "Mode Luring Aktif (Offline)"; } 
-      else if (offlineQueue.length > 0) { banner.className = "network-banner queue"; statusText.innerText = `Menyinkronkan ${offlineQueue.length} data antrean...`; } 
-      else { banner.className = "network-banner"; }
+    // =========================================================================
+    // FUNGSI SINKRONISASI OTOMATIS & UPDATE JARINGAN BARU
+    // =========================================================================
+
+    async function prosesSinkronisasiOtomatis() {
+      let offlineQueue = await StagingManager.getQueue();
+      if (offlineQueue.length > 0 && navigator.onLine) {
+        document.getElementById("networkStatusText").innerText = `Menyinkronkan ${offlineQueue.length} data... Mohon tunggu.`;
+        const bodyParams = new URLSearchParams(); 
+        bodyParams.append("action", "sync_offline_massal"); 
+        bodyParams.append("data_list", JSON.stringify(offlineQueue));
+        
+        fetch(CONFIG.API_URL, { method: "POST", headers: { "Content-Type": "application/x-www-form-urlencoded" }, body: bodyParams.toString() })
+        .then(res => res.json()).then(resData => {
+          if (resData && resData.result === "success") { 
+            StagingManager.clearQueue(); 
+            memoryCache.clear(); 
+            updateNetworkStatus(); 
+            alert("SINKRONISASI SELESAI: " + resData.message); 
+          } else {
+            document.getElementById("networkStatusText").innerText = "Gagal sinkron. Cek koneksi!";
+            document.getElementById("networkActionButtons").style.display = "flex";
+          }
+        }).catch(err => {
+          document.getElementById("networkStatusText").innerText = "Server sibuk. Akan dicoba lagi.";
+          document.getElementById("networkActionButtons").style.display = "flex";
+        });
+      }
     }
-    window.addEventListener('online', updateNetworkStatus); window.addEventListener('offline', updateNetworkStatus);
+
+    window.paksaHapusAntrean = function() {
+      if(confirm("Apakah Anda yakin ingin MENGHAPUS PAKSA tumpukan antrean ini? Data scan offline tersebut tidak akan masuk ke server!")) {
+        StagingManager.clearQueue();
+        updateNetworkStatus();
+      }
+    };
+
+    async function updateNetworkStatus() {
+      const banner = document.getElementById("networkBanner");
+      const statusText = document.getElementById("networkStatusText");
+      const actionBtns = document.getElementById("networkActionButtons");
+      
+      if (!banner || !statusText || !actionBtns) return; 
+      
+      let offlineQueue = await StagingManager.getQueue();
+      
+      if (!navigator.onLine) { 
+        banner.className = "network-banner offline"; 
+        statusText.innerText = "Mode Luring Aktif (Offline)"; 
+        actionBtns.style.display = "none";
+      } else if (offlineQueue.length > 0) { 
+        banner.className = "network-banner queue"; 
+        statusText.innerText = `Ada ${offlineQueue.length} data tertunda.`; 
+        actionBtns.style.display = "flex";
+      } else { 
+        banner.className = "network-banner"; 
+        actionBtns.style.display = "none";
+      }
+    }
+
+    window.addEventListener('online', () => {
+      updateNetworkStatus();
+      prosesSinkronisasiOtomatis();
+    });
+    
+    window.addEventListener('offline', updateNetworkStatus);
+    
     function pingWarmupServer() { fetch(`${CONFIG.API_URL}?action=ping`, { method: 'GET', mode: 'no-cors' }).catch(() => {}); }
     function safeStr(val) { return (val === undefined || val === null || val === "" || val === "null") ? "-" : String(val).trim(); }
     function ekstrakKodeMurni(input) {
@@ -701,18 +767,6 @@
         else { alert("Kesalahan: " + data.message); }
       }).catch(err => { btn.innerHTML = `Konfirmasi Hapus`; btn.disabled = false; alert("Gangguan koneksi pada tahap reset data."); });
     };
-
-    window.addEventListener("online", async () => {
-      let offlineQueue = await StagingManager.getQueue();
-      if (offlineQueue.length > 0) {
-        updateNetworkStatus();
-        const bodyParams = new URLSearchParams(); bodyParams.append("action", "sync_offline_massal"); bodyParams.append("data_list", JSON.stringify(offlineQueue));
-        fetch(CONFIG.API_URL, { method: "POST", headers: { "Content-Type": "application/x-www-form-urlencoded" }, body: bodyParams.toString() })
-        .then(res => res.json()).then(resData => {
-          if (resData && resData.result === "success") { StagingManager.clearQueue(); memoryCache.clear(); updateNetworkStatus(); alert("SINKRONISASI DATA: " + resData.message); }
-        }).catch(err => console.error("Kegagalan siklus sync:", err));
-      }
-    });
 
     if ('serviceWorker' in navigator) { window.addEventListener('load', () => { navigator.serviceWorker.register('./sw.js').catch(err => console.error('SW Error:', err)); }); }
   </script>
