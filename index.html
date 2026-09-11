@@ -93,7 +93,6 @@
 </head>
 <body>
 
-  <!-- 1. OVERLAY PEMILIHAN MODE -->
   <div id="overlayMode">
     <div class="modal-box" style="text-align: center;">
       <img src="logo.png" alt="Logo" style="height: 50px; margin-bottom: 16px;" onerror="this.style.display='none'">
@@ -110,7 +109,6 @@
     </div>
   </div>
 
-  <!-- 2. OVERLAY INPUT NAMA RUANGAN (KIR) -->
   <div id="overlayInputRuangan" class="modal">
     <div class="modal-box" style="text-align: center;">
       <div style="font-size: 32px; color: var(--kir); margin-bottom: 12px;"><i class="fa-solid fa-door-open"></i></div>
@@ -124,12 +122,10 @@
     </div>
   </div>
 
-  <!-- INDICATOR STATUS SINKRONISASI -->
   <div id="networkBanner" class="network-banner">
     <i class="fa-solid fa-wifi"></i> <span id="networkStatusText">Memeriksa jaringan...</span>
   </div>
 
-  <!-- HEADER -->
   <header class="app-header">
     <div class="header-container">
       <div class="header-logo-left"><img src="logo.png" onerror="this.style.opacity='0'"></div>
@@ -141,10 +137,7 @@
     </div>
   </header>
 
-  <!-- KONTEN UTAMA -->
   <main class="main-container">
-
-    <!-- HALAMAN 1: KAMERA / SCANNER -->
     <section id="page-scanner" class="content-card" style="display: none;">
       <div class="card-title">
         <h2 id="judulScanner"><i class="fa-solid fa-qrcode" style="color: var(--primary);"></i> Pindai QR Code</h2>
@@ -167,7 +160,6 @@
         </div>
       </div>
 
-      <!-- HISTORI SCAN TERAKHIR -->
       <div id="sectionHistori" style="margin-top: 24px; border-top: 1px solid var(--border); padding-top: 16px;">
         <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom: 10px;">
           <h3 style="font-size: 12px; font-weight: 700; color: var(--text-muted); text-transform: uppercase;"><i class="fa-solid fa-clock-rotate-left"></i> Riwayat Terakhir</h3>
@@ -182,7 +174,6 @@
       </div>
     </section>
 
-    <!-- HALAMAN 2: LEMBAR INFORMASI ASET -->
     <section id="page-informasi" class="content-card" style="display: none;">
       <div class="card-title" style="display: flex; justify-content: space-between; align-items: center;">
         <h2 style="margin: 0;"><i class="fa-solid fa-file-lines" style="color: var(--primary);"></i> Hasil Pencatatan</h2>
@@ -190,7 +181,7 @@
 
       <div class="info-card"><div id="infoDetailAset"></div></div>
 
-      <!-- PANEL PENGURUS BARANG KHUSUS -->
+      <!-- PANEL PENGURUS BARANG (KEMBALI KE KOTAK REGULER) -->
       <div id="panelPetugas" class="panel-petugas" style="display: none; margin-top: 16px; background-color: #ffffff; border: 1.5px solid var(--primary-soft); border-radius: var(--radius); padding: 16px; box-shadow: var(--shadow);">
         <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 12px; border-bottom: 1px solid var(--border); padding-bottom: 8px;">
           <h3 style="margin: 0; font-size: 14px; color: var(--text); display: flex; align-items: center; gap: 6px;"><i class="fa-solid fa-key" style="color: var(--primary);"></i> Menu Pengurus Barang</h3>
@@ -205,10 +196,9 @@
         </div>
       </div>
     </section>
-
   </main>
 
-  <!-- SEMUA MODAL TERLAMPIR SEPERTI SEBELUMNYA (PIN, Reset, Stiker, Laporan) -->
+  <!-- MODAL-MODAL BAWAAN TETAP AMAN -->
   <div id="modalPin" class="modal" role="dialog" aria-modal="true">
     <div class="modal-box" style="text-align: center;">
       <div style="width: 48px; height: 48px; background: var(--primary-soft); color: var(--primary); border-radius: 50%; display: flex; align-items: center; justify-content: center; margin: 0 auto 12px auto; font-size: 20px;"><i class="fa-solid fa-lock"></i></div>
@@ -272,12 +262,10 @@
     </div>
   </div>
 
-  <!-- FOOTER -->
   <footer class="app-footer">
     <p><strong>SI-ACEP</strong> &copy; Satpol PP Kota Serang</p>
   </footer>
 
-  <!-- SCRIPT UTAMA APLIKASI (SI-ACEP) -->
   <script>
     const CONFIG = {
       API_URL: "https://script.google.com/macros/s/AKfycbz4DcVVh0ORsCAngL3PzQChef8Rzryo1Ts4e1ySKchv_WSa7d2zUY9yXWK7NgVai1yP/exec",
@@ -291,14 +279,11 @@
     let scannerAktif = true, html5QrCode = null, isTorchOn = false, sessionTimer = null;
     let lastScanTime = 0, lastScanCode = "";
     let modeAktif = null, ruanganAktif = "";
-    
-    // VARIABEL GLOBAL PENGURUS BARANG
     let isPengurusBarang = false; 
 
     const memoryCache = new Map();
     const scanBeepSound = new Audio("data:audio/wav;base64,UklGRl9vT19XQVZFZm10IBAAAAABAAEAQB8AAEAfAAABAAgAZGF0YUtvT18AZv8AZv8AZv8AZv8AZv8AZv8AZv8AZv8AZv8AZv8AZv8AZv8AZv8AZv8AZv8AZv8AZv8AZv8AZv8AZv8AZv8AZv8AZv8AZv8AZv8AZv8AZv8AZv8AZv8AZv8AZv8AZv8AZv8AZv8AZv8AZv8AZv8AZv8AZv8AZv8AZv8AZv8=");
 
-    // INDEXED DB MANAGER
     const StagingManager = {
       init: function() {
         return new Promise((resolve, reject) => {
@@ -370,7 +355,6 @@
 
       document.getElementById("btnStartCamera")?.addEventListener("click", () => { scannerAktif = true; window.mulaiKamera(); });
       document.addEventListener("visibilitychange", () => { if (document.hidden) window.matikanKamera(); });
-
       document.getElementById("inputKodeManual")?.addEventListener("keypress", (e) => { if (e.key === "Enter") window.eksekusiCariManual(); });
       document.getElementById("btnHapusInventaris")?.addEventListener("click", () => { const kode = localStorage.getItem("print_kode"); if (kode) window.hapusDataAset(kode); });
       document.getElementById("btnCetakQR")?.addEventListener("click", () => { const kode = localStorage.getItem("print_kode"); if (kode) window.cetakStikerMassal([kode]); });
@@ -384,7 +368,6 @@
       document.getElementById("inputKodeManual").value = "";
     };
 
-    // --- MODE SELECTION ---
     window.pilihMode = function(mode) {
       modeAktif = mode; document.getElementById("overlayMode").style.display = "none";
       if (mode === 'KIR') { document.getElementById("overlayInputRuangan").style.display = "flex"; document.getElementById("inputNamaRuangan").focus(); } 
@@ -427,7 +410,6 @@
       scannerAktif = true; window.mulaiKamera(); window.scrollTo({ top: 0, behavior: 'auto' });
     }
 
-    // --- AUTO SIMPAN & CEK DETAIL ---
     window.autoSimpanSesuaiMode = function(kodeQR) {
       const kodeBersih = ekstrakKodeMurni(kodeQR);
       if (!kodeBersih) return alert("Kode barang tidak valid!");
@@ -452,7 +434,6 @@
       .catch(err => { window.prosesCekDetailAset(kodeBersih, isPengurusBarang, true, false); });
     };
 
-    // --- SISTEM JARINGAN & UTILITAS ---
     async function updateNetworkStatus() {
       const banner = document.getElementById("networkBanner"), statusText = document.getElementById("networkStatusText");
       if (!banner || !statusText) return; let offlineQueue = await StagingManager.getQueue();
@@ -484,8 +465,9 @@
     }
     window.clearScanHistory = function() { localStorage.removeItem("siacep_history"); renderScanHistory(); }
 
-    // --- FETCH API & RENDERING UI ---
     function showSkeletonLoading() { document.getElementById("infoDetailAset").innerHTML = `<div style="text-align:center; padding: 10px 0;"><div class="skeleton" style="height: 24px; width: 60%; margin: 0 auto 12px auto;"></div><div class="skeleton" style="height: 16px; width: 40%; margin: 0 auto 20px auto;"></div></div><div class="info-detail-grid"><div class="info-item"><div class="skeleton" style="height: 12px; width: 30%; margin-bottom: 6px;"></div><div class="skeleton" style="height: 18px; width: 80%;"></div></div><div class="info-item"><div class="skeleton" style="height: 12px; width: 40%; margin-bottom: 6px;"></div><div class="skeleton" style="height: 18px; width: 90%;"></div></div></div>`; }
+    
+    // PEMBARUAN: Menambahkan Tampilan Ruangan di Informasi Aset
     window.prosesCekDetailAset = function (kodeQR, tampilkanHarga = false, forceRefresh = false, isSuccessSave = false) {
       const kodeBersih = ekstrakKodeMurni(kodeQR); if (!kodeBersih) return alert("Kode barang tidak valid!"); window.tampilkanHalamanInformasi();
       function renderDetailUI(data) {
@@ -500,7 +482,28 @@
           if (modeAktif === 'KIR') { bannerHTML = isSuccessSave ? `<div style="margin-bottom:12px;text-align:center;"><span class="info-badge-status status-good"><i class="fa-solid fa-circle-check"></i> MASUK KIR ${ruanganAktif.toUpperCase()}</span></div>` : `<div style="margin-bottom:12px;text-align:center;"><span class="info-badge-status status-bad"><i class="fa-solid fa-triangle-exclamation"></i> GAGAL MASUK KIR</span></div>`; } 
           else { const isTerinventaris = (data.sudah_inventaris === true || isSuccessSave); bannerHTML = `<div style="margin-bottom:12px;text-align:center;"><span class="info-badge-status ${isTerinventaris ? 'status-good' : 'status-bad'}"><i class="fa-solid ${isTerinventaris ? 'fa-circle-check' : 'fa-clock'}"></i> ${isTerinventaris ? 'MASTER TERINVENTARISASI' : 'BELUM DICATAT PERIODE INI'}</span></div>`; }
 
-          infoDetailAset.innerHTML = `${bannerHTML}<div class="info-detail-grid"><div class="info-item"><span class="info-label">KODE BARANG / REG</span><span class="info-value code-highlight">${safeStr(data.kode)} <span style="font-size:12px;color:var(--text-muted);">(Reg: ${safeStr(data.reg)})</span></span></div><div class="info-item"><span class="info-label">NAMA BARANG / MERK</span><span class="info-value">${safeStr(data.nama)} ${data.merk && data.merk !== '-' ? ' - ' + data.merk : ''}</span></div><div class="info-item"><span class="info-label">SPESIFIKASI & TAHUN</span><span class="info-value">Ukuran: ${safeStr(data.ukuran)} | Bahan: ${safeStr(data.bahan)} | Tahun: ${safeStr(data.tahun_perolehan || data.tahun)}</span></div><div class="info-item"><span class="info-label">KONDISI & STATUS ASET</span><span class="info-value">${safeStr(data.kondisi_status)} (Status: ${safeStr(data.status_aset)})</span></div><div class="info-item" style="background-color: ${tampilkanHarga ? 'var(--success-soft)' : 'transparent'}; padding: 6px; border-radius: 8px;"><span class="info-label">NILAI / HARGA BARANG</span><span class="info-value" style="color: #065f46;">${teksHarga}</span></div></div><div style="margin-top: 16px;"><button type="button" onclick="siapkanHalamanScanner()" class="btn ${modeAktif === 'KIR' ? 'btn-kir' : 'btn-primary'}" style="width: 100%;"><i class="fa-solid fa-arrow-left"></i> Scan Barang Lain</button></div>`;
+          // Logika Tampilan Ruangan (Hijau jika ada, Merah jika Kosong)
+          let teksRuangan = data.ruangan_aset && data.ruangan_aset !== "-" ? data.ruangan_aset.toUpperCase() : "BELUM DIPETAKAN";
+          let warnaRuangan = data.ruangan_aset && data.ruangan_aset !== "-" ? "var(--kir)" : "var(--danger)";
+
+          infoDetailAset.innerHTML = `${bannerHTML}
+          <div class="info-detail-grid">
+            <div class="info-item"><span class="info-label">KODE BARANG / REG</span><span class="info-value code-highlight">${safeStr(data.kode)} <span style="font-size:12px;color:var(--text-muted);">(Reg: ${safeStr(data.reg)})</span></span></div>
+            <div class="info-item"><span class="info-label">NAMA BARANG / MERK</span><span class="info-value">${safeStr(data.nama)} ${data.merk && data.merk !== '-' ? ' - ' + data.merk : ''}</span></div>
+            <div class="info-item"><span class="info-label">SPESIFIKASI & TAHUN</span><span class="info-value">Ukuran: ${safeStr(data.ukuran)} | Bahan: ${safeStr(data.bahan)} | Tahun: ${safeStr(data.tahun_perolehan || data.tahun)}</span></div>
+            <div class="info-item"><span class="info-label">KONDISI & STATUS ASET</span><span class="info-value">${safeStr(data.kondisi_status)} (Status: ${safeStr(data.status_aset)})</span></div>
+            
+            <!-- BLOK RUANGAN BARU -->
+            <div class="info-item">
+              <span class="info-label">LOKASI RUANGAN TERAKHIR</span>
+              <span class="info-value" style="color: ${warnaRuangan}; font-weight: 800;">
+                <i class="fa-solid fa-location-dot"></i> ${teksRuangan}
+              </span>
+            </div>
+
+            <div class="info-item" style="background-color: ${tampilkanHarga ? 'var(--success-soft)' : 'transparent'}; padding: 6px; border-radius: 8px;"><span class="info-label">NILAI / HARGA BARANG</span><span class="info-value" style="color: #065f46;">${teksHarga}</span></div>
+          </div>
+          <div style="margin-top: 16px;"><button type="button" onclick="siapkanHalamanScanner()" class="btn ${modeAktif === 'KIR' ? 'btn-kir' : 'btn-primary'}" style="width: 100%;"><i class="fa-solid fa-arrow-left"></i> Scan Barang Lain</button></div>`;
         } else { infoDetailAset.innerHTML = `<div style="text-align:center; color:var(--danger); padding:16px 10px;"><i class="fa-solid fa-circle-xmark" style="font-size:36px;"></i><p style="margin-top:10px; font-weight:700; font-size:14px;">Kode [${kodeBersih}] tidak ditemukan!</p><button type="button" onclick="siapkanHalamanScanner()" class="btn btn-dark" style="margin-top: 12px;"><i class="fa-solid fa-arrow-left"></i> Coba Kode Lain</button></div>`; }
       }
       if (!forceRefresh && memoryCache.has(kodeBersih)) { renderDetailUI(memoryCache.get(kodeBersih)); return; }
@@ -510,7 +513,6 @@
       .catch(err => { document.getElementById("infoDetailAset").innerHTML = `<div style="text-align:center; color:var(--danger); padding:16px 10px;"><i class="fa-solid fa-triangle-exclamation" style="font-size:32px;"></i><p style="margin-top:10px; font-weight:700;">Gagal mengambil data barang.</p><button type="button" onclick="window.prosesCekDetailAset('${kodeBersih}', ${tampilkanHarga}, true)" class="btn btn-primary" style="margin-top:12px;">Coba Lagi</button></div>`; });
     };
 
-    // --- PANEL PENGURUS BARANG ---
     window.openPinModal = function () { document.getElementById("modalPin").style.display = "flex"; document.getElementById("inputPinPetugas").focus(); };
     window.closePinModal = function () { document.getElementById("modalPin").style.display = "none"; };
     function startSessionTimer() { if (sessionTimer) clearTimeout(sessionTimer); sessionTimer = setTimeout(() => { window.closePanelPetugas(); alert("Sesi Petugas berakhir demi keamanan. Silakan masukkan PIN kembali."); }, CONFIG.SESSION_TIMEOUT_MS); }
@@ -522,7 +524,7 @@
       .then(res => res.json()).then(data => {
         btn.innerHTML = `Masuk`; btn.disabled = false;
         if (data.result === "success") { 
-          isPengurusBarang = true; // SET STATUS PENGURUS BARANG GLOBAL
+          isPengurusBarang = true; 
           window.closePinModal(); document.getElementById("panelPetugas").style.display = "block"; startSessionTimer(); 
           const kodePrint = localStorage.getItem("print_kode"); if (kodePrint) window.prosesCekDetailAset(kodePrint, true, true); 
         } 
@@ -532,12 +534,11 @@
     
     window.closePanelPetugas = function () { 
       if (sessionTimer) clearTimeout(sessionTimer); 
-      isPengurusBarang = false; // RESET STATUS PENGURUS BARANG
+      isPengurusBarang = false; 
       document.getElementById("panelPetugas").style.display = "none"; 
       const kodePrint = localStorage.getItem("print_kode"); if (kodePrint) window.prosesCekDetailAset(kodePrint, false, false); 
     };
     
-    // --- AKSI ASET ---
     window.hapusDataAset = function(kodeBarang) {
       const kodeBersih = ekstrakKodeMurni(kodeBarang); if (!kodeBersih) return alert("Kode barang tidak valid.");
       if (!confirm(`Hapus status inventarisasi aset [${kodeBersih}] dari Master & KIR?`)) return;
@@ -556,7 +557,6 @@
     window.eksekusiCetakStikerMassalModal = function () { const input = document.getElementById("inputKodesStikerMassal"); if (!input || !input.value.trim()) return alert("Masukkan minimal 1 kode barang!"); window.cetakStikerMassal(input.value.trim()); window.closeModalCetakStikerMassal(); };
     window.eksekusiCetakLaporan = function () { const val = document.getElementById("selectJenisDokumen").value; if (val === "ALL_EXCEL") cetakHasilInventaris(); else if (val === "KIR_EXCEL") cetakKIR(); window.closeModalCetakLaporan(); };
     
-    // --- RESET SEMUA ---
     window.openModalHapusSemua = function() { document.getElementById("modalHapusSemua").style.display = "flex"; document.getElementById("inputKonfirmasiHapusSemua").value = ""; document.getElementById("inputKonfirmasiHapusSemua").focus(); };
     window.closeModalHapusSemua = function() { document.getElementById("modalHapusSemua").style.display = "none"; };
     window.eksekusiHapusSemuaData = function() {
