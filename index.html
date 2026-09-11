@@ -115,7 +115,7 @@
 </head>
 <body>
 
-  <div id="overlayMode">
+ <div id="overlayMode">
     <div class="modal-box" style="text-align: center;">
       <img src="logo.png" alt="Logo" style="height: 50px; margin-bottom: 16px;" onerror="this.style.display='none'">
       <h2 style="margin-bottom: 4px;">Pilih Mode Kerja</h2>
@@ -123,17 +123,17 @@
       
       <div class="mode-card info" onclick="pilihMode('INFO')">
         <h3 style="color: var(--info);"><i class="fa-solid fa-circle-info"></i> Cek Informasi Aset</h3>
-        <p>Hanya melihat detail aset tanpa mengubah/menyimpan data (Read-Only).</p>
+        <p>Hanya melihat detail aset tanpa mengubah/menyimpan data.</p>
       </div>
 
       <div class="mode-card" onclick="pilihMode('GLOBAL')">
-        <h3 style="color: var(--primary);"><i class="fa-solid fa-globe"></i> Pencatatan Master</h3>
-        <p>Pencatatan aset secara reguler ke sistem pusat utama.</p>
+        <h3 style="color: var(--primary);"><i class="fa-solid fa-globe"></i> Inventarisasi Aset</h3>
+        <p>Pencatatan data induk barang secara menyeluruh ke sistem pusat.</p>
       </div>
       
       <div class="mode-card kir" onclick="pilihMode('KIR')">
-        <h3 style="color: var(--kir);"><i class="fa-solid fa-door-open"></i> Distribusi Ruangan (KIR)</h3>
-        <p>Pemetaan dan penempatan aset per ruangan khusus.</p>
+        <h3 style="color: var(--kir);"><i class="fa-solid fa-door-open"></i> Buat KIR</h3>
+        <p>Pemetaan dan pendataan barang khusus untuk Kartu Inventaris Ruangan.</p>
       </div>
     </div>
   </div>
