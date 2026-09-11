@@ -21,6 +21,7 @@
     :root {
       --primary: #0284c7; --primary-hover: #0369a1; --primary-soft: #e0f2fe;
       --kir: #059669; --kir-hover: #047857; --kir-soft: #d1fae5;
+      --info: #6366f1; --info-hover: #4f46e5; --info-soft: #e0e7ff;
       --bg: #f8fafc; --card-bg: #ffffff; --text: #0f172a; --text-muted: #64748b;
       --border: #e2e8f0; --success: #059669; --success-soft: #d1fae5;
       --danger: #ef4444; --danger-dark: #991b1b; --danger-soft: #fee2e2;
@@ -47,6 +48,7 @@
     .mode-card { border: 2px solid var(--border); border-radius: 16px; padding: 20px; cursor: pointer; transition: all 0.2s; margin-bottom: 12px; text-align: left; background: white; }
     .mode-card:hover { border-color: var(--primary); background: var(--primary-soft); }
     .mode-card.kir:hover { border-color: var(--kir); background: var(--kir-soft); }
+    .mode-card.info:hover { border-color: var(--info); background: var(--info-soft); }
     .mode-card h3 { margin: 0 0 4px 0; font-size: 16px; }
     .mode-card p { margin: 0; font-size: 12px; color: var(--text-muted); }
     .scanner-box { width: 100%; display: flex; flex-direction: column; align-items: center; }
@@ -78,6 +80,7 @@
     .btn:disabled { opacity: 0.7; cursor: not-allowed; }
     .btn-primary { background: linear-gradient(135deg, var(--primary) 0%, var(--primary-hover) 100%); color: white; }
     .btn-kir { background: linear-gradient(135deg, var(--kir) 0%, var(--kir-hover) 100%); color: white; }
+    .btn-info { background: linear-gradient(135deg, var(--info) 0%, var(--info-hover) 100%); color: white; }
     .btn-danger { background-color: var(--danger); color: white; }
     .btn-danger-dark { background-color: var(--danger-dark); color: white; }
     .btn-dark { background-color: var(--dark-panel); color: white; }
@@ -117,13 +120,20 @@
       <img src="logo.png" alt="Logo" style="height: 50px; margin-bottom: 16px;" onerror="this.style.display='none'">
       <h2 style="margin-bottom: 4px;">Pilih Mode Kerja</h2>
       <p style="font-size: 12px; color: var(--text-muted); margin-bottom: 24px;">Tentukan alur pencatatan aset saat ini.</p>
-      <div class="mode-card" onclick="pilihMode('GLOBAL')">
-        <h3 style="color: var(--primary);"><i class="fa-solid fa-globe"></i> Database Utama</h3>
-        <p>Pencatatan aset secara reguler ke sistem pusat.</p>
+      
+      <div class="mode-card info" onclick="pilihMode('INFO')">
+        <h3 style="color: var(--info);"><i class="fa-solid fa-circle-info"></i> Cek Informasi Aset</h3>
+        <p>Hanya melihat detail aset tanpa mengubah/menyimpan data (Read-Only).</p>
       </div>
+
+      <div class="mode-card" onclick="pilihMode('GLOBAL')">
+        <h3 style="color: var(--primary);"><i class="fa-solid fa-globe"></i> Pencatatan Master</h3>
+        <p>Pencatatan aset secara reguler ke sistem pusat utama.</p>
+      </div>
+      
       <div class="mode-card kir" onclick="pilihMode('KIR')">
         <h3 style="color: var(--kir);"><i class="fa-solid fa-door-open"></i> Distribusi Ruangan (KIR)</h3>
-        <p>Pemetaan dan penempatan aset per ruangan.</p>
+        <p>Pemetaan dan penempatan aset per ruangan khusus.</p>
       </div>
     </div>
   </div>
@@ -372,7 +382,6 @@
     document.addEventListener("DOMContentLoaded", function () {
       updateNetworkStatus(); renderScanHistory(); pingWarmupServer();
       
-      // TRIGGER SINKRONISASI SAAT APLIKASI DIBUKA (JIKA ONLINE & ADA ANTREAN)
       if (navigator.onLine) {
         prosesSinkronisasiOtomatis();
       }
@@ -394,8 +403,18 @@
             lastScanCode = decodedText; lastScanTime = now;
             triggerSuccessFeedback();
 
-            if (isBatchMode) { tambahKeBatch(decodedText); } 
-            else { scannerAktif = false; window.matikanKamera(); window.autoSimpanSesuaiMode(decodedText); }
+            // LOGIKA PENYARINGAN MODE INFO
+            if (isBatchMode) { 
+              tambahKeBatch(decodedText); 
+            } else if (modeAktif === 'INFO') { 
+              scannerAktif = false; 
+              window.matikanKamera(); 
+              window.prosesCekDetailAset(decodedText); 
+            } else { 
+              scannerAktif = false; 
+              window.matikanKamera(); 
+              window.autoSimpanSesuaiMode(decodedText); 
+            }
           }, () => {}
         ).then(() => {
           scannerStarting = false;
@@ -416,8 +435,22 @@
       const kodeInput = document.getElementById("inputKodeManual").value.trim();
       if (!kodeInput) return alert("Silakan masukkan Kode Aset yang valid.");
       triggerSuccessFeedback();
-      if (isBatchMode) { tambahKeBatch(kodeInput); document.getElementById("inputKodeManual").value = ""; } 
-      else { scannerAktif = false; window.matikanKamera(); window.autoSimpanSesuaiMode(kodeInput); document.getElementById("inputKodeManual").value = ""; }
+      
+      // LOGIKA PENYARINGAN MODE INFO UNTUK PENCARIAN MANUAL
+      if (isBatchMode) { 
+        tambahKeBatch(kodeInput); 
+        document.getElementById("inputKodeManual").value = ""; 
+      } else if (modeAktif === 'INFO') { 
+        scannerAktif = false; 
+        window.matikanKamera(); 
+        window.prosesCekDetailAset(kodeInput); 
+        document.getElementById("inputKodeManual").value = ""; 
+      } else { 
+        scannerAktif = false; 
+        window.matikanKamera(); 
+        window.autoSimpanSesuaiMode(kodeInput); 
+        document.getElementById("inputKodeManual").value = ""; 
+      }
     };
 
     window.pilihMode = function(mode) {
@@ -453,12 +486,24 @@
         subjudul.innerHTML = `Distribusi ruangan: <strong>${ruanganAktif.toUpperCase()}</strong>`;
         headerTeks.innerText = "ALUR: DISTRIBUSI RUANGAN (KIR)";
         document.getElementById("btnStartCamera").className = "btn btn-kir";
+        switchContainer.style.display = "flex";
         switchContainer.className = "switch-container kir-mode";
+      } else if (modeAktif === 'INFO') {
+        // TAMPILAN KHUSUS MODE INFO
+        judul.innerHTML = `<i class="fa-solid fa-circle-info" style="color:var(--info);"></i> Cek Informasi`;
+        subjudul.innerHTML = `Mode baca. Data tidak akan disimpan.`;
+        headerTeks.innerText = "ALUR: CEK INFORMASI ASET";
+        document.getElementById("btnStartCamera").className = "btn btn-info";
+        switchContainer.style.display = "none"; // Matikan tombol pindai beruntun
+        if(isBatchMode) {
+           isBatchMode = false; document.getElementById("toggleBatchMode").checked = false; window.handleToggleBatchMode(false);
+        }
       } else {
         judul.innerHTML = `<i class="fa-solid fa-qrcode" style="color:var(--primary);"></i> Pindai Global`;
         subjudul.innerHTML = `Pencatatan database utama (Master).`;
         headerTeks.innerText = "ALUR: DATABASE UTAMA";
         document.getElementById("btnStartCamera").className = "btn btn-primary";
+        switchContainer.style.display = "flex";
         switchContainer.className = "switch-container";
       }
       scannerAktif = true; window.mulaiKamera(); window.scrollTo({ top: 0, behavior: 'auto' });
@@ -573,10 +618,6 @@
       .catch(err => { window.prosesCekDetailAset(kodeBersih, isPengurusBarang, true, false); });
     };
 
-    // =========================================================================
-    // FUNGSI SINKRONISASI OTOMATIS & UPDATE JARINGAN BARU
-    // =========================================================================
-
     async function prosesSinkronisasiOtomatis() {
       let offlineQueue = await StagingManager.getQueue();
       if (offlineQueue.length > 0 && navigator.onLine) {
@@ -676,11 +717,21 @@
           if (tampilkanHarga && data.harga_total !== undefined && data.harga_total !== null) { const numHarga = Number(data.harga_total); teksHarga = isNaN(numHarga) ? safeStr(data.harga_total) : `Rp ${numHarga.toLocaleString('id-ID')}`; }
           
           let bannerHTML = "";
-          if (modeAktif === 'KIR') { bannerHTML = isSuccessSave ? `<div style="margin-bottom:12px;text-align:center;"><span class="info-badge-status status-good"><i class="fa-solid fa-circle-check"></i> DISTRIBUSI: ${ruanganAktif.toUpperCase()}</span></div>` : `<div style="margin-bottom:12px;text-align:center;"><span class="info-badge-status status-bad"><i class="fa-solid fa-triangle-exclamation"></i> KEGAGALAN SISTEM: KIR</span></div>`; } 
-          else { const isTerinventaris = (data.sudah_inventaris === true || isSuccessSave); bannerHTML = `<div style="margin-bottom:12px;text-align:center;"><span class="info-badge-status ${isTerinventaris ? 'status-good' : 'status-bad'}"><i class="fa-solid ${isTerinventaris ? 'fa-circle-check' : 'fa-clock'}"></i> ${isTerinventaris ? 'DATA MASTER: TERVERIFIKASI' : 'BELUM TERVERIFIKASI (PERIODE INI)'}</span></div>`; }
+          if (modeAktif === 'INFO') {
+            bannerHTML = `<div style="margin-bottom:12px;text-align:center;"><span class="info-badge-status" style="background:var(--info-soft); color:var(--info-hover); border: 1px solid var(--info);"><i class="fa-solid fa-circle-info"></i> MODE BACA: INFORMASI ASET</span></div>`;
+          } else if (modeAktif === 'KIR') { 
+            bannerHTML = isSuccessSave ? `<div style="margin-bottom:12px;text-align:center;"><span class="info-badge-status status-good"><i class="fa-solid fa-circle-check"></i> DISTRIBUSI: ${ruanganAktif.toUpperCase()}</span></div>` : `<div style="margin-bottom:12px;text-align:center;"><span class="info-badge-status status-bad"><i class="fa-solid fa-triangle-exclamation"></i> KEGAGALAN SISTEM: KIR</span></div>`; 
+          } else { 
+            const isTerinventaris = (data.sudah_inventaris === true || isSuccessSave); bannerHTML = `<div style="margin-bottom:12px;text-align:center;"><span class="info-badge-status ${isTerinventaris ? 'status-good' : 'status-bad'}"><i class="fa-solid ${isTerinventaris ? 'fa-circle-check' : 'fa-clock'}"></i> ${isTerinventaris ? 'DATA MASTER: TERVERIFIKASI' : 'BELUM TERVERIFIKASI (PERIODE INI)'}</span></div>`; 
+          }
 
           let teksRuangan = data.ruangan_aset && data.ruangan_aset !== "-" ? data.ruangan_aset.toUpperCase() : "BELUM DIALOKASIKAN";
           let warnaRuangan = data.ruangan_aset && data.ruangan_aset !== "-" ? "var(--kir)" : "var(--danger)";
+
+          // Set warna tombol kembali menyesuaikan mode
+          let btnClass = 'btn-primary';
+          if (modeAktif === 'KIR') btnClass = 'btn-kir';
+          else if (modeAktif === 'INFO') btnClass = 'btn-info';
 
           infoDetailAset.innerHTML = `${bannerHTML}
           <div class="info-detail-grid">
@@ -698,7 +749,7 @@
 
             <div class="info-item" style="background-color: ${tampilkanHarga ? 'var(--success-soft)' : 'transparent'}; padding: 6px; border-radius: 8px;"><span class="info-label">NILAI ASET</span><span class="info-value" style="color: #065f46;">${teksHarga}</span></div>
           </div>
-          <div style="margin-top: 16px;"><button type="button" onclick="siapkanHalamanScanner()" class="btn ${modeAktif === 'KIR' ? 'btn-kir' : 'btn-primary'}" style="width: 100%;"><i class="fa-solid fa-arrow-left"></i> Pindai Berikutnya</button></div>`;
+          <div style="margin-top: 16px;"><button type="button" onclick="siapkanHalamanScanner()" class="btn ${btnClass}" style="width: 100%;"><i class="fa-solid fa-arrow-left"></i> Pindai Berikutnya</button></div>`;
         } else { infoDetailAset.innerHTML = `<div style="text-align:center; color:var(--danger); padding:16px 10px;"><i class="fa-solid fa-circle-xmark" style="font-size:36px;"></i><p style="margin-top:10px; font-weight:700; font-size:14px;">Entri tidak ditemukan: [${kodeBersih}]</p><button type="button" onclick="siapkanHalamanScanner()" class="btn btn-dark" style="margin-top: 12px;"><i class="fa-solid fa-arrow-left"></i> Cari Kembali</button></div>`; }
       }
       if (!forceRefresh && memoryCache.has(kodeBersih)) { renderDetailUI(memoryCache.get(kodeBersih)); return; }
